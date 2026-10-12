@@ -7,7 +7,7 @@
 | **Faculty-in-charge** | Mr. Jess N. Garcia |
 | **Proponents** | Dela Cruz, Peter · Mapua, Hanz Laurence · Ragudos, Aaron Angelo · Remo, Jerick Anthony · Valenzuela, Margaret Ashley |
 | **Doc owner** | Hanz Laurence Mapua (System Analyst) |
-| **Status** | Draft v1.0, for group sign-off |
+| **Status** | Draft v1.1, for group sign-off (open questions resolved) |
 | **Date** | 2026-10-12 (Mon) |
 | **MVP deadline** | 2026-10-18 (Sun), a working, deployed MVP |
 | **Source docs** | *CS 403 Concept Proposal (Sep 2026)*; group decision log; reference repo [mohamdev/InstantHMR](https://github.com/mohamdev/InstantHMR) |
@@ -27,7 +27,7 @@
 | D2 | Main feature: camera pose tracking with **InstantHMR** (3D pose). | ✅ Final | Group |
 | D3 | Onboarding collects the user profile → generates a **meal plan** and a **workout plan**. | ✅ Final | Group |
 | D4 | **Calorie tracking** is included. | ✅ Final | Group |
-| D5 | Pose inference runs **in the browser** (onnxruntime-web). **No video leaves the device.** | ✅ Final | This session |
+| D5 | Pose inference runs **in the browser** (onnxruntime-web) by default. **No video leaves the device** (or, in fallback mode, the local network; see D15). | ✅ Final | This session |
 | D6 | Platform: **responsive web app + PWA** (installable on Android, iOS and desktop). This is how we meet "cross-platform". | ✅ Final | This session |
 | D7 | Agent: **rule-based targets (Mifflin-St Jeor) + content-based filtering (cosine similarity) + weekly feedback rules**. **No LLM** makes decisions. | ✅ Final | This session |
 | D8 | Exercises: **squat, push-up, lunge**. Squat is built first. | ✅ Final | This session |
@@ -37,12 +37,16 @@
 | D12 | Food data: **USDA FoodData Central**, **Open Food Facts** (barcode), and a **custom Filipino food table** (FNRI PhilFCT). API keys stay server-side. | ✅ Final | Group |
 | D13 | Photo-based food logging → **future work**. | ✅ Final | Group |
 | D14 | Build order: onboarding & targets → calorie logging → workout plans → pose tracking → meal plans. Pose work starts **in parallel on Day 1** because it carries the most risk. | ✅ Final | Group + this session |
+| D15 | **Pose fallback = a laptop Python pose server on the local network.** If InstantHMR can't run in the browser, a laptop runs the reference InstantHMR + MHR pipeline in Python, and the phone opens a local link to it (§7.7.3). MediaPipe becomes the last-resort fallback. | ✅ Final | Group |
+| D16 | The panel demo runs on **both a laptop and a phone**. | ✅ Final | Group |
+| D17 | Objectives O2 and O4 are **merged** into one feedback objective. The proposal now has **4 objectives** (§3.1). | ✅ Final | Group |
+| D18 | No PE instructor/physical therapist validation of thresholds, and no department ethics form needed. Thresholds are tuned on the team's labeled clips; participant consent is still collected (§12.7). | ✅ Final | Group |
 
 ### 0.1 Changes from the concept proposal (to note in the revised proposal or chapter 3)
 
 | Proposal said | PRD does | Why |
 |---|---|---|
-| "WebSockets for camera feed streaming" | Pose runs **on the device**. Only rep counts and form-error summaries are sent to the backend. | Privacy (RA 10173), no GPU server costs, lower latency. It's also a stronger ethics story for the panel. |
+| "WebSockets for camera feed streaming" | Pose runs **on the device** by default. In fallback mode (§7.7.3), frames stream over **WebSockets on the local Wi-Fi only**, from the phone to the team laptop. They're never sent to the cloud or stored. Only rep counts and form-error summaries reach the backend. | Privacy (RA 10173), no cloud GPU costs, lower latency. The WebSocket promise is still met in fallback mode. |
 | "Cross-platform application" | Responsive web app + installable PWA | One codebase that can be built in one week. Native apps → future work. |
 | "Voice controls" | **Spoken feedback** (Web Speech TTS) is P0. **Voice commands** ("start", "stop", "next") are P2. | Speech recognition support across browsers is inconsistent. |
 | "AES-256 encryption at rest, OAuth 2.0/JWT" | Supabase Postgres (encrypted at rest by the platform) + Supabase Auth (JWT, Google OAuth) + Row-Level Security | Delivers the promise using managed services. |
@@ -81,10 +85,15 @@ From the concept proposal:
 | # | Proposal objective | Met by | Measured by |
 |---|---|---|---|
 | O1 | Real-time pose estimation using deep learning and skeletal keypoints | POSE-01…08 (InstantHMR in the browser, 3D skeleton) | FPS and latency (§12.3) |
-| O2 | Automated feedback comparing live movement against standard postures | POSE-09…14 (rule-based form checks per exercise) | Form-error precision and recall vs expert labels (§12.2) |
+| O2 | **Automated, personalized corrective feedback.** Evaluate live movement against standardized exercise postures and give immediate spoken and on-screen corrections that fix improper form and reduce injury risk *(merges the proposal's original O2 and O4)* | POSE-09…14 (rule-based form checks per exercise, cues ≤ 300 ms, per-rep labels, session summary) | Form-error precision and recall vs labeled clips (§12.2), cue latency (§12.3), user survey |
 | O3 | Nutrient analysis of dietary intake + recommendations for the next day, week or month | FOOD-*, MEAL-*, AGENT-* | Calorie calculation accuracy (§12.4) |
-| O4 | Personalized, immediate corrective feedback | POSE-12…14 (spoken and on-screen cues ≤ 300 ms), session summary | Cue latency, user survey |
-| O5 | Evaluate performance, accuracy, usability | §12: rep accuracy, ISO/IEC 25010, SUS | Evaluation report |
+| O4 | Evaluate performance, accuracy, usability | §12: rep accuracy, ISO/IEC 25010, SUS | Evaluation report |
+
+**Revised objectives wording (for the proposal):**
+1. To develop a real-time pose estimation module using deep learning and skeletal keypoint tracking to analyze exercise form and overcome the limitations of static, video-only fitness applications.
+2. To implement an automated, personalized feedback system that evaluates live movement against standardized exercise postures and delivers immediate corrective guidance to fix improper form and reduce the risk of exercise-related injury.
+3. To incorporate a nutrient analysis module that assesses user dietary intake to track nutritional balance alongside physical activity, and recommends dietary and workout actions for the following day, week, or month.
+4. To evaluate the performance, accuracy, and usability of the developed system in terms of keypoint tracking precision, feedback latency, dietary analysis accuracy, and overall user experience.
 
 ### 3.2 MVP success criteria (by 2026-10-18)
 
@@ -310,11 +319,44 @@ getUserMedia (640×480 or 1280×720, user-facing)
 > ⚠️ **Day-1 gate (must be checked first).** InstantHMR has several ONNX exports. Some **have no `joints_3d` output**. Those derive the 70 keypoints from Meta's MHR forward pass (`pymomentum`, Python only), which **cannot run in the browser**. On Day 1, load the released `instanthmr.onnx` from HuggingFace (`momolesang/InstantHMR`) and print its input/output names, sizes and metadata. Then decide:
 > - **A (expected):** it outputs `joints_3d` → proceed as designed.
 > - **B:** only `joints_2d` → use InstantHMR 2D keypoints for angles (form checks use a side view), and show a 2.5D skeleton. Or →
-> - **C (fallback for the whole module):** swap in **MediaPipe Pose Landmarker** (33 joints, gives 3D world landmarks) behind the same `PoseEstimator` interface. Keep InstantHMR as the documented primary model and benchmark it offline in Python for the paper.
+> - **C (team decision, D15):** run the **reference InstantHMR pipeline in Python on a team laptop** (RF-DETR + InstantHMR + MHR/`pymomentum` for `joints_3d`) as a **local pose server**. The phone or browser opens a local link and streams frames to it (§7.7.3). This keeps the full 3D InstantHMR model, as close to the reference repo as possible.
+> - **D (last resort):** **MediaPipe Pose Landmarker** in the browser (33 joints, 3D world landmarks), only if the laptop server also fails or no laptop is available.
 >
-> Also gate on speed: if InstantHMR runs at **< 10 FPS** on the reference laptop with WebGPU/WASM → fallback C for the live demo.
+> Also gate on speed: if in-browser InstantHMR runs at **< 10 FPS** on the reference laptop with WebGPU/WASM → use C for the live demo.
 
-**Design rule:** exercise logic **never** reads raw model indices. It reads `CanonicalPose` (named joints). Both InstantHMR and MediaPipe have adapters, so the fallback is a one-line switch (`NEXT_PUBLIC_POSE_BACKEND=instanthmr|mediapipe`).
+**Design rule:** exercise logic **never** reads raw model indices. It reads `CanonicalPose` (named joints). Every backend has an adapter, so switching is a one-line config change: `NEXT_PUBLIC_POSE_BACKEND=instanthmr|remote|mediapipe`. Analyzers, cues, the 3D skeleton and session saving run in the browser **in all modes**. Only the source of keypoints changes.
+
+#### 7.7.3 Fallback mode: laptop pose server on the local network
+
+```
+Phone (or laptop) browser                         Team laptop (same Wi-Fi / hotspot)
+─────────────────────────                         ─────────────────────────────────
+getUserMedia → downscale to 640 px wide
+→ JPEG (quality 0.7) ~15 fps
+→ WebSocket  wss://<laptop-ip>:8443/ws/pose  ───►  FastAPI + uvicorn (Python 3.12)
+                                                   PosePipeline from mohamdev/InstantHMR:
+                                                   RF-DETR nano (detector stride 3)
+                                                   → InstantHMR ONNX (CUDA / CoreML / CPU)
+                                                   → MHR forward pass (pymomentum) if no joints_3d head
+◄─── JSON {frame_id, t_server_ms, joints_2d (frame px),  joints_3d (m, Y-down), bbox, score}
+→ RemotePoseEstimator → CanonicalPose → One-Euro → analyzers → UI / TTS / three.js
+```
+
+- **Server code** lives in `pose-server/` (Python). It wraps InstantHMR's `PosePipeline` as close to the reference repo as possible: `server.py` (FastAPI WebSocket endpoint + `/health`), `requirements.txt`, and a `README` that covers setup with the repo's `install.py` + `requirements-mhr.txt`. It handles one client at a time and **keeps only the latest frame** (drops stale frames so latency doesn't build up).
+- **Protocol:** client → binary message `[uint32 frame_id][JPEG bytes]`; server → JSON text message. The client keeps **at most 2 frames in flight**.
+- **"Local link":** the laptop also serves the Next.js app (`next start` or `next dev --experimental-https`), so the phone simply opens `https://<laptop-ip>:3000`. **HTTPS is required.** Phone browsers only allow camera access on secure origins. Use `mkcert` to create a local certificate (install its root CA on the demo phone), or tunnel with `cloudflared`/`ngrok` if installing the CA is a problem. The app shows a QR code for the link on the laptop's screen.
+- **Two demo layouts:**
+  1. **Phone as camera + display:** the phone streams its camera to the laptop and shows the coach UI. This is the main phone demo.
+  2. **Laptop as camera + display:** the laptop webcam feeds the local server directly (`ws://localhost`). This is the most reliable panel demo.
+- **Privacy:** frames are processed in memory, **never written to disk or logged**, and travel only on the local network. The camera consent text (AUTH-03) gets a variant: "video is processed on your device or on the team's local laptop, and is never uploaded or stored".
+- **Performance target:** ≥ 15 FPS and ≤ 150 ms round trip on 5 GHz Wi-Fi or a phone hotspot. Log the round trip, server inference time and FPS in the debug overlay.
+
+| ID | Pri | Requirement | Acceptance criteria |
+|---|---|---|---|
+| POSE-18 | P0 *(if the Day-1 gate fails)* | Python pose server (`pose-server/`) exposing `/ws/pose` + `/health`, using InstantHMR's `PosePipeline` | Returns `joints_3d` for a test image; 60 s test session at ≥ 15 FPS on the team laptop |
+| POSE-19 | P0 *(if gate fails)* | `RemotePoseEstimator` in the web app, with reconnect logic, frame dropping, and "Pose server not reachable: check Wi-Fi" error state | Switching `NEXT_PUBLIC_POSE_BACKEND=remote` needs no analyzer/UI change |
+| POSE-20 | P0 *(if gate fails)* | Local HTTPS setup documented (mkcert) + QR code to the local link | A team phone opens the app and gets camera access in < 2 min from a clean setup |
+| POSE-21 | P1 | Server-side frame timing exported with the latency log (§12.3) | — |
 
 #### 7.7.2 Requirements
 
@@ -371,7 +413,7 @@ getUserMedia (640×480 or 1280×720, user-facing)
 | OWASP security | OWASP ASVS L1 checklist, RLS on all tables, secrets server-side, input validation (zod), CSP headers | Checklist in `docs/security.md` |
 | AES-256 at rest | Supabase-managed Postgres storage encryption | Cite the Supabase security docs in the paper |
 | OAuth 2.0 / JWT | Supabase Auth (Google OAuth, JWT sessions) | — |
-| WebSockets camera streaming | **Replaced** by on-device inference (see §0.1) | — |
+| WebSockets camera streaming | On-device by default; **LAN-only WebSocket streaming** to the laptop pose server in fallback mode (§7.7.3) | Round-trip latency log |
 
 ### 8.2 Performance
 - First load (dashboard) LCP < 2.5 s on 4G. The pose model is lazy-loaded only on workout screens.
@@ -383,7 +425,7 @@ getUserMedia (640×480 or 1280×720, user-facing)
 - **Health data is sensitive personal information.** Store only what's needed. RLS `user_id = auth.uid()` on every user table. The service-role key is only used in Edge Functions.
 - **No medical claims.** Copy review checklist: never use "cure", "treat", "diagnose", or "guaranteed results".
 - **Guardrails** (enforced in code, unit-tested): 18+ only, calorie floor, 1%/week loss cap, pregnancy → maintenance, PAR-Q flag → beginner cap + clearance acknowledgment, pain reported → pause.
-- **Model licensing:** InstantHMR code is Apache-2.0. Its **weights are under the SAM license** (trained on SAM 3D Body labels). The RF-DETR detector is not used in the browser. Note academic/non-commercial use in the paper's limitations. MediaPipe is Apache-2.0.
+- **Model licensing:** InstantHMR code is Apache-2.0. Its **weights are under the SAM license** (trained on SAM 3D Body labels). The RF-DETR detector is not used in the browser. RF-DETR is used only in the laptop pose server. Note academic/non-commercial use in the paper's limitations. MediaPipe is Apache-2.0.
 
 ### 8.4 Accessibility (WCAG 2.1 AA)
 - Semantic HTML, labeled form controls, focus-visible styles, full keyboard navigation, skip link.
@@ -410,7 +452,8 @@ getUserMedia (640×480 or 1280×720, user-facing)
 | Layer | Choice |
 |---|---|
 | Frontend | **Next.js 15 (App Router) + TypeScript**, Tailwind CSS, shadcn/ui, react-hook-form + zod, TanStack Query, Recharts |
-| Pose | **onnxruntime-web** (WebGPU + WASM), Web Worker, `@mediapipe/tasks-vision` (person detector; Pose Landmarker fallback), **three.js** via `@react-three/fiber` + `@react-three/drei` |
+| Pose | **onnxruntime-web** (WebGPU + WASM), Web Worker, `@mediapipe/tasks-vision` (person detector; Pose Landmarker last-resort fallback), **three.js** via `@react-three/fiber` + `@react-three/drei` |
+| Pose server (fallback, §7.7.3) | Python 3.12, FastAPI + uvicorn (WebSockets), InstantHMR `PosePipeline` (RF-DETR + ONNX Runtime + `pymomentum`), mkcert for local HTTPS |
 | Barcode | `BarcodeDetector` → `@zxing/browser` fallback |
 | Backend | **Supabase**: Postgres + RLS, Auth (email, Google), Edge Functions (Deno) for `food-search`, `food-barcode` |
 | Hosting | Vercel (frontend), Supabase Cloud (free tier) |
@@ -443,7 +486,8 @@ getUserMedia (640×480 or 1280×720, user-facing)
 ├─ src/lib/pose/
 │  ├─ estimator.ts      # PoseEstimator interface
 │  ├─ instanthmr/       # preprocess.ts, worker.ts, adapter.ts (MHR70 → canonical)
-│  ├─ mediapipe/        # fallback adapter
+│  ├─ remote/           # RemotePoseEstimator (WebSocket client to pose-server)
+│  ├─ mediapipe/        # last-resort fallback adapter
 │  ├─ one-euro.ts
 │  ├─ geometry.ts       # angles, vectors
 │  ├─ analyzers/        # squat.ts, pushup.ts, lunge.ts, rep-state-machine.ts
@@ -455,6 +499,7 @@ getUserMedia (640×480 or 1280×720, user-facing)
 │  ├─ seed/             # foods_fnri.csv, recipes.json, exercises.json
 │  └─ functions/food-search, food-barcode
 ├─ public/models/       # (git-ignored) instanthmr.onnx fetched at build or first run
+├─ pose-server/        # Python FastAPI + InstantHMR fallback server (§7.7.3)
 ├─ tests/pose-clips/    # short labeled test videos (consented team members only)
 └─ docs/PRD.md, docs/security.md, docs/evaluation.md
 ```
@@ -507,7 +552,7 @@ agent_events(id, user_id, kind, input jsonb, output jsonb, rule_ids text[], crea
 Both require a valid user JWT and are rate-limited per user (simple counter table, 60 req/min).
 
 ### 9.5 Environment variables
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_POSE_BACKEND`, `NEXT_PUBLIC_MODEL_URL`, plus Supabase function secrets `USDA_API_KEY` and `OFF_CONTACT`. Never commit `.env*`.
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_POSE_BACKEND`, `NEXT_PUBLIC_MODEL_URL`, `NEXT_PUBLIC_POSE_SERVER_URL` (remote mode), plus Supabase function secrets `USDA_API_KEY` and `OFF_CONTACT`. Never commit `.env*`.
 
 ---
 
@@ -533,7 +578,7 @@ Design tone: friendly, encouraging, Filipino-friendly copy (English UI with opti
 |---|---|---|---|
 | Filipino foods (`foods_fnri.csv`) | ≥ 60 rows | Peter | DOST-FNRI PhilFCT (cite each row) |
 | Recipes (`recipes.json`) | ≥ 50 (≥ 30 Filipino) | Peter + Jerick | Common home recipes; nutrition computed from ingredients |
-| Exercises (`exercises.json`) | ≥ 25 | Margaret + Hanz | Standard bodyweight library; cues written by the team, checked by a PE instructor if available |
+| Exercises (`exercises.json`) | ≥ 25 | Margaret + Hanz | Standard bodyweight library; cues written by the team from standard coaching references; thresholds tuned on labeled clips |
 | Pose test clips | ≥ 3 clips × 3 exercises, 10 reps each, with deliberate form errors | All (consented team members) | Recorded on a laptop webcam and a phone; ground truth = manual counts + error labels in `clips.json` |
 
 ---
@@ -563,7 +608,7 @@ Design tone: friendly, encouraging, Filipino-friendly copy (English UI with opti
 - 10-item SUS after a scripted task list (onboard, log 3 foods, do one squat set, view summary). Target **SUS ≥ 68** (above average). Include PWD participants where possible (screen-reader task subset).
 
 ### 12.7 Ethics for evaluation
-Participants are 18+, give written informed consent, and recorded clips are stored only on team devices and deleted after analysis (or recorded only with explicit consent for the research dataset). There are no medical outcome claims.
+No department ethics review form is required (confirmed by the group). Good practice is still followed: participants are 18+, sign a simple informed consent form (template in `docs/evaluation.md`), and recorded clips are stored only on team devices and deleted after analysis. There are no medical outcome claims. Form-cue thresholds are validated against the team's own labeled clips; no external PE/PT review is planned.
 
 ---
 
@@ -581,12 +626,12 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 | Day | Goals (exit criteria in **bold**) |
 |---|---|
-| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: wireframes + design tokens, onboarding screens. |
+| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** If it fails, Margaret continues the browser side and Aaron starts `pose-server/` (§7.7.3) on Tuesday. <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: wireframes + design tokens, onboarding screens. |
 | **Tue 13** | Consent, screening and onboarding flow wired to the DB → targets computed and shown (**ONB + TGT done**). <br>Edge Functions `food-search`, `food-barcode` (**search returns USDA + FNRI results**). <br>Pose: camera + person box + crop + worker inference loop + 2D overlay (**live keypoints on screen**). |
 | **Wed 14** | Food logging UI + daily summary (**FOOD P0 done**). <br>Workout recommender + plan screen (**WORK-01/02**). <br>Pose: One-Euro, canonical adapter, **squat rep counter + depth cue working on a test clip**, three.js skeleton. |
 | **Thu 15** | Meal recommender + recipes seeded + plan screen with swap (**MEAL P0 done**). <br>Pose: push-up + lunge counters, TTS + aria-live cues, session summary saved (**POSE P0 done**). |
 | **Fri 16** | Check-in + adaptation rules + "What changed" card (**AGENT P0 done**). Today dashboard. PWA manifest + model caching. Accessibility pass (axe, keyboard, contrast). |
-| **Sat 17** | **Integration + bug bash.** Test on 2+ phones and 2+ laptops. Run the pose clip harness and tune thresholds. Guardrail scenario tests. Security checklist. P1 items if green. |
+| **Sat 17** | **Integration + bug bash.** Test on 2+ phones and 2+ laptops, **including both demo layouts** (laptop-only and phone → laptop over local Wi-Fi if remote mode is used). Run the pose clip harness and tune thresholds. Guardrail scenario tests. Security checklist. P1 items if green. |
 | **Sun 18** | Pilot evaluation (rep accuracy on clips, latency logs, internal SUS). Demo script + seed demo account. README + setup docs. **Tag `v0.1.0-mvp`.** |
 
 **Daily ritual:** 15-min standup (what's done / next / blocked), merge to `main` via PR with CI green, deploy preview per PR.
@@ -605,7 +650,9 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; MediaPipe Pose Landmarker fallback; offline Python benchmark keeps InstantHMR in the paper |
+| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **laptop Python pose server on the local network** (§7.7.3); MediaPipe as the last resort |
+| Venue Wi-Fi blocks device-to-device traffic or is slow (remote mode) | Med | High | Bring a phone hotspot or travel router; laptop-only layout as the backup demo |
+| Phone refuses camera access on the local link (not HTTPS) | High | Med | mkcert certificate with its root CA installed on demo phones ahead of time, or a cloudflared/ngrok tunnel |
 | WebGPU unavailable (iOS, older devices) | High | Med | WASM backend; detector stride; reduce input resolution; "best on laptop" note |
 | Large model download on mobile data | Med | Med | Lazy-load on the workout screen only; cache; show the size before downloading |
 | Camera angle and lighting break the form checks | High | Med | Calibration screen with angle guidance; only check cues that are reliable from the current view; tunable thresholds |
@@ -619,11 +666,18 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 ## 15. Open questions
 
-1. Can a PE instructor or physical therapist validate our form-cue thresholds and exercise cues? It would strengthen the evaluation.
-2. Does the department require an ethics review form for user testing with recorded clips?
-3. Should the panel demo run on a laptop (most reliable) or a phone?
-4. Revised objectives wording: should O2 and O4 be merged (they overlap), and should the "WebSockets" deliverable be formally amended?
-5. Number of evaluation participants (aim 10–30) and PWD participant recruitment.
+All open questions from v1.0 are resolved (see D15–D18):
+
+| Question | Resolution |
+|---|---|
+| PE instructor/PT validation of thresholds? | Not needed. Thresholds are tuned on labeled team clips. |
+| Department ethics form for recording clips? | Not required. Simple participant consent is still used. |
+| Demo on laptop or phone? | Both. If in-browser inference fails, the laptop runs the Python pose server and the phone opens a local link (§7.7.3). |
+| Merge O2 and O4? | Yes, merged (§3.1). |
+
+New items to confirm during the sprint:
+1. Which team laptop will host the pose server (GPU model / Apple Silicon), so we can benchmark it on Day 1–2.
+2. Number of evaluation participants (aim 10–30) and PWD participant recruitment.
 
 ---
 
