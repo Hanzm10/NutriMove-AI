@@ -7,7 +7,7 @@
 | **Faculty-in-charge** | Mr. Jess N. Garcia |
 | **Proponents** | Dela Cruz, Peter · Mapua, Hanz Laurence · Ragudos, Aaron Angelo · Remo, Jerick Anthony · Valenzuela, Margaret Ashley |
 | **Doc owner** | Hanz Laurence Mapua (System Analyst) |
-| **Status** | Draft v1.2, for group sign-off |
+| **Status** | Draft v1.3, for group sign-off |
 | **Date** | 2026-10-12 (Mon) |
 | **MVP deadline** | 2026-10-18 (Sun), a working, deployed MVP |
 | **Source docs** | *CS 403 Concept Proposal (Sep 2026)*; group decision log; reference repo [mohamdev/InstantHMR](https://github.com/mohamdev/InstantHMR) |
@@ -405,9 +405,10 @@ getUserMedia → 480–640 px JPEG, q 0.6–0.7, ~15 fps
 
 | ID | Pri | Requirement |
 |---|---|---|
-| DASH-01 | P0 | Today: calories eaten vs target (ring), macros (bars), today's meals (from plan, with log buttons), today's workout card |
-| DASH-02 | P1 | Progress page: weight trend (line), daily kcal vs target (bars, 14 days), reps and % good reps per exercise (line) |
-| DASH-03 | P0 | Bottom nav on mobile: Today · Food · Workout · Plan · Profile |
+| DASH-01 | P0 | **Overview** (§10.3): greeting, today's workout hero, stat cards (calories, protein, workout minutes, hydration), AI coach insight, week rhythm |
+| DASH-02 | P0 | **Progress** (§10.3): 7 days / 4 weeks / 3 months toggle, stat cards, weight trend, activity trend, calorie target adherence, good-form reps %, milestones |
+| DASH-03 | P0 | Navigation per the design reference: desktop sidebar / mobile floating bottom bar with **Overview · AI Workout · Nutrition · Progress · Profile** |
+| DASH-04 | P1 | **Hydration tracker** (glasses per day, +/− buttons, target default 8, editable). Added because the design reference includes it; stored in `water_logs(user_id, log_date, glasses)` |
 
 ---
 
@@ -549,6 +550,8 @@ session_sets(id, session_id, set_idx, reps_counted, reps_good, error_counts json
 check_ins(id, user_id, check_date, weight_kg, adherence smallint, hunger smallint, energy smallint,
           workout_difficulty, new_pain bool, notes, created_at)
 weight_logs(id, user_id, log_date, weight_kg)
+water_logs(id, user_id, log_date, glasses smallint, unique(user_id, log_date))
+user_settings(user_id pk, larger_text bool, high_contrast bool, reduce_motion bool, tts_cues bool, water_goal smallint default 8)
 agent_events(id, user_id, kind, input jsonb, output jsonb, rule_ids text[], created_at)  -- audit trail
 ```
 
@@ -566,21 +569,76 @@ Both require a valid user JWT and are rate-limited per user (simple counter tabl
 
 ---
 
-## 10. UX flows & screens
+## 10. UX & visual design
 
-1. **Landing** → Sign up / Log in.
-2. **Consent** (data + health) → **Screening** (age, pregnancy, PAR-Q) → blocked / flagged / ok.
-3. **Onboarding steps:** Body → Goal & activity → Experience & equipment & schedule → Diet prefs & allergies → **Your plan** (targets card with "why", meal plan preview, workout week).
-4. **Today** (home): calorie ring, macros, meals with ✓ log buttons, workout card.
-5. **Food:** search bar (+ barcode button) → result → quantity sheet → log. Tabs: Today's log · Recent · Favorites.
-6. **Plan:** Meals (7-day carousel, swap, 👍/👎) · Workouts (week view).
-7. **Workout session:** exercise intro (how-to text + cues) → **camera consent (first time)** → **setup/calibration** → live coach (video + skeleton + counter + cue banner) → rest timer → next set → **summary** → difficulty rating.
-8. **Check-in** (weekly modal) → "What changed and why".
-9. **Profile:** edit profile, accessibility settings (high contrast, TTS, text size), privacy (export, delete), about/disclaimer.
+### 10.1 Design reference
+- **Source:** Figma Make prototype, *Web App UI/UX Design*. Published preview: https://untie-pleat-22617214.figma.site (screens: `#dashboard`, `#workout`, `#nutrition`, `#progress`, `#profile`).
+- **Snapshots (for agents without access to the link):** `docs/design-reference/desk-*.png` (1440 px) and `mob-*.png` (390 px).
+- **Rule (team decision):** the reference sets the **look and feel**: palette, type, cards, layout, tone. It is **not a 1:1 spec**. Wherever the mock shows something the app can't measure honestly or that doesn't fit our features, **function and UX win**. Those changes are listed in §10.4.
 
-Design tone: friendly, encouraging, Filipino-friendly copy (English UI with optional Tagalog dish names). Mobile-first.
+### 10.2 Design tokens (taken from the prototype's CSS)
 
----
+```css
+:root {
+  --primary:      #9bd141;  /* lime: primary buttons, rings, active fills (dark text on it) */
+  --primary-dark: #5c8f18;  /* icons, large text, chart strokes. NOT small text (3.9:1) */
+  --primary-ink:  #426812;  /* ★ added: small green text (eyebrows, links, active nav), 5.8:1 on --soft */
+  --secondary:    #c8eb8d;
+  --accent:       #b7ec5e;  /* accent text on dark cards */
+  --ink:          #1d2718;  /* body text, dark buttons */
+  --ink-card:     #23331d;  /* dark cards (weekly goal, hydration, privacy) */
+  --muted:        #687362;  /* secondary text (4.6:1 on canvas) */
+  --surface:      #ffffff;  /* cards */
+  --canvas:       #f5f7f1;  /* page background */
+  --soft:         #edf5e2;  /* pills, active nav bg, input bg, chips */
+  --line:         #dde5d7;  /* borders, dividers */
+  --info:         #6aa8a8;  /* ★ second macro colour (carbs bar in the mock) */
+  --danger:       #c2410c;  /* ★ added: form errors, destructive actions (not in the mock) */
+  --warning:      #b45309;  /* ★ added: "needs work" reps, guardrail notices */
+  --radius: 22px;           /* cards; 14px inputs/buttons; 999px pills */
+  --shadow: 0 14px 40px #31432412;
+}
+```
+
+- **Typography:** **Lato** (Google Fonts) at 400/700/900. Modular scale **1.333** (perfect fourth): 1 → 1.333 → 1.777 → 2.369 → 3.157 rem. Page titles are 900 weight with tight tracking. Section titles are 400–700 at 1.777 rem. **Eyebrow labels** are uppercase, 0.75 rem, letter-spacing 0.12em, `--primary-ink`.
+- **Minimum text size: 0.75 rem (12 px).** The mock uses 0.62–0.68 rem in places; we round these up for readability and the 200%-zoom requirement.
+- **Components (shadcn/ui, themed to the tokens):** sidebar nav with an active pill; floating dark mobile bottom bar; white rounded stat cards with a soft icon tile; lime gradient **hero card**; dark **highlight cards** (weekly goal, hydration, privacy); progress **rings** and **bars**; pills/chips; segmented control (7 days / 4 weeks / 3 months); toggles; filled-soft inputs; primary (lime), dark (ink) and soft (green-tint) buttons; numbered list rows (exercises, meals with a B/L/D/S letter tile).
+- **Layout:** desktop has a 256 px left sidebar (logo, nav, weekly goal card, user chip) and a content area with a header row (eyebrow, H1, subtitle; search, bell, avatar) and a 12-column card grid with 20–24 px gaps. Mobile has a top bar (logo + bell), stacked cards, a 2-column stat grid and a floating bottom nav. **Content gets bottom padding equal to the nav height + 16 px** so the nav never covers it.
+- **Icons:** Lucide (outline, 1.75 stroke), matching the mock.
+- **Imagery:** the mock uses Unsplash photos. Our build uses **our own recipe photos or illustrations** (with credit) for meals, and the **live camera / 3D skeleton** in place of the gym photo. No decorative stock photos on the workout screen.
+- **Charts:** Recharts styled to the tokens: area line with a lime gradient, rounded lime bars, light gridlines, labeled axes, plus a text summary under every chart for screen readers.
+- **Dark mode:** P2 (the mock is light-only).
+
+### 10.3 Screens: reference → NutriMove functionality
+
+| Screen (nav) | Keep from the reference | Wire to | Change / add |
+|---|---|---|---|
+| **Overview** `#dashboard` | Greeting + date; lime hero "today's workout" card with duration, intensity and a CTA; 4 stat cards; **AI coach insight** card with a suggested snack; "This week" rhythm (ring + day dots); weekly goal card in the sidebar | Hero = today's `workout_plan_items`; stat cards = FOOD-05 totals vs `targets`, workout minutes from `workout_sessions`, DASH-04 hydration; coach insight = **AGENT-05** rule output; suggested snack = a recipe from the catalogue (Filipino-first) with **Log it**; rhythm = sessions done / planned | Replace the **"82 readiness"** ring (we have no recovery sensor) with a **"Today's targets" ring**: % of daily goals met (calories within ±10%, protein ≥ 90%, workout done, water). "Energy stable / Recovery good" pills come from the latest check-in answers, or are hidden when there's no check-in. A **check-in due** banner appears when AGENT-02 is due |
+| **AI Workout** `#workout` | Plan header (title, duration, intensity, move count, progress bar); **session flow** list; exercise detail with numbered steps; **Form cue** box; Previous / Mark complete | `workout_plan_items` + `exercises` (steps, cues) | Pose-supported moves (squat, push-up, lunge) get a primary **"Start camera coach"** button → setup/calibration → **live coach view** (camera + 3D skeleton + rep counter + cue banner) that replaces the photo area → **session summary**. Non-pose moves (glute bridge, cooldown) keep **Mark complete** + sets×reps entry. Remove the "prototype guidance only" note once pose ships. Add a **Week plan** tab (WORK-01) |
+| **Nutrition** `#nutrition` | Daily energy ring + "kcal remaining"; macro bars (protein, carbs, fat); dark hydration card with +/−; **Today's meals** list with B/L/S tiles and macros; "Add meal"; dashed "Plan dinner" slot; **Coach pick** feature card | FOOD-01…09, MEAL-01…04, `targets` | **Add meal** opens a sheet: Search (USDA + Filipino) · Scan barcode · From my plan · Quick add. Empty meal slots show the planned recipe with **Log** / **Swap**. The Coach pick card = top-ranked recipe for the next empty slot with a "why this" line. Add a **Meal plan** tab (7-day view, swap, 👍/👎) |
+| **Progress** `#progress` | 7d / 4w / 3m toggle; 4 stat cards; activity trend area chart; target adherence bars; **milestones** | `weight_logs`, `food_logs`, `workout_sessions`, `session_sets` | Stat cards: Consistency (workouts done / planned), Active minutes, Calorie balance (days within target), **Good-form reps %** (replaces "Form lessons"). **Add a weight trend chart**, which the agent relies on. Milestones are generated by simple rules (streaks, protein days, first 100 good reps) |
+| **Profile** `#profile` | Profile header; display name, goal, experience, units; **daily & weekly goals** card; **Accessibility** toggles (larger text, high contrast, reduce motion); dark privacy card; Save | `profiles`, `targets`, accessibility prefs | The **daily calorie target is read-only** (computed by TGT-*) with a "Why this number?" link. Users can't type a value below the floor. Workouts per week and water goal stay editable and trigger plan regeneration. **Add:** body stats (height, weight, birthdate, sex), diet preferences & allergies, equipment, **voice cues (TTS) toggle**, data export + delete account (AUTH-04/05), consent history. Rewrite the privacy card to be truthful: "We store your profile, food and workout logs with your consent. Camera video is processed in real time and never stored" |
+
+**Screens not in the reference, built in the same style:** sign-in/sign-up, consent, screening (with blocked/flagged states), onboarding steps (one card per step, a progress pill and a "Your plan" summary), Add-food sheet + barcode scanner, live camera coach + calibration + session summary, weekly check-in modal + "What changed and why" card, privacy notice page, and the laptop-coach pairing screen (§7.7.3).
+
+### 10.4 Deliberate deviations from the reference (function first)
+
+1. **No fake metrics.** Readiness, "energy stable" and similar signals appear only when backed by data we actually collect (check-ins, logs, sessions).
+2. **Accessible greens.** `--primary-dark` (#5c8f18) is only 3.6–3.9:1 on light backgrounds, so small green text uses the new `--primary-ink` (#426812). Lime `--primary` is never used for text on white (1.8:1); it's used as a fill behind dark text.
+3. **12 px minimum text**, rounded up from the mock's 10 px labels.
+4. **Colour is never the only signal.** Day dots, form ✓/⚠ and macro bars all carry text or icons too.
+5. **The calorie target can't be edited freely** because of the guardrails (TGT-04/05).
+6. **Camera-first workout.** The gym photo is replaced by the live coach, and the static "Form cue" box becomes the real-time cue banner (plus TTS) during sessions.
+7. **Truthful privacy copy** that matches §8.3, not the prototype's "does not collect health data".
+
+### 10.5 Core flows
+1. **First run:** Landing → Sign up → Consent → Screening → Onboarding (Body → Goal & activity → Experience, equipment & schedule → Diet & allergies) → **Your plan** → Overview.
+2. **Log food:** Nutrition → Add meal → search / scan / from plan → quantity sheet → logged (ring and macros animate, unless reduced motion is on).
+3. **Camera workout:** Overview hero or AI Workout → exercise → Start camera coach → camera consent (first time) → calibration (green check) → live sets with rest timer → summary → difficulty rating → next exercise.
+4. **Weekly check-in:** banner → modal (weight, adherence, hunger, energy, difficulty, pain) → "What changed and why" → updated plans.
+5. **Laptop coach (fallback):** AI Workout → "Use laptop coach" → scan the QR shown by the pose server → paired → same live coach UI.
+
+Copy tone (from the mock): calm, encouraging, second person ("Let's make today count"). English UI, with Filipino dish names kept in their original form (e.g. *Sinigang na baboy*).
 
 ## 11. Content & data preparation
 
@@ -632,11 +690,11 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 | **Hanz** | System Analyst, Agent Specialist | PRD, `src/lib/agent/*` (targets, recommenders, adaptation, guardrails) + tests, check-in flow |
 | **Margaret** | Agent Specialist, UI/UX | Pose pipeline (ONNX in worker, adapters, smoothing, analyzers), 3D skeleton |
 | **Peter** | Data Engineer, SME, QA | FNRI food table, recipes, exercise catalog, USDA/OFF mapping, pose test clips + ground truth, QA |
-| **Jerick** | UI/UX, Data Analyst | Design system, all screens & flows, accessibility, dashboard charts, evaluation instruments (SUS, ISO 25010 forms) |
+| **Jerick** | UI/UX, Data Analyst | Design system (tokens in §10.2, Figma Make reference), all screens & flows, accessibility, dashboard charts, evaluation instruments (SUS, ISO 25010 forms) |
 
 | Day | Goals (exit criteria in **bold**) |
 |---|---|
-| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** In parallel, Hanz installs InstantHMR + CUDA on the RTX 3060 laptop and runs `demo.py --camera 0` to get a baseline FPS. If the gate fails, Margaret continues the browser side and Aaron + Hanz build `pose-server/` + the tunnel (§7.7.3) on Tuesday. <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: wireframes + design tokens, onboarding screens. |
+| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** In parallel, Hanz installs InstantHMR + CUDA on the RTX 3060 laptop and runs `demo.py --camera 0` to get a baseline FPS. If the gate fails, Margaret continues the browser side and Aaron + Hanz build `pose-server/` + the tunnel (§7.7.3) on Tuesday. <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: Tailwind theme from §10.2 tokens + app shell (sidebar, mobile bottom nav), onboarding screens. |
 | **Tue 13** | Consent, screening and onboarding flow wired to the DB → targets computed and shown (**ONB + TGT done**). <br>Edge Functions `food-search`, `food-barcode` (**search returns USDA + FNRI results**). <br>Pose: camera + person box + crop + worker inference loop + 2D overlay (**live keypoints on screen**). |
 | **Wed 14** | Food logging UI + daily summary (**FOOD P0 done**). <br>Workout recommender + plan screen (**WORK-01/02**). <br>Pose: One-Euro, canonical adapter, **squat rep counter + depth cue working on a test clip**, three.js skeleton. |
 | **Thu 15** | Meal recommender + recipes seeded + plan screen with swap (**MEAL P0 done**). <br>Pose: push-up + lunge counters, TTS + aria-live cues, session summary saved (**POSE P0 done**). |
