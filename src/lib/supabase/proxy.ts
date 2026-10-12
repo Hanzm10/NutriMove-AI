@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth", "/privacy", "/dev"];
@@ -14,7 +15,7 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!configured) return response; // lets the UI run before Supabase is set up
 
-  const supabase = createServerClient(url!, key!, {
+  const supabase = createServerClient<Database>(url!, key!, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

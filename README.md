@@ -17,7 +17,7 @@ onnxruntime-web (WebGPU/WASM) · three.js · Vitest.
 
 ```bash
 pnpm install          # also copies the onnxruntime-web runtime into public/ort
-cp .env.example .env.local   # then fill in your Supabase URL + publishable key
+cp .env.example .env.local   # then fill in the Supabase URL + publishable key (see below)
 pnpm dev              # http://localhost:3000
 ```
 
@@ -30,15 +30,26 @@ The UI runs before Supabase is configured (sign-in is disabled until the keys ar
 | `pnpm build` | Production build |
 | `pnpm db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
 
-## Supabase setup (once)
+## Supabase
 
-1. Create a project at [supabase.com](https://supabase.com) (free tier).
-2. `pnpm exec supabase login` → `pnpm exec supabase link --project-ref <ref>` → `pnpm exec supabase db push`
-   applies [`supabase/migrations`](supabase/migrations) (all tables + row-level security).
-3. Copy the project URL and **publishable key** into `.env.local` (and into Vercel → Environment Variables).
-4. Auth → URL configuration: set the Site URL to your Vercel URL and add
-   `http://localhost:3000/auth/callback` and `https://<your-app>.vercel.app/auth/callback` as redirect URLs.
-5. Google sign-in (optional): Auth → Providers → Google, with a Google Cloud OAuth client.
+Hosted project: **`nutrimove-ai`** (ref `satiqygzrdhzwkwqunoj`, Singapore `ap-southeast-1`, free plan).
+All migrations in [`supabase/migrations`](supabase/migrations) are already applied, and RLS is on for every table.
+
+`.env.local` (also add both to Vercel → Settings → Environment Variables):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://satiqygzrdhzwkwqunoj.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<Project Settings → API Keys → publishable key>
+```
+
+Still to do in the Supabase dashboard (owner):
+1. **Auth → URL Configuration:** Site URL = your Vercel URL; add redirect URLs
+   `http://localhost:3000/auth/callback` and `https://<your-app>.vercel.app/auth/callback`.
+2. **Auth → Providers → Google** (optional): add a Google Cloud OAuth client ID/secret.
+3. Invite teammates: Organization → Team.
+
+New migrations: add a file under `supabase/migrations/` and apply it with `pnpm exec supabase db push`
+(after `supabase login` + `supabase link --project-ref satiqygzrdhzwkwqunoj`), then run `pnpm db:types`.
 
 ## Pose spike (Day-1 gate, PRD §7.7)
 
