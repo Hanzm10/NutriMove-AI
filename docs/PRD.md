@@ -316,6 +316,8 @@ getUserMedia (640×480 or 1280×720, user-facing)
   └─► UI: video + 2D overlay, three.js 3D skeleton, rep counter, cue banner, TTS, aria-live
 ```
 
+> ✅ **Day-1 result (2026-10-12):** the released `instanthmr.onnx` (81 MB fp32, opset 17, standard ops only) **has a `joints_3d` output** and **no `cliff_focal` metadata**, so the browser uses the **pixel-form CLIFF condition**. The full in-browser pipeline (crop → ORT WASM → joints) was verified in headless Chromium on a test photo. Remaining: measure FPS with WebGPU on team laptops and phones via `/dev/pose-spike`.
+>
 > ⚠️ **Day-1 gate (must be checked first).** InstantHMR has several ONNX exports. Some **have no `joints_3d` output**. Those derive the 70 keypoints from Meta's MHR forward pass (`pymomentum`, Python only), which **cannot run in the browser**. On Day 1, load the released `instanthmr.onnx` from HuggingFace (`momolesang/InstantHMR`) and print its input/output names, sizes and metadata. Then decide:
 > - **A (expected):** it outputs `joints_3d` → proceed as designed.
 > - **B:** only `joints_2d` → use InstantHMR 2D keypoints for angles (form checks use a side view), and show a 2.5D skeleton. Or →
@@ -462,7 +464,7 @@ getUserMedia → 480–640 px JPEG, q 0.6–0.7, ~15 fps
 
 | Layer | Choice |
 |---|---|
-| Frontend | **Next.js 15 (App Router) + TypeScript**, Tailwind CSS, shadcn/ui, react-hook-form + zod, TanStack Query, Recharts |
+| Frontend | **Next.js 16 (App Router, Turbopack; `cacheComponents` off; middleware is `src/proxy.ts`) + TypeScript**, Tailwind CSS, shadcn/ui, react-hook-form + zod, TanStack Query, Recharts |
 | Pose | **onnxruntime-web** (WebGPU + WASM), Web Worker, `@mediapipe/tasks-vision` (person detector; Pose Landmarker last-resort fallback), **three.js** via `@react-three/fiber` + `@react-three/drei` |
 | Pose server (fallback, §7.7.3) | Python 3.12, FastAPI + uvicorn (WebSockets), InstantHMR `PosePipeline` (RF-DETR + ONNX Runtime CUDA + `pymomentum`), `cloudflared` quick tunnel for HTTPS |
 | Barcode | `BarcodeDetector` → `@zxing/browser` fallback |
@@ -565,7 +567,7 @@ agent_events(id, user_id, kind, input jsonb, output jsonb, rule_ids text[], crea
 Both require a valid user JWT and are rate-limited per user (simple counter table, 60 req/min).
 
 ### 9.5 Environment variables
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_POSE_BACKEND`, `NEXT_PUBLIC_MODEL_URL`, `NEXT_PUBLIC_POSE_SERVER_URL` (remote mode), plus Supabase function secrets `USDA_API_KEY` and `OFF_CONTACT`. Never commit `.env*`.
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`), `NEXT_PUBLIC_POSE_BACKEND`, `NEXT_PUBLIC_MODEL_URL`, `NEXT_PUBLIC_POSE_SERVER_URL` (remote mode), plus Supabase function secrets `USDA_API_KEY` and `OFF_CONTACT`. Never commit `.env*`.
 
 ---
 
