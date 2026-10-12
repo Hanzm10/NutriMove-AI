@@ -7,7 +7,7 @@
 | **Faculty-in-charge** | Mr. Jess N. Garcia |
 | **Proponents** | Dela Cruz, Peter · Mapua, Hanz Laurence · Ragudos, Aaron Angelo · Remo, Jerick Anthony · Valenzuela, Margaret Ashley |
 | **Doc owner** | Hanz Laurence Mapua (System Analyst) |
-| **Status** | Draft v1.1, for group sign-off (open questions resolved) |
+| **Status** | Draft v1.2, for group sign-off |
 | **Date** | 2026-10-12 (Mon) |
 | **MVP deadline** | 2026-10-18 (Sun), a working, deployed MVP |
 | **Source docs** | *CS 403 Concept Proposal (Sep 2026)*; group decision log; reference repo [mohamdev/InstantHMR](https://github.com/mohamdev/InstantHMR) |
@@ -27,7 +27,7 @@
 | D2 | Main feature: camera pose tracking with **InstantHMR** (3D pose). | ✅ Final | Group |
 | D3 | Onboarding collects the user profile → generates a **meal plan** and a **workout plan**. | ✅ Final | Group |
 | D4 | **Calorie tracking** is included. | ✅ Final | Group |
-| D5 | Pose inference runs **in the browser** (onnxruntime-web) by default. **No video leaves the device** (or, in fallback mode, the local network; see D15). | ✅ Final | This session |
+| D5 | Pose inference runs **in the browser** (onnxruntime-web) by default. **No video leaves the device** (in fallback mode, frames are streamed encrypted to the team laptop and never stored; see D15). | ✅ Final | This session |
 | D6 | Platform: **responsive web app + PWA** (installable on Android, iOS and desktop). This is how we meet "cross-platform". | ✅ Final | This session |
 | D7 | Agent: **rule-based targets (Mifflin-St Jeor) + content-based filtering (cosine similarity) + weekly feedback rules**. **No LLM** makes decisions. | ✅ Final | This session |
 | D8 | Exercises: **squat, push-up, lunge**. Squat is built first. | ✅ Final | This session |
@@ -37,7 +37,7 @@
 | D12 | Food data: **USDA FoodData Central**, **Open Food Facts** (barcode), and a **custom Filipino food table** (FNRI PhilFCT). API keys stay server-side. | ✅ Final | Group |
 | D13 | Photo-based food logging → **future work**. | ✅ Final | Group |
 | D14 | Build order: onboarding & targets → calorie logging → workout plans → pose tracking → meal plans. Pose work starts **in parallel on Day 1** because it carries the most risk. | ✅ Final | Group + this session |
-| D15 | **Pose fallback = a laptop Python pose server on the local network.** If InstantHMR can't run in the browser, a laptop runs the reference InstantHMR + MHR pipeline in Python, and the phone opens a local link to it (§7.7.3). MediaPipe becomes the last-resort fallback. | ✅ Final | Group |
+| D15 | **Pose fallback = a laptop Python pose server.** If InstantHMR can't run in the browser, Hanz's RTX 3060 laptop runs the reference InstantHMR + MHR pipeline in Python. The phone reaches it through a **free Cloudflare quick tunnel** (HTTPS, so the camera is allowed), with a second phone as the hotspot (§7.7.3). MediaPipe becomes the last-resort fallback. | ✅ Final | Group |
 | D16 | The panel demo runs on **both a laptop and a phone**. | ✅ Final | Group |
 | D17 | Objectives O2 and O4 are **merged** into one feedback objective. The proposal now has **4 objectives** (§3.1). | ✅ Final | Group |
 | D18 | No PE instructor/physical therapist validation of thresholds, and no department ethics form needed. Thresholds are tuned on the team's labeled clips; participant consent is still collected (§12.7). | ✅ Final | Group |
@@ -46,7 +46,7 @@
 
 | Proposal said | PRD does | Why |
 |---|---|---|
-| "WebSockets for camera feed streaming" | Pose runs **on the device** by default. In fallback mode (§7.7.3), frames stream over **WebSockets on the local Wi-Fi only**, from the phone to the team laptop. They're never sent to the cloud or stored. Only rep counts and form-error summaries reach the backend. | Privacy (RA 10173), no cloud GPU costs, lower latency. The WebSocket promise is still met in fallback mode. |
+| "WebSockets for camera feed streaming" | Pose runs **on the device** by default. In fallback mode (§7.7.3), frames stream over **secure WebSockets (wss)** from the phone to the team laptop through a Cloudflare tunnel. They're processed in memory and never stored. Only rep counts and form-error summaries reach the backend. | Privacy (RA 10173), no cloud GPU costs, lower latency. The WebSocket promise is still met in fallback mode. |
 | "Cross-platform application" | Responsive web app + installable PWA | One codebase that can be built in one week. Native apps → future work. |
 | "Voice controls" | **Spoken feedback** (Web Speech TTS) is P0. **Voice commands** ("start", "stop", "next") are P2. | Speech recognition support across browsers is inconsistent. |
 | "AES-256 encryption at rest, OAuth 2.0/JWT" | Supabase Postgres (encrypted at rest by the platform) + Supabase Auth (JWT, Google OAuth) + Row-Level Security | Delivers the promise using managed services. |
@@ -326,36 +326,46 @@ getUserMedia (640×480 or 1280×720, user-facing)
 
 **Design rule:** exercise logic **never** reads raw model indices. It reads `CanonicalPose` (named joints). Every backend has an adapter, so switching is a one-line config change: `NEXT_PUBLIC_POSE_BACKEND=instanthmr|remote|mediapipe`. Analyzers, cues, the 3D skeleton and session saving run in the browser **in all modes**. Only the source of keypoints changes.
 
-#### 7.7.3 Fallback mode: laptop pose server on the local network
+#### 7.7.3 Fallback mode: laptop pose server (RTX 3060) behind a Cloudflare Tunnel
+
+**Hardware:** Hanz's laptop (**NVIDIA RTX 3060**) runs the pose server with the CUDA ONNX Runtime provider. A second phone provides the **mobile hotspot** for the laptop and the demo phone.
+
+**Why a tunnel:** phone browsers only allow camera access on HTTPS pages, and a `wss://` connection from an HTTPS page needs a trusted certificate. A **free Cloudflare quick tunnel** (`cloudflared tunnel --url http://localhost:8000`) gives the laptop server a public `https://<random>.trycloudflare.com` address with a valid certificate. That means no mkcert, no certificate installs on phones, and no Cloudflare account needed.
 
 ```
-Phone (or laptop) browser                         Team laptop (same Wi-Fi / hotspot)
-─────────────────────────                         ─────────────────────────────────
-getUserMedia → downscale to 640 px wide
-→ JPEG (quality 0.7) ~15 fps
-→ WebSocket  wss://<laptop-ip>:8443/ws/pose  ───►  FastAPI + uvicorn (Python 3.12)
-                                                   PosePipeline from mohamdev/InstantHMR:
-                                                   RF-DETR nano (detector stride 3)
-                                                   → InstantHMR ONNX (CUDA / CoreML / CPU)
-                                                   → MHR forward pass (pymomentum) if no joints_3d head
-◄─── JSON {frame_id, t_server_ms, joints_2d (frame px),  joints_3d (m, Y-down), bbox, score}
+Demo phone                          Cloudflare edge                 Hanz's laptop (RTX 3060)
+──────────                          ───────────────                 ────────────────────────
+opens the normal Vercel URL
+https://nutrimove.vercel.app  (HTTPS → camera allowed)
+pairs via QR / pairing code
+getUserMedia → 480–640 px JPEG, q 0.6–0.7, ~15 fps
+→ wss://<random>.trycloudflare.com/ws/pose?token=…  ──►  tunnel  ──►  cloudflared → localhost:8000
+                                                                      FastAPI + uvicorn (Python 3.12)
+                                                                      InstantHMR PosePipeline:
+                                                                      RF-DETR nano (stride 3)
+                                                                      → InstantHMR ONNX (CUDA EP, fp16)
+                                                                      → MHR / pymomentum if no joints_3d head
+◄── JSON {frame_id, t_server_ms, joints_2d (frame px), joints_3d (m, Y-down), bbox, score}
 → RemotePoseEstimator → CanonicalPose → One-Euro → analyzers → UI / TTS / three.js
 ```
 
-- **Server code** lives in `pose-server/` (Python). It wraps InstantHMR's `PosePipeline` as close to the reference repo as possible: `server.py` (FastAPI WebSocket endpoint + `/health`), `requirements.txt`, and a `README` that covers setup with the repo's `install.py` + `requirements-mhr.txt`. It handles one client at a time and **keeps only the latest frame** (drops stale frames so latency doesn't build up).
+- **The app itself stays on Vercel.** The phone opens the normal deployed HTTPS URL, so the laptop doesn't need to serve Next.js. Only the pose server is tunneled.
+- **Pairing:** quick-tunnel URLs change each time `cloudflared` restarts. The pose server prints, and shows in a tiny `/pair` page, a **QR code** that encodes `https://nutrimove.vercel.app/workout/pair?server=wss://<random>.trycloudflare.com&token=<6-digit code>`. Scanning it stores the pose server URL + token for the session, and the workout screen switches to `remote` mode automatically. The backend is chosen at **runtime**: `?pose=` / pairing overrides `NEXT_PUBLIC_POSE_BACKEND`.
+- **Access control:** the tunnel URL is public, so the server requires the **random token** (generated at startup) on the WebSocket handshake, checks the `Origin` header against the Vercel domain plus `localhost`, and accepts **one client at a time**.
+- **Server code** lives in `pose-server/` (Python). It wraps InstantHMR's `PosePipeline` as close to the reference repo as possible: `server.py` (FastAPI WebSocket `/ws/pose`, `/health`, `/pair`), `requirements.txt`, and `start.ps1` / `start.sh`, which start uvicorn + `cloudflared` together and print the QR. The README covers setup with the repo's `install.py` + `requirements-mhr.txt` (CUDA on Windows/Linux). It **keeps only the latest frame** (drops stale frames so latency doesn't build up).
 - **Protocol:** client → binary message `[uint32 frame_id][JPEG bytes]`; server → JSON text message. The client keeps **at most 2 frames in flight**.
-- **"Local link":** the laptop also serves the Next.js app (`next start` or `next dev --experimental-https`), so the phone simply opens `https://<laptop-ip>:3000`. **HTTPS is required.** Phone browsers only allow camera access on secure origins. Use `mkcert` to create a local certificate (install its root CA on the demo phone), or tunnel with `cloudflared`/`ngrok` if installing the CA is a problem. The app shows a QR code for the link on the laptop's screen.
 - **Two demo layouts:**
-  1. **Phone as camera + display:** the phone streams its camera to the laptop and shows the coach UI. This is the main phone demo.
-  2. **Laptop as camera + display:** the laptop webcam feeds the local server directly (`ws://localhost`). This is the most reliable panel demo.
-- **Privacy:** frames are processed in memory, **never written to disk or logged**, and travel only on the local network. The camera consent text (AUTH-03) gets a variant: "video is processed on your device or on the team's local laptop, and is never uploaded or stored".
-- **Performance target:** ≥ 15 FPS and ≤ 150 ms round trip on 5 GHz Wi-Fi or a phone hotspot. Log the round trip, server inference time and FPS in the debug overlay.
+  1. **Phone as camera + display (via tunnel):** the main phone demo.
+  2. **Laptop as camera + display (no tunnel):** the laptop webcam connects to `ws://localhost:8000` (localhost counts as a secure origin, so the camera works without HTTPS). This is the most reliable panel demo and the backup if the internet is bad.
+- **Privacy:** frames are processed in memory and **never written to disk or logged**. In tunnel mode, frames **pass through Cloudflare's network** (TLS-encrypted in transit; Cloudflare doesn't store them, and neither do we). That's no longer "local network only", so the camera consent (AUTH-03) gets a remote-mode variant: "In laptop-coach mode, your video is sent encrypted to the team's laptop for processing in real time. It is never stored or recorded." The paper should disclose this, and the in-browser mode stays the privacy-preferred default.
+- **Mobile data budget:** the hotspot phone carries traffic **twice** (demo phone upload + laptop download). At 480 px / q 0.6 / 15 fps ≈ 20–30 KB per frame, that's about **0.3–0.45 MB/s each way, or roughly 2–3 GB per hour of streaming**. Short demo and eval sessions are fine; use a data promo/unli plan on the hotspot phone, and use the laptop-only layout for long test runs.
+- **Performance target:** ≥ 15 FPS and ≤ 200 ms round trip through the tunnel (expected server time on the RTX 3060: well under 30 ms per frame with detector stride 3). Log the round trip, server inference time and FPS in the debug overlay. If the round trip goes over 250 ms, the client automatically drops to 10 fps / 480 px.
 
 | ID | Pri | Requirement | Acceptance criteria |
 |---|---|---|---|
 | POSE-18 | P0 *(if the Day-1 gate fails)* | Python pose server (`pose-server/`) exposing `/ws/pose` + `/health`, using InstantHMR's `PosePipeline` | Returns `joints_3d` for a test image; 60 s test session at ≥ 15 FPS on the team laptop |
-| POSE-19 | P0 *(if gate fails)* | `RemotePoseEstimator` in the web app, with reconnect logic, frame dropping, and "Pose server not reachable: check Wi-Fi" error state | Switching `NEXT_PUBLIC_POSE_BACKEND=remote` needs no analyzer/UI change |
-| POSE-20 | P0 *(if gate fails)* | Local HTTPS setup documented (mkcert) + QR code to the local link | A team phone opens the app and gets camera access in < 2 min from a clean setup |
+| POSE-19 | P0 *(if gate fails)* | `RemotePoseEstimator` in the web app, with reconnect logic, frame dropping, adaptive resolution and fps, and a "Laptop coach not reachable: check the hotspot / re-scan the QR" error state | Switching to remote mode needs no analyzer/UI change |
+| POSE-20 | P0 *(if gate fails)* | `start` script runs uvicorn + `cloudflared` quick tunnel, generates the token, and shows the pairing QR; the web app has a `/workout/pair` route | From a cold start, the demo phone is paired and tracking in < 2 min |
 | POSE-21 | P1 | Server-side frame timing exported with the latency log (§12.3) | — |
 
 #### 7.7.2 Requirements
@@ -413,7 +423,7 @@ getUserMedia → downscale to 640 px wide
 | OWASP security | OWASP ASVS L1 checklist, RLS on all tables, secrets server-side, input validation (zod), CSP headers | Checklist in `docs/security.md` |
 | AES-256 at rest | Supabase-managed Postgres storage encryption | Cite the Supabase security docs in the paper |
 | OAuth 2.0 / JWT | Supabase Auth (Google OAuth, JWT sessions) | — |
-| WebSockets camera streaming | On-device by default; **LAN-only WebSocket streaming** to the laptop pose server in fallback mode (§7.7.3) | Round-trip latency log |
+| WebSockets camera streaming | On-device by default; **wss streaming** to the laptop pose server through a Cloudflare tunnel in fallback mode (§7.7.3) | Round-trip latency log |
 
 ### 8.2 Performance
 - First load (dashboard) LCP < 2.5 s on 4G. The pose model is lazy-loaded only on workout screens.
@@ -453,7 +463,7 @@ getUserMedia → downscale to 640 px wide
 |---|---|
 | Frontend | **Next.js 15 (App Router) + TypeScript**, Tailwind CSS, shadcn/ui, react-hook-form + zod, TanStack Query, Recharts |
 | Pose | **onnxruntime-web** (WebGPU + WASM), Web Worker, `@mediapipe/tasks-vision` (person detector; Pose Landmarker last-resort fallback), **three.js** via `@react-three/fiber` + `@react-three/drei` |
-| Pose server (fallback, §7.7.3) | Python 3.12, FastAPI + uvicorn (WebSockets), InstantHMR `PosePipeline` (RF-DETR + ONNX Runtime + `pymomentum`), mkcert for local HTTPS |
+| Pose server (fallback, §7.7.3) | Python 3.12, FastAPI + uvicorn (WebSockets), InstantHMR `PosePipeline` (RF-DETR + ONNX Runtime CUDA + `pymomentum`), `cloudflared` quick tunnel for HTTPS |
 | Barcode | `BarcodeDetector` → `@zxing/browser` fallback |
 | Backend | **Supabase**: Postgres + RLS, Auth (email, Google), Edge Functions (Deno) for `food-search`, `food-barcode` |
 | Hosting | Vercel (frontend), Supabase Cloud (free tier) |
@@ -626,12 +636,12 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 | Day | Goals (exit criteria in **bold**) |
 |---|---|
-| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** If it fails, Margaret continues the browser side and Aaron starts `pose-server/` (§7.7.3) on Tuesday. <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: wireframes + design tokens, onboarding screens. |
+| **Mon 12** | Aaron: scaffold Next.js + Tailwind + shadcn, Supabase project, migrations for all tables + RLS, Auth (email + Google), Vercel deploy. **Logged-in empty app deployed.** <br>Margaret + Aaron: **pose spike**. Load `instanthmr.onnx` in onnxruntime-web, print the I/O names, run on a still image, measure FPS (WebGPU/WASM). **Go/no-go on the §7.7 gate by end of day.** In parallel, Hanz installs InstantHMR + CUDA on the RTX 3060 laptop and runs `demo.py --camera 0` to get a baseline FPS. If the gate fails, Margaret continues the browser side and Aaron + Hanz build `pose-server/` + the tunnel (§7.7.3) on Tuesday. <br>Hanz: `targets.ts` + guardrails + tests. Peter: start FNRI table + exercise catalog. Jerick: wireframes + design tokens, onboarding screens. |
 | **Tue 13** | Consent, screening and onboarding flow wired to the DB → targets computed and shown (**ONB + TGT done**). <br>Edge Functions `food-search`, `food-barcode` (**search returns USDA + FNRI results**). <br>Pose: camera + person box + crop + worker inference loop + 2D overlay (**live keypoints on screen**). |
 | **Wed 14** | Food logging UI + daily summary (**FOOD P0 done**). <br>Workout recommender + plan screen (**WORK-01/02**). <br>Pose: One-Euro, canonical adapter, **squat rep counter + depth cue working on a test clip**, three.js skeleton. |
 | **Thu 15** | Meal recommender + recipes seeded + plan screen with swap (**MEAL P0 done**). <br>Pose: push-up + lunge counters, TTS + aria-live cues, session summary saved (**POSE P0 done**). |
 | **Fri 16** | Check-in + adaptation rules + "What changed" card (**AGENT P0 done**). Today dashboard. PWA manifest + model caching. Accessibility pass (axe, keyboard, contrast). |
-| **Sat 17** | **Integration + bug bash.** Test on 2+ phones and 2+ laptops, **including both demo layouts** (laptop-only and phone → laptop over local Wi-Fi if remote mode is used). Run the pose clip harness and tune thresholds. Guardrail scenario tests. Security checklist. P1 items if green. |
+| **Sat 17** | **Integration + bug bash.** Test on 2+ phones and 2+ laptops, **including both demo layouts** (laptop-only, and phone → laptop through the Cloudflare tunnel on the hotspot if remote mode is used). Run the pose clip harness and tune thresholds. Guardrail scenario tests. Security checklist. P1 items if green. |
 | **Sun 18** | Pilot evaluation (rep accuracy on clips, latency logs, internal SUS). Demo script + seed demo account. README + setup docs. **Tag `v0.1.0-mvp`.** |
 
 **Daily ritual:** 15-min standup (what's done / next / blocked), merge to `main` via PR with CI green, deploy preview per PR.
@@ -651,8 +661,9 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **laptop Python pose server on the local network** (§7.7.3); MediaPipe as the last resort |
-| Venue Wi-Fi blocks device-to-device traffic or is slow (remote mode) | Med | High | Bring a phone hotspot or travel router; laptop-only layout as the backup demo |
-| Phone refuses camera access on the local link (not HTTPS) | High | Med | mkcert certificate with its root CA installed on demo phones ahead of time, or a cloudflared/ngrok tunnel |
+| Hotspot data is slow or runs out (remote mode) | Med | High | Dedicated hotspot phone on a data promo; adaptive 10 fps / 480 px; laptop-only layout (no internet needed for pose) as the backup demo |
+| Cloudflare quick tunnel is down or rate-limited (it has no uptime guarantee) | Low | Med | Restart for a new URL and re-scan the QR; a free named tunnel on a Cloudflare account as plan B; laptop-only layout |
+| Phone refuses camera access (needs HTTPS) | Low | Med | Solved by design: the app is on Vercel (HTTPS) and the pose server is reached via `wss://` through the tunnel |
 | WebGPU unavailable (iOS, older devices) | High | Med | WASM backend; detector stride; reduce input resolution; "best on laptop" note |
 | Large model download on mobile data | Med | Med | Lazy-load on the workout screen only; cache; show the size before downloading |
 | Camera angle and lighting break the form checks | High | Med | Calibration screen with angle guidance; only check cues that are reliable from the current view; tunable thresholds |
@@ -672,12 +683,11 @@ All open questions from v1.0 are resolved (see D15–D18):
 |---|---|
 | PE instructor/PT validation of thresholds? | Not needed. Thresholds are tuned on labeled team clips. |
 | Department ethics form for recording clips? | Not required. Simple participant consent is still used. |
-| Demo on laptop or phone? | Both. If in-browser inference fails, the laptop runs the Python pose server and the phone opens a local link (§7.7.3). |
+| Demo on laptop or phone? | Both. If in-browser inference fails, the RTX 3060 laptop runs the Python pose server, reached through a free Cloudflare tunnel over a phone hotspot (§7.7.3). |
 | Merge O2 and O4? | Yes, merged (§3.1). |
 
 New items to confirm during the sprint:
-1. Which team laptop will host the pose server (GPU model / Apple Silicon), so we can benchmark it on Day 1–2.
-2. Number of evaluation participants (aim 10–30) and PWD participant recruitment.
+1. Number of evaluation participants (aim 10–30) and PWD participant recruitment.
 
 ---
 
