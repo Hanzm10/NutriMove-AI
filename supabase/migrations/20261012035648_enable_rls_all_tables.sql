@@ -1,0 +1,22 @@
+-- RLS on every table. Catalogue tables are read-only for users; api_usage has no policies (service role only).
+alter table public.profiles enable row level security;
+alter table public.user_settings enable row level security;
+alter table public.consents enable row level security;
+alter table public.screenings enable row level security;
+alter table public.targets enable row level security;
+alter table public.food_logs enable row level security;
+alter table public.water_logs enable row level security;
+alter table public.weight_logs enable row level security;
+alter table public.recipe_ratings enable row level security;
+alter table public.meal_plans enable row level security;
+alter table public.meal_plan_items enable row level security;
+alter table public.workout_plans enable row level security;
+alter table public.workout_plan_items enable row level security;
+alter table public.workout_sessions enable row level security;
+alter table public.session_sets enable row level security;
+alter table public.check_ins enable row level security;
+alter table public.agent_events enable row level security;
+alter table public.foods enable row level security;
+alter table public.recipes enable row level security;
+alter table public.exercises enable row level security;
+alter table public.api_usage enable row level security;
