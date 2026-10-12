@@ -319,7 +319,7 @@ getUserMedia (640×480 or 1280×720, user-facing)
 > ⚠️ **Day-1 gate (must be checked first).** InstantHMR has several ONNX exports. Some **have no `joints_3d` output**. Those derive the 70 keypoints from Meta's MHR forward pass (`pymomentum`, Python only), which **cannot run in the browser**. On Day 1, load the released `instanthmr.onnx` from HuggingFace (`momolesang/InstantHMR`) and print its input/output names, sizes and metadata. Then decide:
 > - **A (expected):** it outputs `joints_3d` → proceed as designed.
 > - **B:** only `joints_2d` → use InstantHMR 2D keypoints for angles (form checks use a side view), and show a 2.5D skeleton. Or →
-> - **C (team decision, D15):** run the **reference InstantHMR pipeline in Python on a team laptop** (RF-DETR + InstantHMR + MHR/`pymomentum` for `joints_3d`) as a **local pose server**. The phone or browser opens a local link and streams frames to it (§7.7.3). This keeps the full 3D InstantHMR model, as close to the reference repo as possible.
+> - **C (team decision, D15):** run the **reference InstantHMR pipeline in Python on a team laptop** (RF-DETR + InstantHMR + MHR/`pymomentum` for `joints_3d`) as a **pose server** (RTX 3060). The phone streams frames to it through a Cloudflare tunnel, or the laptop webcam connects over localhost (§7.7.3). This keeps the full 3D InstantHMR model, as close to the reference repo as possible.
 > - **D (last resort):** **MediaPipe Pose Landmarker** in the browser (33 joints, 3D world landmarks), only if the laptop server also fails or no laptop is available.
 >
 > Also gate on speed: if in-browser InstantHMR runs at **< 10 FPS** on the reference laptop with WebGPU/WASM → use C for the live demo.
@@ -660,7 +660,7 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **laptop Python pose server on the local network** (§7.7.3); MediaPipe as the last resort |
+| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **RTX 3060 laptop Python pose server via Cloudflare tunnel** (§7.7.3); MediaPipe as the last resort |
 | Hotspot data is slow or runs out (remote mode) | Med | High | Dedicated hotspot phone on a data promo; adaptive 10 fps / 480 px; laptop-only layout (no internet needed for pose) as the backup demo |
 | Cloudflare quick tunnel is down or rate-limited (it has no uptime guarantee) | Low | Med | Restart for a new URL and re-scan the QR; a free named tunnel on a Cloudflare account as plan B; laptop-only layout |
 | Phone refuses camera access (needs HTTPS) | Low | Med | Solved by design: the app is on Vercel (HTTPS) and the pose server is reached via `wss://` through the tunnel |
