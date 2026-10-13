@@ -8,6 +8,14 @@ export const PLAN_SLOTS: MealSlot[] = ["breakfast", "lunch", "dinner", "snack"];
 /** Share of the daily kcal target per slot (PRD §7.5 step 3). */
 export const SLOT_SHARE: Record<MealSlot, number> = { breakfast: 0.25, lunch: 0.35, dinner: 0.3, snack: 0.1 };
 
+/** No recipe fits the user's allergies and diet for one or more meal slots (typically 4+ allergies at once). */
+export class NoRecipesError extends Error {
+  constructor(readonly slots: MealSlot[]) {
+    super(`No eligible recipes for: ${slots.join(", ")}`);
+    this.name = "NoRecipesError";
+  }
+}
+
 export type DietPattern = "omnivore" | "pescatarian" | "vegetarian";
 
 export type CatalogRecipe = {
@@ -294,7 +302,7 @@ function feasible(picks: Pick[], p: MealProfile) {
 export function recommendMealPlan(p: MealProfile, catalog: CatalogRecipe[], days = 7): MealPlan {
   const ranked = Object.fromEntries(PLAN_SLOTS.map((s) => [s, rankForSlot(p, catalog, s)])) as Record<MealSlot, Ranked[]>;
   const missing = PLAN_SLOTS.filter((s) => ranked[s].length === 0);
-  if (missing.length) throw new Error(`No eligible recipes for: ${missing.join(", ")}`);
+  if (missing.length) throw new NoRecipesError(missing);
   const vectors = Object.fromEntries(PLAN_SLOTS.map((s) => [s, userVector(p, s, catalog)])) as Record<MealSlot, Vec>;
   const likedTags = likedTagsOf(p, catalog);
 

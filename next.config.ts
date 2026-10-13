@@ -38,6 +38,20 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
         ],
       },
+      {
+        // Baseline hardening for every route (docs/security.md). A full script-src CSP needs per-request nonces
+        // for Next's inline bootstrap scripts, so only the directives that can't break the app are enforced here.
+        // (not /sw.js: it has its own stricter CSP above)
+        source: "/:path((?!sw\\.js$).*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=(), usb=()" },
+          { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'" },
+        ],
+      },
     ];
   },
 };

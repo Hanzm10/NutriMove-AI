@@ -1,4 +1,4 @@
-import { Download, Info } from "lucide-react";
+import { Download, Info, LogOut } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NmCard, Eyebrow } from "@/components/shell/card";
@@ -95,6 +95,11 @@ export default async function ProfilePage() {
               </ul>
             </div>
           )}
+          <form action="/auth/signout" method="post" className="mt-5">
+            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/40 px-5 font-bold text-white hover:bg-white/10">
+              <LogOut className="size-4" aria-hidden /> Sign out
+            </button>
+          </form>
           <p className="mt-5 text-sm font-bold">Delete account</p>
           <DeleteAccount />
           <p className="mt-4 text-xs text-white/70"><Link href="/privacy" className="underline">Privacy notice</Link></p>

@@ -70,6 +70,8 @@ export type MacroTargets = { kcal: number; proteinG: number; carbsG: number; fat
 
 export type AdaptationInput = {
   goal: Goal;
+  /** From screening (ONB-03): pregnancy/breastfeeding forces maintenance, whatever goal was chosen. */
+  maintenanceOnly?: boolean;
   today: string;
   targets: MacroTargets;
   /** Lowest kcal the user may be given (TGT-04: sex floor, or BMR if screening flagged). */
@@ -101,9 +103,14 @@ const MIN_LOGGED_DAYS = 3;
 const MAX_SET_ADJUST = 2;
 
 export function adaptPlan(input: AdaptationInput): AdaptationResult {
-  const { goal, checkIn, targets } = input;
+  const { checkIn, targets } = input;
+  const goal: Goal = input.maintenanceOnly ? "maintain" : input.goal;
   const ruleIds: string[] = [];
   const reasons: string[] = [];
+  if (input.maintenanceOnly && input.goal !== "maintain") {
+    ruleIds.push("ONB-03");
+    reasons.push("Your calories stay at maintenance because of your screening answers, whatever your goal.");
+  }
   const tips: string[] = [];
   const state: AdaptState = { ...input.state };
   const trend = weightTrend(input.weights, input.today);

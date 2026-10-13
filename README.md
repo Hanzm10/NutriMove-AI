@@ -136,6 +136,12 @@ Verified on Day 1: the released ONNX has inputs `image (N,3,224,224)`, `cliff_co
   production builds only.
 - **Accessibility**: axe (WCAG 2.1 A/AA + best practices) is clean on all app, auth and public pages.
 
+## Security
+
+Audit results, the ASVS-style checklist, security headers and the commands to re-run before the demo are in
+[`docs/security.md`](docs/security.md). Guardrail scenarios (age gate, calorie floor, 1%/week cap, pregnancy, health
+flag, pain pause, allergy sweeps) run as `src/lib/agent/guardrail-scenarios.test.ts`.
+
 ## Project layout
 
 ```
