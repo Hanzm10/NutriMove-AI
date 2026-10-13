@@ -67,7 +67,10 @@ export class InstantHmrEstimator implements PoseEstimator {
       if (msg.id != null) {
         this.pending.get(msg.id)?.reject(err);
         this.pending.delete(msg.id);
-      } else this.loadReject?.(err);
+      } else {
+        this.loadPromise = undefined; // let "Start" retry the load
+        this.loadReject?.(err);
+      }
     }
   }
 

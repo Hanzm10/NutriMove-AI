@@ -56,7 +56,9 @@ export function LiveCoach({
       setPhase("loading");
       const override = new URLSearchParams(location.search).get("model");
       const url = override?.startsWith("/") && !override.startsWith("//") ? override : undefined;
-      estimatorRef.current ??= new InstantHmrEstimator(url);
+      // ?ep=wasm skips WebGPU (diagnostics on devices where WebGPU misbehaves).
+      const ep = new URLSearchParams(location.search).get("ep") === "wasm" ? "wasm" : "webgpu";
+      estimatorRef.current ??= new InstantHmrEstimator(url, ep);
       await estimatorRef.current.load((l, t) =>
         setProgress(t ? `Loading coach model… ${Math.round((l / t) * 100)}%` : `Loading coach model… ${(l / 1e6).toFixed(0)} MB`),
       );
@@ -78,7 +80,7 @@ export function LiveCoach({
           ? "Camera permission was blocked. Allow camera access in your browser settings and try again."
           : name === "NotFoundError"
             ? "No camera was found on this device."
-            : `Could not start the coach: ${String(e)}`,
+            : `Could not start the coach: ${e instanceof Error ? e.message : String(e)}`,
       );
       setPhase("error");
       stopCamera();

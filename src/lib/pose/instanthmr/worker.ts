@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 // InstantHMR inference off the main thread (POSE-02). Receives full frames as ImageBitmap + a person box,
 // crops/normalises with OffscreenCanvas, runs ORT, and returns frame-pixel 2D + metric 3D joints.
-import { createSession, fetchModel, runHmr, type LoadedModel } from "./session";
+import { loadModel, runHmr, type LoadedModel } from "./session";
 import { INPUT_SIZE, cliffCond, cropJointsToFrame, rgbaToNormalizedChw, squareCrop, type BBox } from "./preprocess";
 
 export type WorkerRequest =
@@ -23,8 +23,7 @@ ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   try {
     if (msg.type === "load") {
-      const buf = await fetchModel(msg.url, (loaded, total) => ctx.postMessage({ type: "progress", loaded, total }));
-      model = await createSession(buf, msg.prefer);
+      model = await loadModel(msg.url, msg.prefer, (loaded, total) => ctx.postMessage({ type: "progress", loaded, total }));
       ctx.postMessage({ type: "loaded", backend: model.backend } satisfies WorkerResponse);
       return;
     }
