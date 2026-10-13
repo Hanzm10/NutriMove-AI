@@ -7,8 +7,10 @@ function loadOrt() {
   return ortPromise;
 }
 
+// `||`, not `??`: an env var set to "" (e.g. copied blank from .env.example) must fall back too,
+// otherwise fetch("") downloads the current HTML page and ORT reports "protobuf parsing failed".
 export const DEFAULT_MODEL_URL =
-  process.env.NEXT_PUBLIC_MODEL_URL ??
+  process.env.NEXT_PUBLIC_MODEL_URL?.trim() ||
   "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx";
 
 export type Backend = "webgpu" | "wasm";
@@ -25,10 +27,18 @@ const MODEL_CACHE = "nutrimove-models-v1";
 /** Byte size of the released instanthmr.onnx; a download of any other size is truncated or wrong. */
 const KNOWN_SIZES: Record<string, number> = {
   "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx": 80_961_622,
+  "/models/instanthmr-int8.onnx": 51_786_006,
 };
 
+/**
+ * Int8 weight-quantized copy of the same model (fp16 → fp32 → dynamic int8, served same-origin).
+ * Used automatically when the original fails to load (e.g. a device's wasm memory limit).
+ * Measured against the original: ~1.5 px mean 2D joint error on the 224 px crop.
+ */
+export const LITE_MODEL_URL = "/models/instanthmr-int8.onnx";
+
 /** iPhone/iPad (including iPadOS reporting as Mac). Used to keep wasm memory low on WebKit. */
-const isIOS = () =>
+export const isIOS = () =>
   typeof navigator !== "undefined" &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1));
 
@@ -62,6 +72,9 @@ export async function fetchModel(
   }
   const res = await fetch(url, { mode: "cors", cache: "no-store" });
   if (!res.ok || !res.body) throw new Error(`Model download failed (HTTP ${res.status})`);
+  if (res.headers.get("content-type")?.includes("text/html")) {
+    throw new Error(`Model URL returned a web page, not a model: ${url || "(empty)"}`);
+  }
   const encoded = Boolean(res.headers.get("content-encoding"));
   const total = expected ?? (encoded ? 0 : Number(res.headers.get("content-length")) || 0);
   const reader = res.body.getReader();
@@ -130,14 +143,46 @@ export async function loadModel(
   prefer: Backend,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<LoadedModel> {
+  try {
+    return await loadOnce(url, prefer, onProgress);
+  } catch (e) {
+    // The full fp16 model can exceed the device's wasm memory; the int8 copy needs far less.
+    if (url === LITE_MODEL_URL) throw e;
+    return loadOnce(LITE_MODEL_URL, prefer, onProgress).catch((e2) => {
+      throw new Error(`${e instanceof Error ? e.message : String(e)} || lite model: ${e2 instanceof Error ? e2.message : String(e2)}`);
+    });
+  }
+}
+
+async function loadOnce(
+  url: string,
+  prefer: Backend,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<LoadedModel> {
   let { bytes, fromCache } = await fetchModel(url, onProgress);
   try {
     return await createSession(() => (bytes.byteLength ? bytes : fetchModel(url).then((r) => r.bytes)), prefer);
   } catch (e) {
     await forgetModel(url);
-    if (!fromCache) throw e;
-    ({ bytes, fromCache } = await fetchModel(url, onProgress));
-    return createSession(() => bytes, prefer);
+    if (fromCache) {
+      ({ bytes, fromCache } = await fetchModel(url, onProgress));
+      try {
+        return await createSession(() => bytes, prefer);
+      } catch (e2) {
+        e = e2;
+      }
+    }
+    throw new Error(`${e instanceof Error ? e.message : String(e)} [${await fingerprint(bytes)}]`);
+  }
+}
+
+/** Size + short SHA-256 of the bytes ORT rejected, so a corrupt download is distinguishable from a runtime limit. */
+async function fingerprint(bytes: Uint8Array) {
+  try {
+    const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>));
+    return `${bytes.byteLength} B, sha256 ${[...hash.slice(0, 6)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  } catch {
+    return `${bytes.byteLength} B`;
   }
 }
 

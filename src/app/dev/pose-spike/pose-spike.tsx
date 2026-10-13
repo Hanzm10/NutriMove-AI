@@ -8,7 +8,7 @@ import {
   type BBox,
 } from "@/lib/pose/instanthmr/preprocess";
 import {
-  DEFAULT_MODEL_URL, loadModel, runHmr, type Backend, type LoadedModel,
+  DEFAULT_MODEL_URL, LITE_MODEL_URL, loadModel, runHmr, type Backend, type LoadedModel,
 } from "@/lib/pose/instanthmr/session";
 
 type Stats = { pre: number; infer: number; total: number; fps: number; frames: number };
@@ -39,7 +39,8 @@ export function PoseSpike() {
     try {
       // ?model=/models/instanthmr.onnx loads a local copy (offline / faster dev).
       const override = new URLSearchParams(location.search).get("model");
-      const url = override?.startsWith("/") && !override.startsWith("//") ? override : DEFAULT_MODEL_URL;
+      const url = override === "lite" ? LITE_MODEL_URL
+        : override?.startsWith("/") && !override.startsWith("//") ? override : DEFAULT_MODEL_URL;
       const m = await loadModel(url, prefer, (l, t) =>
         setProgress(l === t ? "Creating session…" : t ? `Downloading ${(l / 1e6).toFixed(1)} / ${(t / 1e6).toFixed(1)} MB` : `${(l / 1e6).toFixed(1)} MB`),
       );

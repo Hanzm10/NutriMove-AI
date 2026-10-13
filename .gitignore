@@ -44,6 +44,7 @@ next-env.d.ts
 # onnxruntime-web runtime (copied on install) and local models
 /public/ort/
 /public/models/*.onnx
+!/public/models/instanthmr-int8.onnx
 
 # supabase
 supabase/.branches
