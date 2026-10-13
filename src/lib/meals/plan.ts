@@ -44,7 +44,7 @@ type DietPrefs = { pattern?: MealProfile["dietPattern"]; allergies?: string[]; d
 /** Profile diet prefs + latest targets + 👍/👎 ratings → recommender input. */
 export async function loadMealProfile(supabase: DB, userId: string, catalog: Recipe[]): Promise<MealProfile | null> {
   const [{ data: profile }, { data: targets }, { data: ratings }] = await Promise.all([
-    supabase.from("profiles").select("diet_prefs").eq("user_id", userId).single(),
+    supabase.from("profiles").select("diet_prefs, adapt_state").eq("user_id", userId).single(),
     supabase.from("targets").select("kcal, protein_g, carbs_g, fat_g").eq("user_id", userId)
       .lte("effective_from", todayISO())
       .order("effective_from", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -64,6 +64,7 @@ export async function loadMealProfile(supabase: DB, userId: string, catalog: Rec
     dislikes: prefs.dislikes ?? [],
     budget: prefs.budget ?? "low",
     filipinoFirst: prefs.filipinoFirst ?? true,
+    favorHighFiber: Boolean((profile?.adapt_state as { favorHighFiber?: boolean } | null)?.favorHighFiber),
     liked: rated(1),
     disliked: rated(-1),
   };

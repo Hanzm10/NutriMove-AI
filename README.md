@@ -99,6 +99,7 @@ must opt in too (see `next.config.ts`).
 |---|---|---|
 | `targets.ts`, `guardrails.ts` | TGT-*, ONB-02…04 | Calorie/macro targets, floors, caps, screening rules |
 | `workout-recommender.ts` | WORK-01 | Weekly plan: eligibility filters + cosine-similarity ranking per slot |
+| `adaptation.ts` | AGENT-02/03/06 | Weekly check-in rules: 14-day least-squares weight trend, ±150/−100 kcal adjustments with the calorie floor, adherence check (logged intake > 20% off → tips, no change), hunger → protein + fiber, workout difficulty/pain → set changes and camera-coach pause. 14 scenario tests |
 | `meal-recommender.ts` | MEAL-01…05 | 7-day meal plan: hard filters (allergens, diet, dislikes, slot) → weighted cosine on macro/kcal/fiber/Filipino/budget/prep/tag features → repeat and same-protein penalties → servings in 0.25 steps to land within ±10% kcal and ≥ 90% protein → greedy swaps. 👍/👎 ratings blend into the user vector; `recommendSwap` gives the next-best recipe for a slot |
 | `nudges.ts` | AGENT-05 | Rule-based "AI coach insight" on Overview |
 | `vectors.ts` | — | Cosine similarity |
@@ -117,6 +118,23 @@ Use **Copy results for the team** and paste the line in the group chat.
 
 Verified on Day 1: the released ONNX has inputs `image (N,3,224,224)`, `cliff_cond (N,3)` and outputs
 `mhr_params, shape_params, cam_trans, joints_2d, joints_3d`, so **3D joints are available in the browser**.
+
+## Weekly check-in, Progress, Profile, PWA (Day 5)
+
+- **Check-in** (`/check-in`, banner on Overview when due): weight, adherence, hunger, energy, workout difficulty, new pain →
+  `src/lib/checkin/run.ts` runs the adaptation rules, writes new `targets` (with explanation), stores `profiles.adapt_state`
+  and the result on `check_ins.result`, regenerates both plans, and shows a **What changed and why** card.
+- **Progress** (`/progress`): 7d/4w/3m, consistency, active minutes, calorie-target days, good-form %, weight trend (+ log
+  weight), adherence and activity charts with text summaries, rule-based milestones.
+- **Profile** (`/profile`): name/schedule (re-plans workouts), read-only targets with "why", accessibility toggles
+  (larger text, high contrast, reduce motion — applied on `<html>`), voice cues, water goal, JSON export (`/profile/export`),
+  consent history, delete account.
+- **Delete account** needs `supabase/migrations/20261013061000_delete_my_account.sql` applied (SQL editor); until then
+  the button shows a friendly error.
+- **PWA**: `src/app/manifest.ts`, icons in `public/icons` (`node scripts/build-icons.mjs`), `public/sw.js` (cache-first
+  static/ORT/models, network-first pages with an `/offline` fallback; sign-out clears cached pages). Registered in
+  production builds only.
+- **Accessibility**: axe (WCAG 2.1 A/AA + best practices) is clean on all app, auth and public pages.
 
 ## Project layout
 

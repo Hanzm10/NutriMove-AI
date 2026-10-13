@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Privacy notice" };
 export default function PrivacyPage() {
   return (
     <div className="min-h-dvh bg-nm-canvas px-5 py-8 sm:px-10">
-      <Logo href="/" />
+      <header><Logo href="/" /></header>
       <main id="main" className="mx-auto mt-10 max-w-2xl space-y-5 text-nm-ink">
         <h1 className="text-[2.369rem] font-black">Privacy notice</h1>
         <p className="text-nm-muted">Draft — CS 403 school project, Technological Institute of the Philippines.</p>

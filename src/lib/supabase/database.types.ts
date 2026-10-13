@@ -69,6 +69,7 @@ export type Database = {
       }
       check_ins: {
         Row: {
+          result: Json
           adherence: number | null
           check_date: string
           created_at: string
@@ -82,6 +83,7 @@ export type Database = {
           workout_difficulty: string | null
         }
         Insert: {
+          result?: Json
           adherence?: number | null
           check_date?: string
           created_at?: string
@@ -95,6 +97,7 @@ export type Database = {
           workout_difficulty?: string | null
         }
         Update: {
+          result?: Json
           adherence?: number | null
           check_date?: string
           created_at?: string
@@ -381,6 +384,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          adapt_state: Json
           activity_level: string | null
           birthdate: string | null
           created_at: string
@@ -402,6 +406,7 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          adapt_state?: Json
           activity_level?: string | null
           birthdate?: string | null
           created_at?: string
@@ -423,6 +428,7 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          adapt_state?: Json
           activity_level?: string | null
           birthdate?: string | null
           created_at?: string
@@ -871,7 +877,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_my_account: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

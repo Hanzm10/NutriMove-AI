@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+      {
         // Cross-origin isolation enables multi-threaded WASM for onnxruntime-web
         // on the pose screens only (PRD §9.1).
         source: "/(workout|dev)/:path*",

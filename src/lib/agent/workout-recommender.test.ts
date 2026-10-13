@@ -72,3 +72,15 @@ describe("recommendWorkoutPlan (WORK-01)", () => {
     expect(eligible(byslug("squat"), { ...base, avoid: ["knee"] })).toBe(false);
   });
 });
+
+describe("check-in set adjustment (AGENT-03)", () => {
+  const setsOf = (p: WorkoutProfile) =>
+    recommendWorkoutPlan(p, CAT).days.flatMap((d) => d.items).filter((i) => !i.slug.startsWith("stretch")).map((i) => i.sets);
+  it("adds or removes sets, clamped to 1…5", () => {
+    const first = (p: WorkoutProfile) => recommendWorkoutPlan(p, CAT).days[0]!.items[0]!.sets;
+    expect(first({ ...base, setAdjust: 1 })).toBe(first(base) + 1);
+    expect(first({ ...base, setAdjust: -1 })).toBe(Math.max(1, first(base) - 1));
+    expect(setsOf({ ...base, setAdjust: -5 }).every((s) => s >= 1)).toBe(true);
+    expect(recommendWorkoutPlan({ ...base, setAdjust: -1 }, CAT).ruleIds).toContain("AGT-WORKOUT-REGRESS");
+  });
+});

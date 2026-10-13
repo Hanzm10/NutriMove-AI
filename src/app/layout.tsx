@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { A11Y_BOOT_SCRIPT } from "@/components/shell/a11y-prefs";
 import "./globals.css";
 
 const lato = Lato({
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
   description:
     "Your intelligent fitness and nutrition coach: real-time form feedback, calorie tracking, and adaptive meal and workout plans.",
   applicationName: "NutriMove AI",
+  appleWebApp: { capable: true, title: "NutriMove", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -22,7 +25,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${lato.variable} h-full antialiased`}>
+    <html lang="en" className={`${lato.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: A11Y_BOOT_SCRIPT }} />
+      </head>
       <body className="min-h-full">
         <a
           href="#main"

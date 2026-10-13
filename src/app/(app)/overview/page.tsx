@@ -1,9 +1,11 @@
-import { ArrowRight, Clock, Droplet, Flame, Sparkles, Target, Timer } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Clock, Droplet, Flame, ShieldAlert, Sparkles, Target, Timer } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WhatChanged } from "@/components/agent/what-changed";
 import { EnergyRing } from "@/components/nutrition/energy-ring";
 import { PageHeader } from "@/components/shell/page-header";
 import { dailyNudge } from "@/lib/agent/nudges";
+import { loadCheckInStatus } from "@/lib/checkin/run";
 import { addDaysISO, todayISO, weekdayLabel } from "@/lib/dates";
 import { loadDay } from "@/lib/food/day";
 import { percentOf } from "@/lib/food/nutrition";
@@ -20,13 +22,15 @@ function manilaHour() {
 export default async function OverviewPage() {
   const { supabase, user } = await requireUser();
   const today = todayISO();
-  const [day, plan, { data: profile }, { data: sessions }] = await Promise.all([
+  const [day, plan, { data: profile }, { data: sessions }, checkIn] = await Promise.all([
     loadDay(supabase, user.id, today),
     loadCurrentPlan(supabase, user.id),
     supabase.from("profiles").select("display_name, experience_level").eq("user_id", user.id).single(),
     supabase.from("workout_sessions").select("id, started_at, ended_at, session_sets(duration_s)").eq("user_id", user.id)
       .gte("started_at", `${today}T00:00:00+08:00`).lt("started_at", `${addDaysISO(today, 1)}T00:00:00+08:00`),
+    loadCheckInStatus(supabase, user.id),
   ]);
+  const recentCheckIn = checkIn.last && checkIn.last.date >= addDaysISO(today, -6) ? checkIn.last : null;
   const hour = manilaHour();
   const first = (profile?.display_name ?? "there").split(" ")[0];
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -67,6 +71,21 @@ export default async function OverviewPage() {
   return (
     <>
       <PageHeader eyebrow={`${weekdayLabel(today, "long")}, ${today}`} title={`${greeting}, ${first}`} subtitle="Your plan is ready. Let's make today count." />
+
+      {checkIn.posePaused && (
+        <div role="status" className="mt-6 flex flex-wrap items-center gap-3 rounded-card border border-nm-warning/40 bg-amber-50 p-5">
+          <ShieldAlert className="size-6 shrink-0 text-nm-warning" aria-hidden />
+          <p className="min-w-0 flex-1"><span className="font-bold">Rest first.</span> You reported new pain, so workouts are lighter and the camera coach is paused. Please consult a health professional if it continues.</p>
+          <Link href="/workout" className="inline-flex h-11 items-center rounded-xl border border-nm-line bg-white px-4 font-bold">Workout settings</Link>
+        </div>
+      )}
+      {checkIn.due && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-card bg-nm-ink-card p-5 text-white">
+          <ClipboardCheck className="size-6 shrink-0 text-nm-accent" aria-hidden />
+          <p className="min-w-0 flex-1"><span className="font-bold">Your weekly check-in is due.</span> Two minutes of answers so your coach can adjust your targets and plans.</p>
+          <Link href="/check-in" className="inline-flex h-11 items-center rounded-xl bg-nm-primary px-5 font-bold text-nm-ink">Start check-in</Link>
+        </div>
+      )}
 
       <section className="mt-8 grid items-center gap-6 rounded-card bg-gradient-to-br from-[#c6e98c] to-nm-primary p-7 sm:p-10 lg:grid-cols-[1fr_auto]">
         <div>
@@ -154,6 +173,13 @@ export default async function OverviewPage() {
           <p className="mt-4 text-xs text-nm-muted">Filled = done · outlined = planned · grey = rest</p>
         </section>
       </div>
+      {recentCheckIn && <div className="mt-5"><WhatChanged result={recentCheckIn.result} date={recentCheckIn.date} /></div>}
+      {!checkIn.due && (
+        <p className="mt-5 text-sm text-nm-muted">
+          Next weekly check-in {checkIn.last ? `is due 7 days after ${checkIn.last.date}` : "unlocks a week after onboarding"}.{" "}
+          <Link href="/check-in" className="font-bold text-nm-primary-ink underline">Check in early</Link>
+        </p>
+      )}
     </>
   );
 }
