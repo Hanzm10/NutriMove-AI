@@ -108,19 +108,29 @@ export function isValidBarcode(code: string): boolean {
   return (10 - (sum % 10)) % 10 === check;
 }
 
-/** Ranking for merged results: exact/prefix matches first, then FNRI (Filipino), then shorter names. */
+/**
+ * Ranking for merged results: exact/prefix/whole-word matches first (on the query or any synonym),
+ * then FNRI (Filipino) and the user's own foods, then shorter names.
+ */
 export function rankFoods<T extends { name: string; name_local: string | null; source: string }>(
   query: string,
   foods: T[],
 ): T[] {
   const q = query.trim().toLowerCase();
+  const words = q.split(" ").filter(Boolean);
+  // The phrase itself, plus each word's synonyms (e.g. "kanin" → "sinaing", "rice").
+  const terms = [q, ...words.flatMap((w) => FOOD_SYNONYMS[w] ?? [])];
+  const termScore = (names: string[], t: string, weight: number) => {
+    if (names.some((n) => n === t)) return 100 * weight;
+    if (names.some((n) => n.startsWith(t) && !/[a-z]/.test(n.charAt(t.length)))) return 50 * weight;
+    if (names.some((n) => n.split(/[\s,/()-]+/).includes(t))) return 30 * weight;
+    if (names.some((n) => n.includes(t))) return 10 * weight;
+    return 0;
+  };
   const score = (f: T) => {
     const names = [f.name, f.name_local ?? ""].map((s) => s.toLowerCase());
-    let s = 0;
-    if (names.some((n) => n === q)) s += 100;
-    else if (names.some((n) => n.startsWith(q))) s += 50;
-    else if (names.some((n) => n.split(/[\s,/()-]+/).includes(q))) s += 30;
-    else if (names.some((n) => n.includes(q))) s += 10;
+    // Sum over terms: a food matching both "sinaing" and "rice" beats one matching only "rice".
+    let s = terms.reduce((acc, t, i) => acc + termScore(names, t, i === 0 ? 1 : 0.8), 0);
     if (f.source === "fnri") s += 15;
     if (f.source === "custom") s += 20;
     return s - Math.min(f.name.length, 80) / 20;

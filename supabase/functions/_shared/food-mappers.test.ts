@@ -77,3 +77,14 @@ describe("synonyms", () => {
     expect(toEnglishQuery("pork adobo")).toBe("pork adobo");
   });
 });
+
+describe("rankFoods with synonyms", () => {
+  it("ranks cooked rice first for 'kanin'", () => {
+    const foods = [
+      { name: "Coconut meat, young", name_local: "Buko, malakanin", source: "fnri" },
+      { name: "Aragan lvs", name_local: "Ricefield waternymph", source: "fnri" },
+      { name: "Rice, well-milled, boiled", name_local: "Bigas, maputi, sinaing", source: "fnri" },
+    ];
+    expect(rankFoods("kanin", foods)[0]!.name).toBe("Rice, well-milled, boiled");
+  });
+});
