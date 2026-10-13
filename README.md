@@ -83,7 +83,9 @@ thresholds in `src/lib/pose/analyzers/exercise-rules.json`) → rep counter, cue
 
 Query flags:
 - `?debug=1` — backend / FPS / latency overlay.
-- `?model=/models/instanthmr.onnx` — load a local copy of the model.
+- `?model=/models/instanthmr.onnx` — load a local copy of the model. `?model=lite` / `?model=full` pick the int8 or
+  original model. iPhones use the lite model (`public/models/instanthmr-int8.onnx`, 52 MB, ~1.5 px mean joint
+  difference on the 224 px crop); any device falls back to it if the original fails to load. `?ep=wasm` skips WebGPU.
 - `?synthetic=squat|pushup|lunge` — **test mode**: no camera or model; generated stick-figure reps (every 3rd rep has
   a form fault). Use it to demo or test the HUD, cues and summary on any machine.
 - `sets`, `reps` — override the target (the workout plan passes these).

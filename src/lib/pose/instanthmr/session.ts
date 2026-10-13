@@ -25,10 +25,23 @@ const MODEL_CACHE = "nutrimove-models-v1";
 /** Byte size of the released instanthmr.onnx; a download of any other size is truncated or wrong. */
 const KNOWN_SIZES: Record<string, number> = {
   "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx": 80_961_622,
+  "/models/instanthmr-int8.onnx": 51_786_006,
 };
 
+/**
+ * Int8 weight-quantized copy of the same model (fp16 → fp32 → dynamic int8, served same-origin).
+ * The released model is fp16; WASM expands it to fp32 at load, which iPhone Safari can't fit.
+ * Measured against the original: ~1.5 px mean 2D joint error on the 224 px crop.
+ */
+export const LITE_MODEL_URL = "/models/instanthmr-int8.onnx";
+
+/** iPhones get the lite model; everything else the original. */
+export function defaultModelUrl() {
+  return isIOS() ? LITE_MODEL_URL : DEFAULT_MODEL_URL;
+}
+
 /** iPhone/iPad (including iPadOS reporting as Mac). Used to keep wasm memory low on WebKit. */
-const isIOS = () =>
+export const isIOS = () =>
   typeof navigator !== "undefined" &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1));
 
@@ -130,14 +143,46 @@ export async function loadModel(
   prefer: Backend,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<LoadedModel> {
+  try {
+    return await loadOnce(url, prefer, onProgress);
+  } catch (e) {
+    // The full fp16 model can exceed the device's wasm memory; the int8 copy needs far less.
+    if (url === LITE_MODEL_URL) throw e;
+    return loadOnce(LITE_MODEL_URL, prefer, onProgress).catch((e2) => {
+      throw new Error(`${e instanceof Error ? e.message : String(e)} || lite model: ${e2 instanceof Error ? e2.message : String(e2)}`);
+    });
+  }
+}
+
+async function loadOnce(
+  url: string,
+  prefer: Backend,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<LoadedModel> {
   let { bytes, fromCache } = await fetchModel(url, onProgress);
   try {
     return await createSession(() => (bytes.byteLength ? bytes : fetchModel(url).then((r) => r.bytes)), prefer);
   } catch (e) {
     await forgetModel(url);
-    if (!fromCache) throw e;
-    ({ bytes, fromCache } = await fetchModel(url, onProgress));
-    return createSession(() => bytes, prefer);
+    if (fromCache) {
+      ({ bytes, fromCache } = await fetchModel(url, onProgress));
+      try {
+        return await createSession(() => bytes, prefer);
+      } catch (e2) {
+        e = e2;
+      }
+    }
+    throw new Error(`${e instanceof Error ? e.message : String(e)} [${await fingerprint(bytes)}]`);
+  }
+}
+
+/** Size + short SHA-256 of the bytes ORT rejected, so a corrupt download is distinguishable from a runtime limit. */
+async function fingerprint(bytes: Uint8Array) {
+  try {
+    const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>));
+    return `${bytes.byteLength} B, sha256 ${[...hash.slice(0, 6)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  } catch {
+    return `${bytes.byteLength} B`;
   }
 }
 
