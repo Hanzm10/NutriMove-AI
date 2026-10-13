@@ -7,16 +7,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { addDaysISO, weekdayLabel } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { TIMED_SLUGS, estimateSessionMinutes } from "@/lib/workout/estimate";
 import type { PlanView } from "@/lib/workout/plan";
 import { regeneratePlan, saveSession } from "./actions";
 
 type View = NonNullable<PlanView>;
 type Item = View["days"][number]["items"][number];
 
-const TIMED = new Set(["plank", "superman", "mountain-climber", "step-jack", "jumping-jack", "march-in-place", "high-knees", "stretch-lower", "stretch-upper"]);
-const amount = (i: Item) => (TIMED.has(i.exercise!.slug) ? `${i.reps} s` : `${i.reps} reps`);
-const estMin = (items: Item[]) =>
-  Math.round(items.reduce((a, i) => a + i.sets * ((TIMED.has(i.exercise!.slug) ? i.reps : i.reps * 3) + i.rest_s) + 30, 0) / 60);
+const amount = (i: Item) => (TIMED_SLUGS.has(i.exercise!.slug) ? `${i.reps} s` : `${i.reps} reps`);
+const estMin = estimateSessionMinutes;
 
 export function WorkoutToday({ view, reasons }: { view: View; reasons: string[] }) {
   const [tab, setTab] = useState<"today" | "week">("today");
