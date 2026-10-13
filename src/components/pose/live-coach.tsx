@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
-import { DEFAULT_MODEL_URL, LITE_MODEL_URL, defaultModelUrl } from "@/lib/pose/instanthmr/session";
+import { DEFAULT_MODEL_URL, LITE_MODEL_URL } from "@/lib/pose/instanthmr/session";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
@@ -60,7 +60,7 @@ export function LiveCoach({
       const url = override === "lite" ? LITE_MODEL_URL
         : override === "full" ? DEFAULT_MODEL_URL
         : override?.startsWith("/") && !override.startsWith("//") ? override
-        : defaultModelUrl();
+        : DEFAULT_MODEL_URL;
       // ?ep=wasm skips WebGPU (diagnostics on devices where WebGPU misbehaves).
       const ep = new URLSearchParams(location.search).get("ep") === "wasm" ? "wasm" : "webgpu";
       estimatorRef.current ??= new InstantHmrEstimator(url, ep);

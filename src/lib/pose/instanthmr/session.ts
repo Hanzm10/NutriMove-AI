@@ -7,8 +7,10 @@ function loadOrt() {
   return ortPromise;
 }
 
+// `||`, not `??`: an env var set to "" (e.g. copied blank from .env.example) must fall back too,
+// otherwise fetch("") downloads the current HTML page and ORT reports "protobuf parsing failed".
 export const DEFAULT_MODEL_URL =
-  process.env.NEXT_PUBLIC_MODEL_URL ??
+  process.env.NEXT_PUBLIC_MODEL_URL?.trim() ||
   "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx";
 
 export type Backend = "webgpu" | "wasm";
@@ -30,15 +32,10 @@ const KNOWN_SIZES: Record<string, number> = {
 
 /**
  * Int8 weight-quantized copy of the same model (fp16 → fp32 → dynamic int8, served same-origin).
- * The released model is fp16; WASM expands it to fp32 at load, which iPhone Safari can't fit.
+ * Used automatically when the original fails to load (e.g. a device's wasm memory limit).
  * Measured against the original: ~1.5 px mean 2D joint error on the 224 px crop.
  */
 export const LITE_MODEL_URL = "/models/instanthmr-int8.onnx";
-
-/** iPhones get the lite model; everything else the original. */
-export function defaultModelUrl() {
-  return isIOS() ? LITE_MODEL_URL : DEFAULT_MODEL_URL;
-}
 
 /** iPhone/iPad (including iPadOS reporting as Mac). Used to keep wasm memory low on WebKit. */
 export const isIOS = () =>
@@ -75,6 +72,9 @@ export async function fetchModel(
   }
   const res = await fetch(url, { mode: "cors", cache: "no-store" });
   if (!res.ok || !res.body) throw new Error(`Model download failed (HTTP ${res.status})`);
+  if (res.headers.get("content-type")?.includes("text/html")) {
+    throw new Error(`Model URL returned a web page, not a model: ${url || "(empty)"}`);
+  }
   const encoded = Boolean(res.headers.get("content-encoding"));
   const total = expected ?? (encoded ? 0 : Number(res.headers.get("content-length")) || 0);
   const reader = res.body.getReader();
