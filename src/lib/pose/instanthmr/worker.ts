@@ -1,15 +1,16 @@
 /// <reference lib="webworker" />
 // InstantHMR inference off the main thread (POSE-02). Receives full frames as ImageBitmap + a person box,
 // crops/normalises with OffscreenCanvas, runs ORT, and returns frame-pixel 2D + metric 3D joints.
-import { loadModel, runHmr, type LoadedModel } from "./session";
+import { loadModel, runHmr, type LoadedModel, type LoadOptions } from "./session";
 import { INPUT_SIZE, cliffCond, cropJointsToFrame, rgbaToNormalizedChw, squareCrop, type BBox } from "./preprocess";
 
 export type WorkerRequest =
-  | { type: "load"; url: string; prefer: "webgpu" | "wasm" }
+  | { type: "load"; url: string; opts: LoadOptions }
   | { type: "estimate"; id: number; frame: ImageBitmap; box: BBox };
 
 export type WorkerResponse =
   | { type: "progress"; loaded: number; total: number }
+  | { type: "stage"; stage: string }
   | { type: "loaded"; backend: string }
   | { type: "result"; id: number; joints2d: Float32Array; joints3d: Float32Array | null; preprocessMs: number; inferenceMs: number }
   | { type: "error"; id?: number; message: string };
@@ -23,7 +24,12 @@ ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   try {
     if (msg.type === "load") {
-      model = await loadModel(msg.url, msg.prefer, (loaded, total) => ctx.postMessage({ type: "progress", loaded, total }));
+      model = await loadModel(
+        msg.url,
+        msg.opts,
+        (loaded, total) => ctx.postMessage({ type: "progress", loaded, total } satisfies WorkerResponse),
+        (stage) => ctx.postMessage({ type: "stage", stage } satisfies WorkerResponse),
+      );
       ctx.postMessage({ type: "loaded", backend: model.backend } satisfies WorkerResponse);
       return;
     }

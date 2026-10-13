@@ -1,11 +1,12 @@
 "use client";
 
 import { Camera, CameraOff, Loader2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
-import { DEFAULT_MODEL_URL, LITE_MODEL_URL } from "@/lib/pose/instanthmr/session";
+import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
+import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
@@ -44,10 +45,30 @@ export function LiveCoach({
   const [error, setError] = useState<string | null>(null);
   const [inFrame, setInFrame] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
-  // Debug overlay (?debug=1) only renders once stats exist, i.e. after the camera starts on the client.
-  const [debug] = useState(() => typeof location !== "undefined" && new URLSearchParams(location.search).has("debug"));
+  // ?debug=1 shows the diagnostics panel (device, setup, step-by-step log) from the first tap, not just once running.
+  const debug = useSyncExternalStore(
+    () => () => {},
+    () => parseLoadParams(location.search).debug,
+    () => false,
+  );
+  const guardRef = useRef<LoadGuard | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [lines, setLines] = useState<string[]>([]);
+  const [previousLog, setPreviousLog] = useState<string[]>([]);
+  const [rungLabel, setRungLabel] = useState("");
+  const [exhausted, setExhausted] = useState(false);
+  const getGuard = () => (guardRef.current ??= createLoadGuard(safeStorage()));
 
-  useEffect(() => () => stop(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // Leaving the page normally is not a crash; a killed page never fires pagehide.
+    const leave = () => guardRef.current?.cleanExit();
+    window.addEventListener("pagehide", leave);
+    return () => {
+      window.removeEventListener("pagehide", leave);
+      leave();
+      stop();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function start() {
     setError(null);
@@ -55,18 +76,52 @@ export function LiveCoach({
     if (synthetic) return startSynthetic(synthetic);
     try {
       setPhase("loading");
-      // ?model=lite | full | /path/to/local.onnx
-      const override = new URLSearchParams(location.search).get("model");
-      const url = override === "lite" ? LITE_MODEL_URL
-        : override === "full" ? DEFAULT_MODEL_URL
-        : override?.startsWith("/") && !override.startsWith("//") ? override
-        : DEFAULT_MODEL_URL;
-      // ?ep=wasm skips WebGPU (diagnostics on devices where WebGPU misbehaves).
-      const ep = new URLSearchParams(location.search).get("ep") === "wasm" ? "wasm" : "webgpu";
-      estimatorRef.current ??= new InstantHmrEstimator(url, ep);
-      await estimatorRef.current.load((l, t) =>
-        setProgress(t ? `Loading coach model… ${Math.round((l / t) * 100)}%` : `Loading coach model… ${(l / 1e6).toFixed(0)} MB`),
-      );
+      const params = parseLoadParams(location.search);
+      const guard = getGuard();
+      const begin = guard.begin(defaultRung(isIOS()), params.rung);
+      setPreviousLog(begin.previousLog);
+      if (begin.crashed) {
+        setNotice(
+          `The browser closed this page last time while it was "${begin.crashed.stage}", usually because the phone ran low on memory. ` +
+            (begin.rung ? `Trying a lighter setup: ${begin.rung.label}.` : ""),
+        );
+      }
+      let rung: Rung | null = begin.rung;
+      let lastError = "";
+      let ready = false;
+      while (rung && !ready) {
+        setRungLabel(rung.label);
+        const model = params.model ?? rung.model;
+        const url = model === "lite" ? LITE_MODEL_URL : model === "full" ? DEFAULT_MODEL_URL : model;
+        const est = new InstantHmrEstimator(url, {
+          prefer: params.ep ?? rung.prefer,
+          threads: params.threads ?? rung.threads,
+        });
+        estimatorRef.current = est;
+        try {
+          await est.load(
+            (l, t) => setProgress(t ? `Loading coach model… ${Math.round((l / t) * 100)}%` : `Loading coach model… ${(l / 1e6).toFixed(0)} MB`),
+            (stage) => {
+              guard.stage(stage);
+              setLines([...guard.lines()]);
+            },
+          );
+          ready = true;
+        } catch (e) {
+          lastError = e instanceof Error ? e.message : String(e);
+          est.dispose(); // frees the worker's memory before trying a lighter setup
+          estimatorRef.current = null;
+          const next = guard.fail(lastError);
+          setLines([...guard.lines()]);
+          rung = next && !params.rung ? guard.begin(defaultRung(isIOS()), next).rung : null;
+        }
+      }
+      if (!ready) {
+        setExhausted(true);
+        throw new Error(
+          `This device couldn't run the camera coach in the browser. Please use a laptop for now, or tap Reset in Diagnostics to try again. ${lastError}`.trim(),
+        );
+      }
       setPhase("camera");
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 960 }, height: { ideal: 540 } },
@@ -119,6 +174,10 @@ export function LiveCoach({
         if (visible) onPoseRef.current?.(pose);
         fps = fps ? fps * 0.9 + (1000 / (now - last)) * 0.1 : 1000 / (now - last);
         last = now;
+        if (frames === 2) {
+          guardRef.current?.success();
+          setLines([...(guardRef.current?.lines() ?? [])]);
+        }
         if (++frames % 10 === 0) {
           const st = { fps, inferenceMs: s.inferenceMs, backend: s.backend };
           setStats(st);
@@ -219,10 +278,33 @@ export function LiveCoach({
       <p className="sr-only" aria-live="polite">
         {phase === "running" ? (inFrame ? "Tracking your movement." : "Step into frame.") : ""}
       </p>
+      {notice && (
+        <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-nm-warning">
+          {notice}
+        </p>
+      )}
       {error && (
         <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-bold text-nm-danger">
           {error}
         </p>
+      )}
+      {(debug || phase === "error") && (
+        <Diagnostics
+          open={debug}
+          rungLabel={rungLabel}
+          lines={lines}
+          previousLog={previousLog}
+          stats={stats}
+          onReset={() => {
+            guardRef.current?.reset();
+            setExhausted(false);
+            setNotice(null);
+            setError(null);
+            setLines([]);
+            setPreviousLog([]);
+            setPhase("idle");
+          }}
+        />
       )}
       <div className="flex flex-wrap gap-3">
         {phase === "running" ? (
@@ -231,11 +313,51 @@ export function LiveCoach({
           </Button>
         ) : (
           <Button className="h-12 rounded-xl px-6 text-base font-bold" onClick={start} disabled={phase === "loading" || phase === "camera"}>
-            <Camera aria-hidden /> {startLabel}
+            <Camera aria-hidden /> {exhausted ? "Try again" : startLabel}
           </Button>
         )}
       </div>
     </div>
+  );
+}
+
+/** localStorage, or a no-op store when the browser blocks it (private mode). */
+function safeStorage(): Pick<Storage, "getItem" | "setItem" | "removeItem"> {
+  try {
+    localStorage.getItem("nm-probe");
+    return localStorage;
+  } catch {
+    return { getItem: () => null, setItem: () => undefined, removeItem: () => undefined };
+  }
+}
+
+/** Device + setup + step log, copyable, so a phone that crashes can show exactly where (screenshot-friendly). */
+function Diagnostics({ open, rungLabel, lines, previousLog, stats, onReset }: {
+  open: boolean; rungLabel: string; lines: string[]; previousLog: string[]; stats: Stats | null; onReset: () => void;
+}) {
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const text = [
+    `device: ${nav.userAgent}`,
+    `cores: ${nav.hardwareConcurrency ?? "?"} · memory hint: ${nav.deviceMemory ?? "n/a"} GB · isolated: ${String(globalThis.crossOriginIsolated)} · webgpu: ${"gpu" in nav}`,
+    `setup: ${rungLabel || "not started"}`,
+    stats ? `running: ${stats.backend} · ${stats.fps.toFixed(1)} fps · inference ${stats.inferenceMs.toFixed(0)} ms` : "running: no frames yet",
+    "this attempt:",
+    ...(lines.length ? lines.map((l) => `  ${l}`) : ["  (none yet)"]),
+    ...(previousLog.length ? ["previous attempt (before the page reloaded):", ...previousLog.map((l) => `  ${l}`)] : []),
+  ].join("\n");
+  return (
+    <details open={open} className="rounded-xl border border-nm-line bg-white p-3 text-sm">
+      <summary className="cursor-pointer font-bold">Diagnostics</summary>
+      <pre className="mt-2 max-h-72 overflow-auto font-mono text-xs break-words whitespace-pre-wrap">{text}</pre>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="h-10 rounded-lg bg-white" onClick={() => void navigator.clipboard?.writeText(text)}>
+          Copy
+        </Button>
+        <Button type="button" variant="outline" className="h-10 rounded-lg bg-white" onClick={onReset}>
+          Reset coach settings
+        </Button>
+      </div>
+    </details>
   );
 }
 

@@ -1,6 +1,6 @@
 import type { CanonicalPose, EstimatorStats, PoseEstimator } from "../types";
 import { mhr70ToCanonical } from "./adapter";
-import { DEFAULT_MODEL_URL } from "./session";
+import { DEFAULT_MODEL_URL, type LoadOptions } from "./session";
 import type { WorkerRequest, WorkerResponse } from "./worker";
 
 /** InstantHMR running in a Web Worker (POSE-01/02/03). Browser-only. */
@@ -11,25 +11,27 @@ export class InstantHmrEstimator implements PoseEstimator {
   private pending = new Map<number, { resolve: (r: WorkerResponse & { type: "result" }) => void; reject: (e: Error) => void }>();
   private backend = "";
   private onProgress?: (loaded: number, total: number) => void;
+  private onStage?: (stage: string) => void;
   private loadPromise?: Promise<{ backend: string }>;
   private loadResolve?: (v: { backend: string }) => void;
   private loadReject?: (e: Error) => void;
 
   constructor(
     private readonly modelUrl = DEFAULT_MODEL_URL,
-    private readonly prefer: "webgpu" | "wasm" = "webgpu",
+    private readonly opts: LoadOptions = { prefer: "webgpu" },
   ) {
     this.worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     this.worker.onmessage = (e: MessageEvent<WorkerResponse>) => this.handle(e.data);
     this.worker.onerror = (e) => this.failAll(new Error(e.message || "pose worker crashed"));
   }
 
-  load(onProgress?: (loaded: number, total: number) => void) {
+  load(onProgress?: (loaded: number, total: number) => void, onStage?: (stage: string) => void) {
     this.onProgress = onProgress;
+    this.onStage = onStage;
     this.loadPromise ??= new Promise((resolve, reject) => {
       this.loadResolve = resolve;
       this.loadReject = reject;
-      this.post({ type: "load", url: this.modelUrl, prefer: this.prefer });
+      this.post({ type: "load", url: this.modelUrl, opts: this.opts });
     });
     return this.loadPromise;
   }
@@ -56,6 +58,7 @@ export class InstantHmrEstimator implements PoseEstimator {
 
   private handle(msg: WorkerResponse) {
     if (msg.type === "progress") this.onProgress?.(msg.loaded, msg.total);
+    else if (msg.type === "stage") this.onStage?.(msg.stage);
     else if (msg.type === "loaded") {
       this.backend = msg.backend;
       this.loadResolve?.({ backend: msg.backend });
