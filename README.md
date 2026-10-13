@@ -82,13 +82,20 @@ thresholds in `src/lib/pose/analyzers/exercise-rules.json`) → rep counter, cue
 3D skeleton (three.js), rest timer, summary and save (`workout_sessions` + `session_sets`, aggregates only).
 
 Query flags:
-- `?debug=1` — backend / FPS / latency overlay.
-- `?model=/models/instanthmr.onnx` — load a local copy of the model. `?model=lite` / `?model=full` pick the int8 or
-  original model. Any device falls back to the lite model (`public/models/instanthmr-int8.onnx`, 52 MB, ~1.5 px mean
-  joint difference on the 224 px crop) if the original fails to load. `?ep=wasm` skips WebGPU.
+- `?debug=1` — **Diagnostics panel** from the first tap: device, setup, step-by-step log, FPS / inference ms once running,
+  and the log of the previous attempt if the page was killed. Has Copy and Reset buttons (screenshot it from a phone).
+- `?rung=auto|full-wasm|lite-wasm|lite-1t` — force a setup. `?model=lite|full|/path.onnx`, `?ep=wasm` (skip WebGPU) and
+  `?threads=N` override single parts.
 - `?synthetic=squat|pushup|lunge` — **test mode**: no camera or model; generated stick-figure reps (every 3rd rep has
   a form fault). Use it to demo or test the HUD, cues and summary on any machine.
 - `sets`, `reps` — override the target (the workout plan passes these).
+
+**Phones and memory.** An out-of-memory kill on a phone can't be caught in JavaScript (the tab just reloads). Every load
+attempt leaves a breadcrumb in `localStorage` (`src/lib/pose/instanthmr/load-guard.ts`); if the next load finds it, the page
+was killed, so it starts one setup lighter: `auto` (full model, WebGPU→CPU) → `full-wasm` → `lite-wasm` (int8 model,
+`public/models/instanthmr-int8.onnx`, 52 MB, ~1.5 px mean joint difference on the 224 px crop) → `lite-1t` (lite, one
+thread). iPhones start at `lite-1t`. Measured in headless Chromium (CPU, 4 vCPU): page ≈ 160 MB, lite model ≈ +0.5 GB,
+full model ≈ +0.75 GB single-thread (+0.9 GB multi-thread); ORT graph-optimisation / arena / prepacking options did not change it.
 
 Static chunks and `/ort` are served with COEP/CORP headers because workers started from cross-origin-isolated pages
 must opt in too (see `next.config.ts`).

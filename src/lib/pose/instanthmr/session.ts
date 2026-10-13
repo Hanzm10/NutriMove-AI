@@ -24,7 +24,7 @@ export type LoadedModel = {
 };
 
 const MODEL_CACHE = "nutrimove-models-v1";
-/** Byte size of the released instanthmr.onnx; a download of any other size is truncated or wrong. */
+/** Byte size of the released models; a download of any other size is truncated or wrong. */
 const KNOWN_SIZES: Record<string, number> = {
   "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx": 80_961_622,
   "/models/instanthmr-int8.onnx": 51_786_006,
@@ -32,7 +32,7 @@ const KNOWN_SIZES: Record<string, number> = {
 
 /**
  * Int8 weight-quantized copy of the same model (fp16 → fp32 → dynamic int8, served same-origin).
- * Used automatically when the original fails to load (e.g. a device's wasm memory limit).
+ * Weights stay int8 at runtime, so it needs far less memory than the original, which WASM expands to fp32.
  * Measured against the original: ~1.5 px mean 2D joint error on the 224 px crop.
  */
 export const LITE_MODEL_URL = "/models/instanthmr-int8.onnx";
@@ -41,6 +41,13 @@ export const LITE_MODEL_URL = "/models/instanthmr-int8.onnx";
 export const isIOS = () =>
   typeof navigator !== "undefined" &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1));
+
+export type LoadOptions = {
+  prefer: Backend;
+  /** WASM threads. Default: up to 4 when cross-origin isolated (not on iOS), otherwise 1. */
+  threads?: number;
+};
+export type StageFn = (stage: string) => void;
 
 async function openCache() {
   return typeof caches !== "undefined" ? caches.open(MODEL_CACHE).catch(() => null) : null;
@@ -52,15 +59,18 @@ export async function forgetModel(url: string) {
 }
 
 /**
- * Downloads the model (cached in Cache Storage after the first load; POSE-01). Rejects truncated
- * downloads and stale/corrupt cache entries instead of handing ORT a partial file.
+ * Downloads the model. Cross-origin models (Hugging Face, whose signed CDN URLs defeat the HTTP cache) are kept
+ * in Cache Storage after the first load; same-origin ones rely on the HTTP cache, which avoids a second
+ * in-memory copy. Rejects truncated downloads and stale cache entries instead of handing ORT a partial file.
+ * When the size is known the bytes stream straight into one preallocated buffer (no chunk list + copy).
  */
 export async function fetchModel(
   url: string,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<{ bytes: Uint8Array; fromCache: boolean }> {
   const expected = KNOWN_SIZES[url];
-  const cache = await openCache();
+  const useCache = !url.startsWith("/");
+  const cache = useCache ? await openCache() : null;
   const cached = await cache?.match(url).catch(() => undefined);
   if (cached) {
     const bytes = new Uint8Array(await cached.arrayBuffer());
@@ -70,7 +80,7 @@ export async function fetchModel(
     }
     await cache?.delete(url).catch(() => false);
   }
-  const res = await fetch(url, { mode: "cors", cache: "no-store" });
+  const res = await fetch(url, { mode: "cors", cache: useCache ? "no-store" : "default" });
   if (!res.ok || !res.body) throw new Error(`Model download failed (HTTP ${res.status})`);
   if (res.headers.get("content-type")?.includes("text/html")) {
     throw new Error(`Model URL returned a web page, not a model: ${url || "(empty)"}`);
@@ -78,26 +88,39 @@ export async function fetchModel(
   const encoded = Boolean(res.headers.get("content-encoding"));
   const total = expected ?? (encoded ? 0 : Number(res.headers.get("content-length")) || 0);
   const reader = res.body.getReader();
-  const chunks: Uint8Array[] = [];
   let loaded = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    loaded += value.byteLength;
-    onProgress?.(loaded, total);
+  let bytes: Uint8Array;
+  if (total) {
+    bytes = new Uint8Array(total);
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (loaded + value.byteLength > total) throw new Error(`Model download was larger than expected (${total} B).`);
+      bytes.set(value, loaded);
+      loaded += value.byteLength;
+      onProgress?.(loaded, total);
+    }
+    if (loaded !== total) {
+      throw new Error(`Model download was cut off (${(loaded / 1e6).toFixed(1)} of ${(total / 1e6).toFixed(1)} MB). Check the connection and try again.`);
+    }
+  } else {
+    const chunks: Uint8Array[] = [];
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.byteLength;
+      onProgress?.(loaded, 0);
+    }
+    bytes = new Uint8Array(loaded);
+    let off = 0;
+    for (const c of chunks) {
+      bytes.set(c, off);
+      off += c.byteLength;
+    }
   }
-  if (total && loaded !== total) {
-    throw new Error(`Model download was cut off (${(loaded / 1e6).toFixed(1)} of ${(total / 1e6).toFixed(1)} MB). Check the connection and try again.`);
-  }
-  const bytes = new Uint8Array(loaded);
-  let off = 0;
-  for (const c of chunks) {
-    bytes.set(c, off);
-    off += c.byteLength;
-  }
-  chunks.length = 0;
-  await cache?.put(url, new Response(bytes)).catch(() => undefined);
+  // Written only after a full, size-checked download; failures here just mean no cache.
+  if (cache) await cache.put(url, new Response(bytes as Uint8Array<ArrayBuffer>)).catch(() => undefined);
   return { bytes, fromCache: false };
 }
 
@@ -107,25 +130,28 @@ export async function fetchModel(
  */
 export async function createSession(
   getBytes: () => Uint8Array | Promise<Uint8Array>,
-  prefer: Backend = "webgpu",
+  opts: LoadOptions,
+  onStage?: StageFn,
 ): Promise<LoadedModel> {
   const ort = await loadOrt();
   ort.env.wasm.wasmPaths = "/ort/";
   // WebKit caps wasm memory tightly; one thread avoids the extra per-thread heaps on iPhone.
-  ort.env.wasm.numThreads = typeof crossOriginIsolated !== "undefined" && crossOriginIsolated && !isIOS()
-    ? Math.min(4, navigator.hardwareConcurrency || 2)
-    : 1;
+  ort.env.wasm.numThreads = opts.threads
+    ?? (typeof crossOriginIsolated !== "undefined" && crossOriginIsolated && !isIOS() ? Math.min(4, navigator.hardwareConcurrency || 2) : 1);
 
-  const order: Backend[] = prefer === "webgpu" && "gpu" in navigator ? ["webgpu", "wasm"] : ["wasm"];
+  const order: Backend[] = opts.prefer === "webgpu" && "gpu" in navigator ? ["webgpu", "wasm"] : ["wasm"];
   const errors: string[] = [];
   for (const backend of order) {
     try {
       const bytes = await getBytes();
       if (!bytes.byteLength) throw new Error("model bytes are empty");
+      const threads = backend === "wasm" ? ort.env.wasm.numThreads : 1;
+      onStage?.(`creating session (${backend}, ${threads} thread${threads === 1 ? "" : "s"})`);
       const session = await ort.InferenceSession.create(bytes, {
         executionProviders: [backend],
         graphOptimizationLevel: "all",
       });
+      onStage?.(`session ready (${backend})`);
       return { ort, session, backend, inputNames: session.inputNames, outputNames: session.outputNames };
     } catch (e) {
       errors.push(`${backend}: ${e instanceof Error ? e.message : String(e)}`);
@@ -135,39 +161,28 @@ export async function createSession(
 }
 
 /**
- * Download (or read from cache) + create a session. If ORT can't parse a cached copy, the cache
- * entry is dropped and the model is downloaded once more before giving up.
+ * Download (or read from cache) + create a session for ONE configuration. If ORT can't parse a cached copy, the
+ * cache entry is dropped and the model is downloaded once more. Falling back to a lighter configuration is the
+ * caller's job (see load-guard.ts): an out-of-memory kill can't be caught here.
  */
 export async function loadModel(
   url: string,
-  prefer: Backend,
+  opts: LoadOptions,
   onProgress?: (loaded: number, total: number) => void,
+  onStage?: StageFn,
 ): Promise<LoadedModel> {
-  try {
-    return await loadOnce(url, prefer, onProgress);
-  } catch (e) {
-    // The full fp16 model can exceed the device's wasm memory; the int8 copy needs far less.
-    if (url === LITE_MODEL_URL) throw e;
-    return loadOnce(LITE_MODEL_URL, prefer, onProgress).catch((e2) => {
-      throw new Error(`${e instanceof Error ? e.message : String(e)} || lite model: ${e2 instanceof Error ? e2.message : String(e2)}`);
-    });
-  }
-}
-
-async function loadOnce(
-  url: string,
-  prefer: Backend,
-  onProgress?: (loaded: number, total: number) => void,
-): Promise<LoadedModel> {
+  onStage?.("downloading model");
   let { bytes, fromCache } = await fetchModel(url, onProgress);
+  onStage?.(`model ready in memory (${(bytes.byteLength / 1e6).toFixed(0)} MB${fromCache ? ", cached" : ""})`);
   try {
-    return await createSession(() => (bytes.byteLength ? bytes : fetchModel(url).then((r) => r.bytes)), prefer);
+    return await createSession(() => (bytes.byteLength ? bytes : fetchModel(url).then((r) => r.bytes)), opts, onStage);
   } catch (e) {
     await forgetModel(url);
     if (fromCache) {
+      onStage?.("cached copy rejected, downloading again");
       ({ bytes, fromCache } = await fetchModel(url, onProgress));
       try {
-        return await createSession(() => bytes, prefer);
+        return await createSession(() => bytes, opts, onStage);
       } catch (e2) {
         e = e2;
       }

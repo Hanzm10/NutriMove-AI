@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { parseLoadParams } from "@/lib/pose/instanthmr/load-guard";
 import { BODY_EDGES, BODY_JOINTS, MHR70 } from "@/lib/pose/instanthmr/skeleton";
 import {
   INPUT_SIZE, bboxFromJoints, cliffCond, cropJointsToFrame, initialBox, rgbaToNormalizedChw, squareCrop,
@@ -38,10 +39,11 @@ export function PoseSpike() {
     setError(null);
     try {
       // ?model=/models/instanthmr.onnx loads a local copy (offline / faster dev).
+      const params = parseLoadParams(location.search);
       const override = new URLSearchParams(location.search).get("model");
       const url = override === "lite" ? LITE_MODEL_URL
         : override?.startsWith("/") && !override.startsWith("//") ? override : DEFAULT_MODEL_URL;
-      const m = await loadModel(url, prefer, (l, t) =>
+      const m = await loadModel(url, { prefer, threads: params.threads ?? undefined }, (l, t) =>
         setProgress(l === t ? "Creating session…" : t ? `Downloading ${(l / 1e6).toFixed(1)} / ${(t / 1e6).toFixed(1)} MB` : `${(l / 1e6).toFixed(1)} MB`),
       );
       setModel(m);

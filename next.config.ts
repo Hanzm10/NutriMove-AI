@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // The int8 model is versioned by file name (rename it when the weights change), so it can be cached for good.
+        source: "/models/instanthmr-int8.onnx",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
         source: "/sw.js",
         headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
