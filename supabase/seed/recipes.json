@@ -1,0 +1,3978 @@
+[
+  {
+    "slug": "tapsilog-lite",
+    "name": "Tapsilog (lean beef tapa, garlic rice, egg)",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "rice_dish",
+      "beef"
+    ],
+    "allergens": [
+      "egg",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 20,
+    "serving_g": 373,
+    "kcal": 484,
+    "protein_g": 28.9,
+    "carbs_g": 51.4,
+    "fat_g": 18.1,
+    "fiber_g": 1.2,
+    "ingredients": [
+      {
+        "name": "beef sirloin, thinly sliced",
+        "grams": 90,
+        "fnri_id": "F038"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 10,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "calamansi juice",
+        "grams": 10,
+        "fnri_id": "E023"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "egg",
+        "grams": 50,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      }
+    ],
+    "instructions": "Marinate the beef in soy sauce, calamansi and half the garlic. Pan-fry the beef with a little oil. Toast the remaining garlic, stir in the rice, then fry the egg in the same pan. Serve with sliced tomato.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D257, E023, F038, H003, K008, N023"
+  },
+  {
+    "slug": "bangsilog",
+    "name": "Bangsilog (daing na bangus, garlic rice, egg)",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "egg"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 373,
+    "kcal": 491,
+    "protein_g": 29.9,
+    "carbs_g": 49.2,
+    "fat_g": 19.4,
+    "fiber_g": 0.8,
+    "ingredients": [
+      {
+        "name": "boneless milkfish",
+        "grams": 100,
+        "fnri_id": "G074"
+      },
+      {
+        "name": "vinegar",
+        "grams": 10,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "egg",
+        "grams": 50,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      }
+    ],
+    "instructions": "Marinate the bangus in vinegar, garlic and pepper overnight. Pan-fry skin side down until crisp. Make garlic rice and fry an egg. Serve with tomato.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D257, G074, H003, K008, N027"
+  },
+  {
+    "slug": "arroz-caldo",
+    "name": "Arroz caldo with egg",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast",
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "chicken"
+    ],
+    "allergens": [
+      "fish",
+      "egg"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 40,
+    "serving_g": 575,
+    "kcal": 438,
+    "protein_g": 26,
+    "carbs_g": 45.5,
+    "fat_g": 16.8,
+    "fiber_g": 1.5,
+    "ingredients": [
+      {
+        "name": "uncooked rice",
+        "grams": 50,
+        "fnri_id": "A019"
+      },
+      {
+        "name": "chicken thigh, bite size",
+        "grams": 70,
+        "fnri_id": "F107"
+      },
+      {
+        "name": "ginger",
+        "grams": 10,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "hard-boiled egg",
+        "grams": 50,
+        "fnri_id": "H004"
+      },
+      {
+        "name": "water",
+        "grams": 350,
+        "fnri_id": null
+      },
+      {
+        "name": "spring onion",
+        "grams": 5,
+        "fnri_id": "D147"
+      },
+      {
+        "name": "calamansi",
+        "grams": 5,
+        "fnri_id": "E023"
+      }
+    ],
+    "instructions": "Sauté garlic, onion and ginger. Add chicken and fish sauce, then the rice and water. Simmer 30 minutes, stirring, until thick. Top with egg, spring onion and calamansi.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A019, D084, D141, D147, D304, E023, F107, H004, K008, N011"
+  },
+  {
+    "slug": "lugaw-at-itlog",
+    "name": "Lugaw with egg",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish"
+    ],
+    "allergens": [
+      "fish",
+      "egg"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 423,
+    "kcal": 302,
+    "protein_g": 11.4,
+    "carbs_g": 38.8,
+    "fat_g": 11.3,
+    "fiber_g": 0.9,
+    "ingredients": [
+      {
+        "name": "uncooked rice",
+        "grams": 45,
+        "fnri_id": "A019"
+      },
+      {
+        "name": "ginger",
+        "grams": 8,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "hard-boiled egg",
+        "grams": 50,
+        "fnri_id": "H004"
+      },
+      {
+        "name": "water",
+        "grams": 300,
+        "fnri_id": null
+      },
+      {
+        "name": "spring onion",
+        "grams": 5,
+        "fnri_id": "D147"
+      }
+    ],
+    "instructions": "Sauté ginger and garlic, add rice, fish sauce and water. Simmer until creamy. Top with egg and spring onion.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A019, D084, D147, D304, H004, K008, N011"
+  },
+  {
+    "slug": "champorado-lite",
+    "name": "Champorado-lite (less sugar)",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [],
+    "allergens": [
+      "milk"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 25,
+    "serving_g": 347,
+    "kcal": 299,
+    "protein_g": 7.8,
+    "carbs_g": 56.5,
+    "fat_g": 4.6,
+    "fiber_g": 1.5,
+    "ingredients": [
+      {
+        "name": "uncooked rice",
+        "grams": 45,
+        "fnri_id": "A019"
+      },
+      {
+        "name": "unsweetened cocoa / tablea",
+        "grams": 10,
+        "fnri_id": "Q009"
+      },
+      {
+        "name": "brown sugar",
+        "grams": 12,
+        "fnri_id": "M042"
+      },
+      {
+        "name": "evaporated milk",
+        "grams": 30,
+        "fnri_id": "J015"
+      },
+      {
+        "name": "water",
+        "grams": 250,
+        "fnri_id": null
+      }
+    ],
+    "instructions": "Simmer rice in water until soft. Stir in cocoa and sugar until thick. Serve with a swirl of evaporated milk.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A019, J015, M042, Q009"
+  },
+  {
+    "slug": "pandesal-at-itlog",
+    "name": "Pandesal with scrambled eggs and tomato",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "egg"
+    ],
+    "allergens": [
+      "egg",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 10,
+    "serving_g": 235,
+    "kcal": 430,
+    "protein_g": 19.9,
+    "carbs_g": 48.5,
+    "fat_g": 17.4,
+    "fiber_g": 1.9,
+    "ingredients": [
+      {
+        "name": "pandesal (2 pieces)",
+        "grams": 70,
+        "fnri_id": "A042"
+      },
+      {
+        "name": "eggs (2)",
+        "grams": 100,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "tomato",
+        "grams": 60,
+        "fnri_id": "D257"
+      }
+    ],
+    "instructions": "Scramble the eggs in a little oil with chopped tomato. Fill the pandesal.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A042, D257, H003, K008"
+  },
+  {
+    "slug": "pandesal-peanut-butter-saging",
+    "name": "Pandesal with peanut butter and banana",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [],
+    "allergens": [
+      "wheat",
+      "peanut"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 5,
+    "serving_g": 190,
+    "kcal": 458,
+    "protein_g": 13.1,
+    "carbs_g": 72.4,
+    "fat_g": 12.9,
+    "fiber_g": 5.6,
+    "ingredients": [
+      {
+        "name": "pandesal (2 pieces)",
+        "grams": 70,
+        "fnri_id": "A042"
+      },
+      {
+        "name": "peanut butter",
+        "grams": 20,
+        "fnri_id": "C058"
+      },
+      {
+        "name": "banana",
+        "grams": 100,
+        "fnri_id": "E008"
+      }
+    ],
+    "instructions": "Spread peanut butter on the pandesal and eat with a banana.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A042, C058, E008"
+  },
+  {
+    "slug": "tortang-talong",
+    "name": "Tortang talong with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast",
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [
+      "egg"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 25,
+    "serving_g": 316,
+    "kcal": 342,
+    "protein_g": 10.6,
+    "carbs_g": 45.3,
+    "fat_g": 13.2,
+    "fiber_g": 2.8,
+    "ingredients": [
+      {
+        "name": "eggplant, grilled and peeled",
+        "grams": 120,
+        "fnri_id": "D073"
+      },
+      {
+        "name": "egg",
+        "grams": 50,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 3,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 120,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Grill the eggplant until soft, peel and flatten with a fork. Dip in beaten egg with onion and garlic. Pan-fry both sides. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D073, D084, D141, H003, K008"
+  },
+  {
+    "slug": "tuyo-sinangag-kamatis",
+    "name": "Tuyo with garlic rice and tomato",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 293,
+    "kcal": 365,
+    "protein_g": 16.7,
+    "carbs_g": 53.1,
+    "fat_g": 9.5,
+    "fiber_g": 1,
+    "ingredients": [
+      {
+        "name": "dried round scad (tuyo)",
+        "grams": 30,
+        "fnri_id": "G207"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 160,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "tomato",
+        "grams": 80,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "vinegar dip",
+        "grams": 10,
+        "fnri_id": "N027"
+      }
+    ],
+    "instructions": "Pan-fry the tuyo briefly. Toast garlic in oil and toss in the rice. Serve with tomato and spiced vinegar.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D257, G207, K008, N027"
+  },
+  {
+    "slug": "ginisang-itlog-kamatis",
+    "name": "Ginisang itlog na may kamatis with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "egg"
+    ],
+    "allergens": [
+      "egg"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 10,
+    "serving_g": 349,
+    "kcal": 387,
+    "protein_g": 16.2,
+    "carbs_g": 45.1,
+    "fat_g": 15.8,
+    "fiber_g": 1.2,
+    "ingredients": [
+      {
+        "name": "eggs (2)",
+        "grams": 100,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "tomato",
+        "grams": 100,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 3,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 120,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion and tomato until soft. Pour in beaten eggs and stir gently until just set. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D141, D257, H003, K008"
+  },
+  {
+    "slug": "nilagang-kamote-at-itlog",
+    "name": "Boiled kamote and eggs",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "egg"
+    ],
+    "allergens": [
+      "egg"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 250,
+    "kcal": 369,
+    "protein_g": 15.7,
+    "carbs_g": 48.3,
+    "fat_g": 12.6,
+    "fiber_g": 6.9,
+    "ingredients": [
+      {
+        "name": "sweet potato (kamote)",
+        "grams": 150,
+        "fnri_id": "B013"
+      },
+      {
+        "name": "hard-boiled eggs (2)",
+        "grams": 100,
+        "fnri_id": "H004"
+      }
+    ],
+    "instructions": "Boil the kamote until tender and the eggs for 10 minutes.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs B013, H004"
+  },
+  {
+    "slug": "ginisang-sardinas",
+    "name": "Ginisang sardinas with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast",
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 10,
+    "serving_g": 320,
+    "kcal": 359,
+    "protein_g": 14.9,
+    "carbs_g": 52.8,
+    "fat_g": 9.8,
+    "fiber_g": 3,
+    "ingredients": [
+      {
+        "name": "sardines in tomato sauce",
+        "grams": 100,
+        "fnri_id": "G203"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "kangkong or pechay",
+        "grams": 40,
+        "fnri_id": "D242"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic and onion, add sardines with sauce and the greens. Simmer 3 minutes. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D141, D242, G203, K008"
+  },
+  {
+    "slug": "oatmeal-banana-milk",
+    "name": "Oatmeal with banana and milk",
+    "is_filipino": false,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [],
+    "allergens": [
+      "milk"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 5,
+    "serving_g": 355,
+    "kcal": 458,
+    "protein_g": 13.2,
+    "carbs_g": 72.8,
+    "fat_g": 12.7,
+    "fiber_g": 8.2,
+    "ingredients": [
+      {
+        "name": "quick-cooking oats",
+        "grams": 50,
+        "fnri_id": "A149"
+      },
+      {
+        "name": "milk",
+        "grams": 200,
+        "fnri_id": "J014"
+      },
+      {
+        "name": "banana",
+        "grams": 100,
+        "fnri_id": "E008"
+      },
+      {
+        "name": "honey",
+        "grams": 5,
+        "fnri_id": "M021"
+      }
+    ],
+    "instructions": "Cook the oats in milk for 2 minutes. Top with sliced banana and honey.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A149, E008, J014, M021"
+  },
+  {
+    "slug": "mango-yogurt-overnight-oats",
+    "name": "Mango yoghurt overnight oats",
+    "is_filipino": false,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [],
+    "allergens": [
+      "milk"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 5,
+    "serving_g": 303,
+    "kcal": 405,
+    "protein_g": 13.7,
+    "carbs_g": 62.8,
+    "fat_g": 11.1,
+    "fiber_g": 6.6,
+    "ingredients": [
+      {
+        "name": "quick-cooking oats",
+        "grams": 45,
+        "fnri_id": "A149"
+      },
+      {
+        "name": "plain yoghurt",
+        "grams": 150,
+        "fnri_id": "J026"
+      },
+      {
+        "name": "ripe mango",
+        "grams": 100,
+        "fnri_id": "E051"
+      },
+      {
+        "name": "honey",
+        "grams": 8,
+        "fnri_id": "M021"
+      }
+    ],
+    "instructions": "Mix oats and yoghurt in a jar and chill overnight. Top with mango and honey.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A149, E051, J026, M021"
+  },
+  {
+    "slug": "tofu-scramble-toast",
+    "name": "Tokwa scramble on whole-grain toast",
+    "is_filipino": false,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [
+      "vegetable"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 296,
+    "kcal": 451,
+    "protein_g": 27.4,
+    "carbs_g": 46.7,
+    "fat_g": 17.1,
+    "fiber_g": 4.2,
+    "ingredients": [
+      {
+        "name": "firm tofu (tokwa)",
+        "grams": 150,
+        "fnri_id": "C064"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "tomato",
+        "grams": 60,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "brown bread (2 slices)",
+        "grams": 60,
+        "fnri_id": "A031"
+      }
+    ],
+    "instructions": "Crumble the tofu and sauté with onion and tomato, season with salt and pepper. Serve on toast.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A031, C064, D141, D257, K008"
+  },
+  {
+    "slug": "banana-oat-pancakes",
+    "name": "Banana-oat pancakes",
+    "is_filipino": false,
+    "meal_slots": [
+      "breakfast"
+    ],
+    "tags": [],
+    "allergens": [
+      "egg",
+      "milk"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 254,
+    "kcal": 453,
+    "protein_g": 14.4,
+    "carbs_g": 63.1,
+    "fat_g": 15.9,
+    "fiber_g": 8.2,
+    "ingredients": [
+      {
+        "name": "quick-cooking oats",
+        "grams": 50,
+        "fnri_id": "A149"
+      },
+      {
+        "name": "ripe banana",
+        "grams": 100,
+        "fnri_id": "E008"
+      },
+      {
+        "name": "egg",
+        "grams": 50,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "milk",
+        "grams": 50,
+        "fnri_id": "J014"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 4,
+        "fnri_id": "K008"
+      }
+    ],
+    "instructions": "Blend oats, banana, egg and milk. Cook small pancakes in a lightly oiled pan, 2 minutes per side.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A149, E008, H003, J014, K008"
+  },
+  {
+    "slug": "taho-lite",
+    "name": "Taho-lite (silken tofu, less arnibal)",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast",
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [
+      "soy"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 5,
+    "serving_g": 212,
+    "kcal": 226,
+    "protein_g": 16.2,
+    "carbs_g": 15.8,
+    "fat_g": 10.8,
+    "fiber_g": 0.8,
+    "ingredients": [
+      {
+        "name": "silken tofu (soft curd)",
+        "grams": 200,
+        "fnri_id": "C063"
+      },
+      {
+        "name": "brown sugar syrup",
+        "grams": 12,
+        "fnri_id": "M042"
+      }
+    ],
+    "instructions": "Warm the silken tofu and drizzle with a light brown sugar syrup.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs C063, M042"
+  },
+  {
+    "slug": "chicken-adobo",
+    "name": "Chicken adobo with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "chicken"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 40,
+    "serving_g": 323,
+    "kcal": 454,
+    "protein_g": 30,
+    "carbs_g": 49,
+    "fat_g": 15.3,
+    "fiber_g": 0.9,
+    "ingredients": [
+      {
+        "name": "chicken thigh, skin removed",
+        "grams": 130,
+        "fnri_id": "F107"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 15,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "vinegar",
+        "grams": 15,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "garlic",
+        "grams": 8,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Simmer chicken with soy sauce, vinegar, garlic, bay leaf and peppercorns for 30 minutes. Reduce the sauce and brown lightly in oil. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, F107, K008, N023, N027"
+  },
+  {
+    "slug": "tinolang-manok",
+    "name": "Tinolang manok with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable",
+      "chicken"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 40,
+    "serving_g": 735,
+    "kcal": 489,
+    "protein_g": 31.2,
+    "carbs_g": 56.8,
+    "fat_g": 15.2,
+    "fiber_g": 3.2,
+    "ingredients": [
+      {
+        "name": "chicken thigh",
+        "grams": 120,
+        "fnri_id": "F107"
+      },
+      {
+        "name": "green papaya",
+        "grams": 100,
+        "fnri_id": "D154"
+      },
+      {
+        "name": "malunggay leaves",
+        "grams": 20,
+        "fnri_id": "D094"
+      },
+      {
+        "name": "ginger",
+        "grams": 10,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "water",
+        "grams": 300,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté ginger, garlic and onion. Add chicken and fish sauce, then water; simmer 20 minutes. Add papaya until tender, then malunggay. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D094, D141, D154, D304, F107, K008, N011"
+  },
+  {
+    "slug": "sinigang-na-baboy",
+    "name": "Sinigang na baboy with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable",
+      "pork"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 60,
+    "serving_g": 925,
+    "kcal": 537,
+    "protein_g": 31.2,
+    "carbs_g": 66.8,
+    "fat_g": 16.1,
+    "fiber_g": 6.3,
+    "ingredients": [
+      {
+        "name": "lean pork leg (kasim)",
+        "grams": 110,
+        "fnri_id": "F173"
+      },
+      {
+        "name": "unripe tamarind",
+        "grams": 30,
+        "fnri_id": "E094"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "radish (labanos)",
+        "grams": 50,
+        "fnri_id": "D183"
+      },
+      {
+        "name": "eggplant",
+        "grams": 40,
+        "fnri_id": "D073"
+      },
+      {
+        "name": "string beans (sitaw)",
+        "grams": 40,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "okra",
+        "grams": 30,
+        "fnri_id": "D139"
+      },
+      {
+        "name": "kangkong",
+        "grams": 50,
+        "fnri_id": "D242"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "water",
+        "grams": 350,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Boil pork with tomato and onion until tender. Add tamarind, then radish, eggplant, sitaw and okra. Finish with kangkong and fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D063, D073, D139, D141, D183, D242, D257, E094, F173, N011"
+  },
+  {
+    "slug": "sinigang-na-hipon",
+    "name": "Sinigang na hipon with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "shellfish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "mid",
+    "prep_minutes": 30,
+    "serving_g": 925,
+    "kcal": 439,
+    "protein_g": 37,
+    "carbs_g": 67.6,
+    "fat_g": 2.2,
+    "fiber_g": 5.7,
+    "ingredients": [
+      {
+        "name": "shrimp",
+        "grams": 150,
+        "fnri_id": "G113"
+      },
+      {
+        "name": "unripe tamarind",
+        "grams": 30,
+        "fnri_id": "E094"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "radish (labanos)",
+        "grams": 50,
+        "fnri_id": "D183"
+      },
+      {
+        "name": "string beans (sitaw)",
+        "grams": 40,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "okra",
+        "grams": 30,
+        "fnri_id": "D139"
+      },
+      {
+        "name": "kangkong",
+        "grams": 50,
+        "fnri_id": "D242"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "water",
+        "grams": 350,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Boil water with tomato, onion and tamarind. Add radish, sitaw and okra; cook 5 minutes. Add shrimp for 3 minutes, then kangkong and fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D063, D139, D141, D183, D242, D257, E094, G113, N011"
+  },
+  {
+    "slug": "pinakbet",
+    "name": "Pinakbet with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "pork"
+    ],
+    "allergens": [
+      "shellfish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 35,
+    "serving_g": 565,
+    "kcal": 496,
+    "protein_g": 20.5,
+    "carbs_g": 73.9,
+    "fat_g": 13.1,
+    "fiber_g": 7,
+    "ingredients": [
+      {
+        "name": "squash (kalabasa)",
+        "grams": 80,
+        "fnri_id": "D225"
+      },
+      {
+        "name": "bitter gourd (ampalaya)",
+        "grams": 50,
+        "fnri_id": "D018"
+      },
+      {
+        "name": "eggplant",
+        "grams": 60,
+        "fnri_id": "D073"
+      },
+      {
+        "name": "okra",
+        "grams": 40,
+        "fnri_id": "D139"
+      },
+      {
+        "name": "string beans (sitaw)",
+        "grams": 40,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "lean pork",
+        "grams": 50,
+        "fnri_id": "F173"
+      },
+      {
+        "name": "shrimp paste (bagoong)",
+        "grams": 15,
+        "fnri_id": "N020"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion, tomato and pork until browned. Add bagoong and a little water, then squash. Add the remaining vegetables and steam until just tender. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D018, D063, D073, D084, D139, D141, D225, D257, F173, K008, N020"
+  },
+  {
+    "slug": "ginisang-monggo-malunggay",
+    "name": "Ginisang monggo with malunggay and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 50,
+    "serving_g": 560,
+    "kcal": 498,
+    "protein_g": 20.1,
+    "carbs_g": 89.1,
+    "fat_g": 6.7,
+    "fiber_g": 13.6,
+    "ingredients": [
+      {
+        "name": "dried mung beans",
+        "grams": 60,
+        "fnri_id": "C027"
+      },
+      {
+        "name": "malunggay leaves",
+        "grams": 20,
+        "fnri_id": "D094"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "water",
+        "grams": 250,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Boil mung beans until soft. Sauté garlic, onion and tomato, add the beans and simmer. Stir in malunggay at the end. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C027, D084, D094, D141, D257, K008"
+  },
+  {
+    "slug": "chicken-afritada",
+    "name": "Chicken afritada with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "chicken"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 45,
+    "serving_g": 504,
+    "kcal": 561,
+    "protein_g": 31.8,
+    "carbs_g": 72.3,
+    "fat_g": 16,
+    "fiber_g": 5.6,
+    "ingredients": [
+      {
+        "name": "chicken thigh",
+        "grams": 120,
+        "fnri_id": "F107"
+      },
+      {
+        "name": "potato",
+        "grams": 70,
+        "fnri_id": "B007"
+      },
+      {
+        "name": "carrot",
+        "grams": 40,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "bell pepper",
+        "grams": 30,
+        "fnri_id": "D167"
+      },
+      {
+        "name": "tomato paste",
+        "grams": 20,
+        "fnri_id": "N024"
+      },
+      {
+        "name": "tomato",
+        "grams": 40,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 3,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Brown the chicken, sauté garlic, onion and tomato. Add tomato paste and water; simmer 20 minutes. Add potato and carrot, then bell pepper. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, B007, D039, D084, D141, D167, D257, F107, K008, N011, N024"
+  },
+  {
+    "slug": "nilagang-baka",
+    "name": "Nilagang baka with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable",
+      "beef"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 90,
+    "serving_g": 885,
+    "kcal": 517,
+    "protein_g": 36.6,
+    "carbs_g": 81.1,
+    "fat_g": 5.1,
+    "fiber_g": 8.1,
+    "ingredients": [
+      {
+        "name": "beef shank",
+        "grams": 120,
+        "fnri_id": "F035"
+      },
+      {
+        "name": "potato",
+        "grams": 80,
+        "fnri_id": "B007"
+      },
+      {
+        "name": "cabbage",
+        "grams": 70,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "pechay",
+        "grams": 40,
+        "fnri_id": "D160"
+      },
+      {
+        "name": "corn on the cob",
+        "grams": 80,
+        "fnri_id": "A003"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 5,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "water",
+        "grams": 350,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 120,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Simmer beef with onion and peppercorns until tender, skimming the fat. Add corn and potato, then cabbage and pechay. Season with fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A003, A020, B007, D035, D141, D160, F035, N011"
+  },
+  {
+    "slug": "paksiw-na-bangus",
+    "name": "Paksiw na bangus with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 425,
+    "kcal": 422,
+    "protein_g": 32.3,
+    "carbs_g": 51.5,
+    "fat_g": 9.6,
+    "fiber_g": 2.1,
+    "ingredients": [
+      {
+        "name": "milkfish",
+        "grams": 140,
+        "fnri_id": "G074"
+      },
+      {
+        "name": "vinegar",
+        "grams": 30,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "eggplant",
+        "grams": 50,
+        "fnri_id": "D073"
+      },
+      {
+        "name": "bitter gourd",
+        "grams": 40,
+        "fnri_id": "D018"
+      },
+      {
+        "name": "ginger",
+        "grams": 10,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Arrange fish and vegetables in a pan with ginger, garlic, vinegar and a little water. Simmer without stirring for 20 minutes. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D018, D073, D084, D304, G074, N027"
+  },
+  {
+    "slug": "inihaw-na-tilapia",
+    "name": "Inihaw na tilapia with ensaladang kamatis",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 423,
+    "kcal": 401,
+    "protein_g": 33.4,
+    "carbs_g": 51.7,
+    "fat_g": 6.6,
+    "fiber_g": 1.5,
+    "ingredients": [
+      {
+        "name": "tilapia",
+        "grams": 160,
+        "fnri_id": "G145"
+      },
+      {
+        "name": "tomato",
+        "grams": 80,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "calamansi",
+        "grams": 10,
+        "fnri_id": "E023"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 3,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Stuff the tilapia with tomato and onion, wrap and grill 10 minutes per side. Serve with a tomato-onion salad, calamansi and rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D141, D257, E023, G145, N011"
+  },
+  {
+    "slug": "ginataang-kalabasa-sitaw-hipon",
+    "name": "Ginataang kalabasa at sitaw with hipon",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "shellfish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 454,
+    "kcal": 514,
+    "protein_g": 21.3,
+    "carbs_g": 72.8,
+    "fat_g": 15.3,
+    "fiber_g": 5.6,
+    "ingredients": [
+      {
+        "name": "squash (kalabasa)",
+        "grams": 120,
+        "fnri_id": "D225"
+      },
+      {
+        "name": "string beans (sitaw)",
+        "grams": 60,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "shrimp",
+        "grams": 60,
+        "fnri_id": "G113"
+      },
+      {
+        "name": "coconut milk",
+        "grams": 40,
+        "fnri_id": "K002"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 4,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Simmer squash in coconut milk with garlic and onion until soft. Add sitaw and shrimp and cook 5 minutes. Season with fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D063, D084, D141, D225, G113, K002, N011"
+  },
+  {
+    "slug": "chop-suey",
+    "name": "Chop suey with chicken and shrimp",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "seafood",
+      "chicken"
+    ],
+    "allergens": [
+      "shellfish",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 25,
+    "serving_g": 519,
+    "kcal": 475,
+    "protein_g": 29.8,
+    "carbs_g": 64.9,
+    "fat_g": 10.7,
+    "fiber_g": 5.4,
+    "ingredients": [
+      {
+        "name": "chicken breast",
+        "grams": 70,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "shrimp",
+        "grams": 40,
+        "fnri_id": "G113"
+      },
+      {
+        "name": "cabbage",
+        "grams": 60,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "carrot",
+        "grams": 40,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "cauliflower",
+        "grams": 40,
+        "fnri_id": "D045"
+      },
+      {
+        "name": "pechay",
+        "grams": 40,
+        "fnri_id": "D160"
+      },
+      {
+        "name": "chayote",
+        "grams": 40,
+        "fnri_id": "D050"
+      },
+      {
+        "name": "bell pepper",
+        "grams": 20,
+        "fnri_id": "D167"
+      },
+      {
+        "name": "cornstarch",
+        "grams": 5,
+        "fnri_id": "A110"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 8,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Stir-fry chicken and shrimp, add the firm vegetables then the leafy ones. Thicken with cornstarch slurry and soy sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, A110, D035, D039, D045, D050, D160, D167, F093, G113, K008, N023"
+  },
+  {
+    "slug": "pancit-bihon",
+    "name": "Pancit bihon with chicken and vegetables",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "vegetable",
+      "chicken",
+      "noodle"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 326,
+    "kcal": 499,
+    "protein_g": 22.8,
+    "carbs_g": 77.9,
+    "fat_g": 10.8,
+    "fiber_g": 5.2,
+    "ingredients": [
+      {
+        "name": "rice noodles (bihon), dry",
+        "grams": 75,
+        "fnri_id": "A137"
+      },
+      {
+        "name": "chicken breast",
+        "grams": 80,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "cabbage",
+        "grams": 60,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "carrot",
+        "grams": 30,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "string beans",
+        "grams": 30,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 15,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "calamansi",
+        "grams": 10,
+        "fnri_id": "E023"
+      }
+    ],
+    "instructions": "Soak the bihon. Sauté garlic, onion and chicken, add vegetables, soy sauce and a cup of broth. Toss in the noodles until the liquid is absorbed. Serve with calamansi.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A137, D035, D039, D063, D084, D141, E023, F093, K008, N023"
+  },
+  {
+    "slug": "pancit-canton",
+    "name": "Pancit canton with chicken, shrimp and vegetables",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "vegetable",
+      "seafood",
+      "chicken",
+      "noodle"
+    ],
+    "allergens": [
+      "shellfish",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 30,
+    "serving_g": 291,
+    "kcal": 546,
+    "protein_g": 29.9,
+    "carbs_g": 48.9,
+    "fat_g": 25.7,
+    "fiber_g": 5.1,
+    "ingredients": [
+      {
+        "name": "canton noodles, dry",
+        "grams": 70,
+        "fnri_id": "A140"
+      },
+      {
+        "name": "chicken breast",
+        "grams": 60,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "shrimp",
+        "grams": 30,
+        "fnri_id": "G113"
+      },
+      {
+        "name": "cabbage",
+        "grams": 50,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "carrot",
+        "grams": 30,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "pechay",
+        "grams": 30,
+        "fnri_id": "D160"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 15,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      }
+    ],
+    "instructions": "Stir-fry chicken and shrimp, add vegetables, soy sauce and broth. Add the noodles and toss until cooked.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A140, D035, D039, D160, F093, G113, K008, N023"
+  },
+  {
+    "slug": "ginisang-ampalaya-itlog",
+    "name": "Ginisang ampalaya with egg and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "egg"
+    ],
+    "allergens": [
+      "egg"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 446,
+    "kcal": 440,
+    "protein_g": 17.7,
+    "carbs_g": 56.4,
+    "fat_g": 16,
+    "fiber_g": 2.7,
+    "ingredients": [
+      {
+        "name": "bitter gourd (ampalaya), sliced",
+        "grams": 120,
+        "fnri_id": "D018"
+      },
+      {
+        "name": "eggs (2)",
+        "grams": 100,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Salt and rinse the ampalaya to reduce bitterness. Sauté garlic, onion and tomato, add ampalaya for 3 minutes, then the beaten eggs. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D018, D084, D141, D257, H003, K008"
+  },
+  {
+    "slug": "ginisang-tokwa-pechay",
+    "name": "Ginisang tokwa at pechay with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 436,
+    "kcal": 475,
+    "protein_g": 25.6,
+    "carbs_g": 54.5,
+    "fat_g": 17.2,
+    "fiber_g": 3,
+    "ingredients": [
+      {
+        "name": "firm tofu (tokwa)",
+        "grams": 150,
+        "fnri_id": "C064"
+      },
+      {
+        "name": "pechay",
+        "grams": 100,
+        "fnri_id": "D160"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 10,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Pan-fry cubed tokwa until golden. Sauté garlic and onion, add pechay stems then leaves, return the tofu and season with soy sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C064, D084, D141, D160, K008, N023"
+  },
+  {
+    "slug": "adobong-kangkong-tokwa",
+    "name": "Adobong kangkong with tokwa and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 444,
+    "kcal": 451,
+    "protein_g": 22.1,
+    "carbs_g": 59.2,
+    "fat_g": 13.9,
+    "fiber_g": 7.1,
+    "ingredients": [
+      {
+        "name": "kangkong",
+        "grams": 150,
+        "fnri_id": "D242"
+      },
+      {
+        "name": "firm tofu (tokwa)",
+        "grams": 100,
+        "fnri_id": "C064"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 15,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "vinegar",
+        "grams": 15,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "garlic",
+        "grams": 8,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Brown the tofu and garlic. Add kangkong stems, soy sauce and vinegar, then the leaves; cook 2 minutes. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C064, D084, D242, K008, N023, N027"
+  },
+  {
+    "slug": "chicken-inasal",
+    "name": "Chicken inasal with rice and cucumber",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "chicken"
+    ],
+    "allergens": [],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 45,
+    "serving_g": 396,
+    "kcal": 500,
+    "protein_g": 33.6,
+    "carbs_g": 50.3,
+    "fat_g": 18.1,
+    "fiber_g": 1.7,
+    "ingredients": [
+      {
+        "name": "chicken thigh, skin removed",
+        "grams": 150,
+        "fnri_id": "F107"
+      },
+      {
+        "name": "calamansi juice",
+        "grams": 20,
+        "fnri_id": "E023"
+      },
+      {
+        "name": "lemongrass",
+        "grams": 5,
+        "fnri_id": "N014"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "vinegar",
+        "grams": 10,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "annatto oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "cucumber",
+        "grams": 50,
+        "fnri_id": "D069"
+      }
+    ],
+    "instructions": "Marinate chicken in calamansi, vinegar, lemongrass and garlic for at least an hour. Grill, basting with annatto oil. Serve with rice and cucumber.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D069, D084, E023, F107, K008, N014, N027"
+  },
+  {
+    "slug": "adobong-pusit",
+    "name": "Adobong pusit with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "shellfish",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "mid",
+    "prep_minutes": 25,
+    "serving_g": 396,
+    "kcal": 389,
+    "protein_g": 27.9,
+    "carbs_g": 51.7,
+    "fat_g": 7.9,
+    "fiber_g": 1.3,
+    "ingredients": [
+      {
+        "name": "squid, cleaned",
+        "grams": 150,
+        "fnri_id": "G131"
+      },
+      {
+        "name": "vinegar",
+        "grams": 15,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 10,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "tomato",
+        "grams": 40,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion and tomato. Add squid, soy sauce and vinegar; simmer 5 minutes only so it stays tender. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D141, D257, G131, K008, N023, N027"
+  },
+  {
+    "slug": "bistek-tagalog",
+    "name": "Bistek tagalog with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "beef"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 30,
+    "serving_g": 361,
+    "kcal": 451,
+    "protein_g": 29.2,
+    "carbs_g": 53.7,
+    "fat_g": 13.3,
+    "fiber_g": 2.2,
+    "ingredients": [
+      {
+        "name": "beef sirloin, thinly sliced",
+        "grams": 120,
+        "fnri_id": "F038"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 15,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "calamansi juice",
+        "grams": 20,
+        "fnri_id": "E023"
+      },
+      {
+        "name": "onion rings",
+        "grams": 50,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Marinate beef in soy sauce and calamansi. Sear quickly, then simmer in the marinade. Top with onion rings softened in the pan. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D141, E023, F038, K008, N023"
+  },
+  {
+    "slug": "pork-menudo",
+    "name": "Pork menudo with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "pork"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 45,
+    "serving_g": 485,
+    "kcal": 590,
+    "protein_g": 31.2,
+    "carbs_g": 71.6,
+    "fat_g": 19.8,
+    "fiber_g": 5.1,
+    "ingredients": [
+      {
+        "name": "lean pork leg, cubed",
+        "grams": 100,
+        "fnri_id": "F173"
+      },
+      {
+        "name": "pork liver",
+        "grams": 20,
+        "fnri_id": "F174"
+      },
+      {
+        "name": "potato",
+        "grams": 60,
+        "fnri_id": "B007"
+      },
+      {
+        "name": "carrot",
+        "grams": 40,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "bell pepper",
+        "grams": 20,
+        "fnri_id": "D167"
+      },
+      {
+        "name": "tomato paste",
+        "grams": 20,
+        "fnri_id": "N024"
+      },
+      {
+        "name": "tomato",
+        "grams": 40,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 5,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion and pork. Add soy sauce, tomato and tomato paste with water; simmer 25 minutes. Add liver, potato, carrot and bell pepper until tender. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, B007, D039, D084, D141, D167, D257, F173, F174, K008, N023, N024"
+  },
+  {
+    "slug": "ginataang-langka",
+    "name": "Ginataang langka with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 35,
+    "serving_g": 380,
+    "kcal": 487,
+    "protein_g": 14.3,
+    "carbs_g": 80,
+    "fat_g": 12.1,
+    "fiber_g": 9.9,
+    "ingredients": [
+      {
+        "name": "unripe jackfruit",
+        "grams": 150,
+        "fnri_id": "D104"
+      },
+      {
+        "name": "coconut milk",
+        "grams": 30,
+        "fnri_id": "K002"
+      },
+      {
+        "name": "dried mung beans, pre-boiled",
+        "grams": 25,
+        "fnri_id": "C027"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "ginger",
+        "grams": 5,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Boil jackfruit until tender. Sauté garlic, onion and ginger, add coconut milk, jackfruit and the cooked mung beans. Simmer until creamy. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C027, D084, D104, D141, D304, K002"
+  },
+  {
+    "slug": "pritong-galunggong",
+    "name": "Pritong galunggong with kamatis and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 413,
+    "kcal": 443,
+    "protein_g": 34.6,
+    "carbs_g": 50.4,
+    "fat_g": 11.5,
+    "fiber_g": 1.1,
+    "ingredients": [
+      {
+        "name": "round scad (galunggong)",
+        "grams": 150,
+        "fnri_id": "G105"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "tomato",
+        "grams": 80,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "spiced vinegar",
+        "grams": 10,
+        "fnri_id": "N027"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Salt the fish and pan-fry in a little oil until crisp. Serve with tomato-onion salad, spiced vinegar and rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D141, D257, G105, K008, N027"
+  },
+  {
+    "slug": "ginisang-upo-hipon",
+    "name": "Ginisang upo with hipon and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "shellfish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 429,
+    "kcal": 349,
+    "protein_g": 16.5,
+    "carbs_g": 57.1,
+    "fat_g": 6,
+    "fiber_g": 2.2,
+    "ingredients": [
+      {
+        "name": "bottle gourd (upo)",
+        "grams": 150,
+        "fnri_id": "D025"
+      },
+      {
+        "name": "shrimp",
+        "grams": 60,
+        "fnri_id": "G113"
+      },
+      {
+        "name": "tomato",
+        "grams": 40,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 4,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion and tomato, add shrimp, then upo and a splash of water. Cook until the upo is translucent. Season with fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D025, D084, D141, D257, G113, K008, N011"
+  },
+  {
+    "slug": "chicken-sopas",
+    "name": "Chicken sopas",
+    "is_filipino": true,
+    "meal_slots": [
+      "breakfast",
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "chicken",
+      "noodle"
+    ],
+    "allergens": [
+      "milk",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 574,
+    "kcal": 432,
+    "protein_g": 28.5,
+    "carbs_g": 51.5,
+    "fat_g": 12.4,
+    "fiber_g": 3.7,
+    "ingredients": [
+      {
+        "name": "macaroni, dry",
+        "grams": 50,
+        "fnri_id": "A152"
+      },
+      {
+        "name": "chicken breast, shredded",
+        "grams": 70,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "evaporated milk",
+        "grams": 60,
+        "fnri_id": "J015"
+      },
+      {
+        "name": "carrot",
+        "grams": 30,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "cabbage",
+        "grams": 40,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 4,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "water",
+        "grams": 300,
+        "fnri_id": null
+      }
+    ],
+    "instructions": "Sauté garlic and onion, add chicken and water; boil. Add macaroni and carrot until cooked, then cabbage and evaporated milk. Simmer 2 minutes.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A152, D035, D039, D084, D141, F093, J015, K008"
+  },
+  {
+    "slug": "ginisang-sayote-manok",
+    "name": "Ginisang sayote with chicken and rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "chicken"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 439,
+    "kcal": 401,
+    "protein_g": 22.4,
+    "carbs_g": 56.6,
+    "fat_g": 9.5,
+    "fiber_g": 2,
+    "ingredients": [
+      {
+        "name": "chayote (sayote)",
+        "grams": 150,
+        "fnri_id": "D050"
+      },
+      {
+        "name": "chicken breast",
+        "grams": 80,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "tomato",
+        "grams": 30,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 5,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "fish sauce",
+        "grams": 4,
+        "fnri_id": "N011"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté garlic, onion, tomato and chicken. Add sayote strips and a little water; cook until tender. Season with fish sauce. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D050, D084, D141, D257, F093, K008, N011"
+  },
+  {
+    "slug": "kare-kare-lite",
+    "name": "Kare-kare (lean beef) with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "beef"
+    ],
+    "allergens": [
+      "shellfish",
+      "peanut"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 90,
+    "serving_g": 469,
+    "kcal": 566,
+    "protein_g": 37.3,
+    "carbs_g": 64.4,
+    "fat_g": 17.6,
+    "fiber_g": 5.2,
+    "ingredients": [
+      {
+        "name": "beef shank",
+        "grams": 110,
+        "fnri_id": "F035"
+      },
+      {
+        "name": "peanut butter",
+        "grams": 20,
+        "fnri_id": "C058"
+      },
+      {
+        "name": "toasted rice flour",
+        "grams": 5,
+        "fnri_id": "A181"
+      },
+      {
+        "name": "eggplant",
+        "grams": 50,
+        "fnri_id": "D073"
+      },
+      {
+        "name": "pechay",
+        "grams": 60,
+        "fnri_id": "D160"
+      },
+      {
+        "name": "string beans",
+        "grams": 40,
+        "fnri_id": "D063"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "annatto oil",
+        "grams": 4,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "shrimp paste (bagoong)",
+        "grams": 10,
+        "fnri_id": "N020"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Simmer beef until tender. Sauté garlic and onion in annatto oil, add broth, peanut butter and rice flour to thicken. Add beef and vegetables. Serve with a little bagoong and rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, A181, C058, D063, D073, D084, D141, D160, F035, K008, N020"
+  },
+  {
+    "slug": "ginisang-togue-tokwa",
+    "name": "Ginisang togue at tokwa with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 414,
+    "kcal": 455,
+    "protein_g": 21.5,
+    "carbs_g": 64.7,
+    "fat_g": 12.1,
+    "fiber_g": 6,
+    "ingredients": [
+      {
+        "name": "mung bean sprouts (togue)",
+        "grams": 120,
+        "fnri_id": "D131"
+      },
+      {
+        "name": "firm tofu (tokwa)",
+        "grams": 80,
+        "fnri_id": "C064"
+      },
+      {
+        "name": "carrot",
+        "grams": 30,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 8,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Brown the tofu. Sauté garlic, onion and carrot, add togue and tofu with soy sauce; cook 2 minutes. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C064, D039, D084, D131, D141, K008, N023"
+  },
+  {
+    "slug": "tinolang-tahong",
+    "name": "Tinolang tahong with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "soup",
+      "rice_dish",
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "shellfish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 25,
+    "serving_g": 679,
+    "kcal": 452,
+    "protein_g": 19.7,
+    "carbs_g": 65.6,
+    "fat_g": 12.3,
+    "fiber_g": 2.7,
+    "ingredients": [
+      {
+        "name": "mussel meat (tahong)",
+        "grams": 100,
+        "fnri_id": "G085"
+      },
+      {
+        "name": "green papaya",
+        "grams": 80,
+        "fnri_id": "D154"
+      },
+      {
+        "name": "malunggay leaves",
+        "grams": 15,
+        "fnri_id": "D094"
+      },
+      {
+        "name": "ginger",
+        "grams": 10,
+        "fnri_id": "D304"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 4,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "water",
+        "grams": 300,
+        "fnri_id": null
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté ginger, garlic and onion. Add water and papaya; simmer 10 minutes. Add mussels until the shells open, then malunggay. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D084, D094, D141, D154, D304, G085, K008"
+  },
+  {
+    "slug": "bangus-sisig",
+    "name": "Bangus sisig with rice",
+    "is_filipino": true,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 341,
+    "kcal": 446,
+    "protein_g": 28.1,
+    "carbs_g": 51.2,
+    "fat_g": 14.3,
+    "fiber_g": 2,
+    "ingredients": [
+      {
+        "name": "milkfish, grilled and flaked",
+        "grams": 120,
+        "fnri_id": "G074"
+      },
+      {
+        "name": "onion",
+        "grams": 40,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "calamansi juice",
+        "grams": 15,
+        "fnri_id": "E023"
+      },
+      {
+        "name": "chili",
+        "grams": 5,
+        "fnri_id": "D164"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 5,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Grill and flake the bangus. Sauté onion and chili, add the fish, soy sauce and calamansi; toss until crisp at the edges. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D141, D164, E023, G074, K008, N023"
+  },
+  {
+    "slug": "grilled-chicken-rice-vegetables",
+    "name": "Grilled chicken breast, rice and vegetables",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "chicken"
+    ],
+    "allergens": [],
+    "diet_pattern": "omnivore",
+    "cost_level": "low",
+    "prep_minutes": 25,
+    "serving_g": 416,
+    "kcal": 475,
+    "protein_g": 35.3,
+    "carbs_g": 52.8,
+    "fat_g": 13.6,
+    "fiber_g": 3.4,
+    "ingredients": [
+      {
+        "name": "chicken breast",
+        "grams": 140,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "carrot",
+        "grams": 60,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "cauliflower",
+        "grams": 60,
+        "fnri_id": "D045"
+      },
+      {
+        "name": "olive or coconut oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      }
+    ],
+    "instructions": "Season and grill the chicken. Steam carrot and cauliflower and toss with a little oil. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D039, D045, F093, K008"
+  },
+  {
+    "slug": "tuna-tomato-spaghetti",
+    "name": "Tuna-tomato spaghetti",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "seafood",
+      "noodle"
+    ],
+    "allergens": [
+      "fish",
+      "wheat"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 296,
+    "kcal": 469,
+    "protein_g": 27.6,
+    "carbs_g": 68.8,
+    "fat_g": 9.3,
+    "fiber_g": 4,
+    "ingredients": [
+      {
+        "name": "spaghetti, dry",
+        "grams": 75,
+        "fnri_id": "A153"
+      },
+      {
+        "name": "tuna flakes in brine, drained",
+        "grams": 90,
+        "fnri_id": "G226"
+      },
+      {
+        "name": "tomato paste",
+        "grams": 20,
+        "fnri_id": "N024"
+      },
+      {
+        "name": "tomato",
+        "grams": 80,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "olive oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      }
+    ],
+    "instructions": "Cook the pasta. Sauté garlic, onion and tomato, add tomato paste and tuna, and simmer 5 minutes. Toss with the pasta.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A153, D084, D141, D257, G226, K008, N024"
+  },
+  {
+    "slug": "chickpea-vegetable-curry",
+    "name": "Chickpea and vegetable curry with rice",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 30,
+    "serving_g": 465,
+    "kcal": 645,
+    "protein_g": 15.6,
+    "carbs_g": 113.9,
+    "fat_g": 14,
+    "fiber_g": 17.7,
+    "ingredients": [
+      {
+        "name": "chickpeas, boiled",
+        "grams": 150,
+        "fnri_id": "C005"
+      },
+      {
+        "name": "coconut milk",
+        "grams": 30,
+        "fnri_id": "K002"
+      },
+      {
+        "name": "potato",
+        "grams": 60,
+        "fnri_id": "B007"
+      },
+      {
+        "name": "carrot",
+        "grams": 40,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "tomato",
+        "grams": 40,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 20,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "garlic",
+        "grams": 5,
+        "fnri_id": "D084"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 120,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Sauté onion, garlic and curry powder, add tomato, potato and carrot with water. When tender add chickpeas and coconut milk. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, B007, C005, D039, D084, D141, D257, K002"
+  },
+  {
+    "slug": "bean-rice-bowl",
+    "name": "Red bean and rice bowl with avocado",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable"
+    ],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "mid",
+    "prep_minutes": 15,
+    "serving_g": 455,
+    "kcal": 475,
+    "protein_g": 16.5,
+    "carbs_g": 92.2,
+    "fat_g": 4.5,
+    "fiber_g": 15.6,
+    "ingredients": [
+      {
+        "name": "red kidney beans, boiled",
+        "grams": 150,
+        "fnri_id": "C021"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "tomato",
+        "grams": 60,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "onion",
+        "grams": 15,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "avocado",
+        "grams": 40,
+        "fnri_id": "E004"
+      },
+      {
+        "name": "lettuce",
+        "grams": 30,
+        "fnri_id": "D115"
+      },
+      {
+        "name": "calamansi",
+        "grams": 10,
+        "fnri_id": "E023"
+      }
+    ],
+    "instructions": "Warm the beans with onion and a pinch of cumin. Serve over rice with tomato, lettuce, avocado and calamansi.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, C021, D115, D141, D257, E004, E023"
+  },
+  {
+    "slug": "baked-fish-potatoes",
+    "name": "Baked tilapia with potatoes and carrots",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "vegetable",
+      "seafood"
+    ],
+    "allergens": [
+      "fish"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 35,
+    "serving_g": 368,
+    "kcal": 374,
+    "protein_g": 31.3,
+    "carbs_g": 30.3,
+    "fat_g": 14,
+    "fiber_g": 4.7,
+    "ingredients": [
+      {
+        "name": "tilapia fillet",
+        "grams": 150,
+        "fnri_id": "G145"
+      },
+      {
+        "name": "potato",
+        "grams": 150,
+        "fnri_id": "B007"
+      },
+      {
+        "name": "carrot",
+        "grams": 50,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "calamansi",
+        "grams": 10,
+        "fnri_id": "E023"
+      }
+    ],
+    "instructions": "Toss potato and carrot with oil and roast 15 minutes. Add the seasoned fish and roast 12 minutes more. Finish with calamansi.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs B007, D039, E023, G145, K008"
+  },
+  {
+    "slug": "egg-fried-rice-vegetables",
+    "name": "Egg fried rice with vegetables",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "egg"
+    ],
+    "allergens": [
+      "egg",
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 15,
+    "serving_g": 396,
+    "kcal": 503,
+    "protein_g": 17.9,
+    "carbs_g": 67.7,
+    "fat_g": 17.9,
+    "fiber_g": 2.9,
+    "ingredients": [
+      {
+        "name": "cooked rice (day-old)",
+        "grams": 200,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "eggs (2)",
+        "grams": 100,
+        "fnri_id": "H003"
+      },
+      {
+        "name": "carrot",
+        "grams": 30,
+        "fnri_id": "D039"
+      },
+      {
+        "name": "cabbage",
+        "grams": 40,
+        "fnri_id": "D035"
+      },
+      {
+        "name": "spring onion",
+        "grams": 10,
+        "fnri_id": "D147"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 8,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 8,
+        "fnri_id": "K008"
+      }
+    ],
+    "instructions": "Scramble the eggs and set aside. Stir-fry carrot and cabbage, add rice and soy sauce, then fold in the eggs and spring onion.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D035, D039, D147, H003, K008, N023"
+  },
+  {
+    "slug": "beef-bell-pepper-stir-fry",
+    "name": "Beef and bell pepper stir-fry with rice",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "beef"
+    ],
+    "allergens": [
+      "soy",
+      "wheat"
+    ],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 20,
+    "serving_g": 383,
+    "kcal": 475,
+    "protein_g": 29.8,
+    "carbs_g": 58.9,
+    "fat_g": 13.4,
+    "fiber_g": 3.2,
+    "ingredients": [
+      {
+        "name": "beef sirloin, sliced",
+        "grams": 120,
+        "fnri_id": "F038"
+      },
+      {
+        "name": "bell pepper",
+        "grams": 60,
+        "fnri_id": "D167"
+      },
+      {
+        "name": "onion",
+        "grams": 30,
+        "fnri_id": "D141"
+      },
+      {
+        "name": "soy sauce",
+        "grams": 12,
+        "fnri_id": "N023"
+      },
+      {
+        "name": "cornstarch",
+        "grams": 5,
+        "fnri_id": "A110"
+      },
+      {
+        "name": "cooking oil",
+        "grams": 6,
+        "fnri_id": "K008"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      }
+    ],
+    "instructions": "Coat the beef in soy sauce and cornstarch. Stir-fry on high heat, add onion and bell pepper for 2 minutes. Serve with rice.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, A110, D141, D167, F038, K008, N023"
+  },
+  {
+    "slug": "chicken-avocado-rice-bowl",
+    "name": "Chicken, avocado and tomato rice bowl",
+    "is_filipino": false,
+    "meal_slots": [
+      "lunch",
+      "dinner"
+    ],
+    "tags": [
+      "rice_dish",
+      "vegetable",
+      "chicken"
+    ],
+    "allergens": [],
+    "diet_pattern": "omnivore",
+    "cost_level": "mid",
+    "prep_minutes": 20,
+    "serving_g": 420,
+    "kcal": 413,
+    "protein_g": 28.1,
+    "carbs_g": 54.8,
+    "fat_g": 9.1,
+    "fiber_g": 3.7,
+    "ingredients": [
+      {
+        "name": "chicken breast",
+        "grams": 110,
+        "fnri_id": "F093"
+      },
+      {
+        "name": "cooked rice",
+        "grams": 150,
+        "fnri_id": "A020"
+      },
+      {
+        "name": "avocado",
+        "grams": 50,
+        "fnri_id": "E004"
+      },
+      {
+        "name": "tomato",
+        "grams": 50,
+        "fnri_id": "D257"
+      },
+      {
+        "name": "cucumber",
+        "grams": 50,
+        "fnri_id": "D069"
+      },
+      {
+        "name": "calamansi",
+        "grams": 10,
+        "fnri_id": "E023"
+      }
+    ],
+    "instructions": "Grill the chicken and slice. Arrange over rice with avocado, tomato and cucumber; squeeze calamansi over.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A020, D069, D257, E004, E023, F093"
+  },
+  {
+    "slug": "tuna-sandwich",
+    "name": "Tuna and avocado sandwich",
+    "is_filipino": false,
+    "meal_slots": [
+      "breakfast",
+      "lunch"
+    ],
+    "tags": [
+      "seafood"
+    ],
+    "allergens": [
+      "fish",
+      "wheat"
+    ],
+    "diet_pattern": "pescatarian",
+    "cost_level": "low",
+    "prep_minutes": 10,
+    "serving_g": 240,
+    "kcal": 347,
+    "protein_g": 23.7,
+    "carbs_g": 51.4,
+    "fat_g": 5.3,
+    "fiber_g": 5.7,
+    "ingredients": [
+      {
+        "name": "brown bread (2 slices)",
+        "grams": 70,
+        "fnri_id": "A031"
+      },
+      {
+        "name": "tuna flakes in brine, drained",
+        "grams": 80,
+        "fnri_id": "G226"
+      },
+      {
+        "name": "avocado",
+        "grams": 40,
+        "fnri_id": "E004"
+      },
+      {
+        "name": "lettuce",
+        "grams": 20,
+        "fnri_id": "D115"
+      },
+      {
+        "name": "tomato",
+        "grams": 30,
+        "fnri_id": "D257"
+      }
+    ],
+    "instructions": "Mash the avocado with the tuna and a squeeze of calamansi. Fill the bread with lettuce and tomato.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A031, D115, D257, E004, G226"
+  },
+  {
+    "slug": "nilagang-saba",
+    "name": "Nilagang saging na saba",
+    "is_filipino": true,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 120,
+    "kcal": 132,
+    "protein_g": 1.3,
+    "carbs_g": 30.6,
+    "fat_g": 0.5,
+    "fiber_g": 3.5,
+    "ingredients": [
+      {
+        "name": "saba banana (1 large)",
+        "grams": 120,
+        "fnri_id": "E014"
+      }
+    ],
+    "instructions": "Boil the saba in its peel for 15 minutes.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs E014"
+  },
+  {
+    "slug": "nilagang-kamote",
+    "name": "Nilagang kamote",
+    "is_filipino": true,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 120,
+    "kcal": 162,
+    "protein_g": 1.3,
+    "carbs_g": 38.2,
+    "fat_g": 0.5,
+    "fiber_g": 5.5,
+    "ingredients": [
+      {
+        "name": "sweet potato (kamote)",
+        "grams": 120,
+        "fnri_id": "B013"
+      }
+    ],
+    "instructions": "Boil the kamote until a fork slides in easily.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs B013"
+  },
+  {
+    "slug": "nilagang-mais",
+    "name": "Nilagang mais",
+    "is_filipino": true,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 20,
+    "serving_g": 120,
+    "kcal": 178,
+    "protein_g": 5.3,
+    "carbs_g": 37.1,
+    "fat_g": 1,
+    "fiber_g": 4.9,
+    "ingredients": [
+      {
+        "name": "corn on the cob (1 ear)",
+        "grams": 120,
+        "fnri_id": "A003"
+      }
+    ],
+    "instructions": "Boil the corn for 15 minutes.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A003"
+  },
+  {
+    "slug": "mani",
+    "name": "Roasted mani (peanuts)",
+    "is_filipino": true,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [
+      "peanut"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 1,
+    "serving_g": 30,
+    "kcal": 189,
+    "protein_g": 10,
+    "carbs_g": 2.3,
+    "fat_g": 15.5,
+    "fiber_g": 2.5,
+    "ingredients": [
+      {
+        "name": "roasted peanuts",
+        "grams": 30,
+        "fnri_id": "C038"
+      }
+    ],
+    "instructions": "A small handful of plain roasted peanuts.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs C038"
+  },
+  {
+    "slug": "itlog-at-pipino",
+    "name": "Hard-boiled egg and cucumber",
+    "is_filipino": false,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [
+      "egg"
+    ],
+    "allergens": [
+      "egg"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 12,
+    "serving_g": 180,
+    "kcal": 179,
+    "protein_g": 14.4,
+    "carbs_g": 3.2,
+    "fat_g": 12.1,
+    "fiber_g": 0.6,
+    "ingredients": [
+      {
+        "name": "hard-boiled eggs (2)",
+        "grams": 100,
+        "fnri_id": "H004"
+      },
+      {
+        "name": "cucumber",
+        "grams": 80,
+        "fnri_id": "D069"
+      }
+    ],
+    "instructions": "Boil the eggs for 10 minutes. Serve with cucumber sticks.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs D069, H004"
+  },
+  {
+    "slug": "mango-yogurt",
+    "name": "Mango with yoghurt",
+    "is_filipino": false,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [
+      "milk"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 3,
+    "serving_g": 220,
+    "kcal": 167,
+    "protein_g": 6,
+    "carbs_g": 25.1,
+    "fat_g": 4.7,
+    "fiber_g": 2,
+    "ingredients": [
+      {
+        "name": "ripe mango",
+        "grams": 120,
+        "fnri_id": "E051"
+      },
+      {
+        "name": "plain yoghurt",
+        "grams": 100,
+        "fnri_id": "J026"
+      }
+    ],
+    "instructions": "Top the yoghurt with diced mango.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs E051, J026"
+  },
+  {
+    "slug": "fruit-cup",
+    "name": "Papaya, pineapple and pakwan fruit cup",
+    "is_filipino": false,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 5,
+    "serving_g": 280,
+    "kcal": 128,
+    "protein_g": 1.1,
+    "carbs_g": 29.6,
+    "fat_g": 0.6,
+    "fiber_g": 3.5,
+    "ingredients": [
+      {
+        "name": "ripe papaya",
+        "grams": 100,
+        "fnri_id": "E068"
+      },
+      {
+        "name": "pineapple",
+        "grams": 80,
+        "fnri_id": "E073"
+      },
+      {
+        "name": "watermelon",
+        "grams": 100,
+        "fnri_id": "E064"
+      }
+    ],
+    "instructions": "Cube the fruit and serve chilled.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs E064, E068, E073"
+  },
+  {
+    "slug": "banana-peanut-butter",
+    "name": "Banana with peanut butter",
+    "is_filipino": false,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [
+      "peanut"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 2,
+    "serving_g": 115,
+    "kcal": 196,
+    "protein_g": 4.7,
+    "carbs_g": 27.1,
+    "fat_g": 7.7,
+    "fiber_g": 3.6,
+    "ingredients": [
+      {
+        "name": "banana",
+        "grams": 100,
+        "fnri_id": "E008"
+      },
+      {
+        "name": "peanut butter",
+        "grams": 15,
+        "fnri_id": "C058"
+      }
+    ],
+    "instructions": "Slice the banana and dip in peanut butter.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs C058, E008"
+  },
+  {
+    "slug": "milk-and-pandesal",
+    "name": "Milk and pandesal",
+    "is_filipino": true,
+    "meal_slots": [
+      "snack"
+    ],
+    "tags": [],
+    "allergens": [
+      "milk",
+      "wheat"
+    ],
+    "diet_pattern": "vegetarian",
+    "cost_level": "low",
+    "prep_minutes": 1,
+    "serving_g": 235,
+    "kcal": 246,
+    "protein_g": 10.1,
+    "carbs_g": 31.6,
+    "fat_g": 8.7,
+    "fiber_g": 0.9,
+    "ingredients": [
+      {
+        "name": "milk",
+        "grams": 200,
+        "fnri_id": "J014"
+      },
+      {
+        "name": "pandesal (1 piece)",
+        "grams": 35,
+        "fnri_id": "A042"
+      }
+    ],
+    "instructions": "A glass of milk with one pandesal.",
+    "source_ref": "Nutrition computed per serving from DOST-FNRI PhilFCT food IDs A042, J014"
+  }
+]
