@@ -1,10 +1,17 @@
 import { Logo } from "@/components/shell/logo";
 import { MobileNav } from "@/components/shell/mobile-nav";
 import { Sidebar, type ShellUser } from "@/components/shell/sidebar";
-import { getUser } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { getGate } from "@/lib/onboarding/state";
+import { createClient, getUser } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
+  if (user) {
+    const gate = await getGate(await createClient(), user.id);
+    if (!gate.consented) redirect("/consent");
+    if (!gate.onboarded) redirect("/onboarding");
+  }
   const name =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split("@")[0] ?? "Guest";
   const shellUser: ShellUser = {
