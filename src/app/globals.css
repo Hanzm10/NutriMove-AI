@@ -57,7 +57,7 @@
   --nm-accent: #b7ec5e;
   --nm-ink: #1d2718;
   --nm-ink-card: #23331d;
-  --nm-muted: #687362;
+  --nm-muted: #5f6a59; /* ≥ 4.5:1 on white, canvas and soft green (axe) */
   --nm-surface: #ffffff;
   --nm-canvas: #f5f7f1;
   --nm-soft: #edf5e2;

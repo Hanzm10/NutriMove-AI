@@ -155,6 +155,16 @@ describe("ratings (MEAL-04)", () => {
   });
 });
 
+describe("check-in hunger rule (AGENT-03)", () => {
+  it("favorHighFiber raises the plan's average fiber", () => {
+    const fiber = (p: MealProfile) => {
+      const meals = recommendMealPlan(p, catalog).days.flatMap((d) => d.meals);
+      return meals.reduce((s, m) => s + bySlug.get(m.slug)!.fiber_g * m.servings, 0) / 7;
+    };
+    expect(fiber({ ...base, favorHighFiber: true })).toBeGreaterThan(fiber(base));
+  });
+});
+
 describe("recommendSwap (MEAL-03)", () => {
   it("returns the next eligible candidate, not the current one or the avoided ones, at similar kcal", () => {
     const ranked = rankForSlot(base, catalog, "lunch");

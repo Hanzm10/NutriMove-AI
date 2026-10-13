@@ -589,7 +589,7 @@ Both require a valid user JWT and are rate-limited per user (simple counter tabl
   --accent:       #b7ec5e;  /* accent text on dark cards */
   --ink:          #1d2718;  /* body text, dark buttons */
   --ink-card:     #23331d;  /* dark cards (weekly goal, hydration, privacy) */
-  --muted:        #687362;  /* secondary text (4.6:1 on canvas) */
+  --muted:        #5f6a59;  /* secondary text (≥ 4.5:1 on white, canvas and soft; darkened from the mock's #687362 after the axe pass) */
   --surface:      #ffffff;  /* cards */
   --canvas:       #f5f7f1;  /* page background */
   --soft:         #edf5e2;  /* pills, active nav bg, input bg, chips */

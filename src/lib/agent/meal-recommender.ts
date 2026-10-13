@@ -47,6 +47,8 @@ export type MealProfile = {
    * "New plan" brings different dishes: strongly on the same day, lightly anywhere in the week.
    */
   previousByDay?: string[][];
+  /** AGENT-03 hunger rule: rank high-fiber recipes higher. */
+  favorHighFiber?: boolean;
 };
 
 export type PlannedMeal = {
@@ -129,7 +131,7 @@ export function profileVector(p: MealProfile, slot: MealSlot): Vec {
     carb_pct: (p.carbsG * 4) / total,
     fat_pct: (p.fatG * 9) / total,
     kcal_norm: Math.min((p.kcal * SLOT_SHARE[slot]) / KCAL_NORM, 1),
-    fiber_norm: 0.6,
+    fiber_norm: p.favorHighFiber ? 1 : 0.6,
     is_filipino: p.filipinoFirst ? 1 : 0.3,
     budget_low: p.budget === "low" ? 1 : 0.3,
     prep_quick: 0.4,
@@ -184,6 +186,7 @@ export function explainMatch(r: CatalogRecipe, p: MealProfile, slot: MealSlot, u
   const rv = recipeVector(r);
   const reasons: string[] = [];
   if (p.liked?.includes(r.slug)) reasons.push("You gave this a 👍");
+  if (p.favorHighFiber && r.fiber_g >= 5) reasons.push(`High in fiber (${r.fiber_g} g) to keep you full, from your check-in`);
   const contributions = Object.entries(weighted(rv))
     .map(([k, x]) => [k, x * (weighted(u)[k] ?? 0)] as const)
     .filter(([, c]) => c > 0.05)
@@ -224,7 +227,11 @@ export function rankForSlot(p: MealProfile, catalog: CatalogRecipe[], slot: Meal
   const u = userVector(p, slot, catalog);
   return catalog
     .filter((r) => eligibleRecipe(r, p, slot))
-    .map((recipe) => ({ recipe, base: similarity(u, recipeVector(recipe)) }))
+    .map((recipe) => ({
+      recipe,
+      // AGENT-03 hunger rule: a direct bonus, since the fiber dimension alone barely moves the cosine.
+      base: similarity(u, recipeVector(recipe)) + (p.favorHighFiber ? 0.08 * Math.min(recipe.fiber_g / FIBER_NORM, 1) : 0),
+    }))
     .sort((a, b) => b.base - a.base || a.recipe.slug.localeCompare(b.recipe.slug));
 }
 
@@ -365,6 +372,7 @@ export function recommendMealPlan(p: MealProfile, catalog: CatalogRecipe[], days
   if (p.allergies.length) reasons.push(`Recipes containing ${p.allergies.join(", ")} are never suggested.`);
   if (p.dietPattern !== "omnivore") reasons.push(`Only ${p.dietPattern}-friendly recipes are included.`);
   if (p.filipinoFirst) reasons.push("Filipino dishes are ranked higher, as you asked.");
+  if (p.favorHighFiber) reasons.push("High-fiber recipes are favoured because you reported feeling hungry.");
   if (p.liked?.length || p.disliked?.length) reasons.push("Your 👍/👎 ratings shift the picks toward dishes like the ones you liked.");
   const ruleIds = ["MEAL-FILTER", "MEAL-COSINE", "MEAL-SCALE"];
   if (p.liked?.length || p.disliked?.length) ruleIds.push("MEAL-RATINGS");

@@ -7,7 +7,7 @@ export default async function Landing() {
   if (await getUser()) redirect("/overview");
   return (
     <div className="min-h-dvh bg-nm-canvas px-5 py-8 sm:px-10">
-      <Logo href="/" />
+      <header><Logo href="/" /></header>
       <main id="main" className="mx-auto mt-16 max-w-5xl">
         <div className="rounded-card bg-gradient-to-br from-[#c6e98c] to-nm-primary p-8 sm:p-14">
           <p className="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold">Your intelligent coach</p>

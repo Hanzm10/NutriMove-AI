@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AdaptState } from "@/lib/agent/adaptation";
 import { recommendWorkoutPlan, type CatalogExercise, type WorkoutProfile } from "@/lib/agent/workout-recommender";
 import { addDaysISO, todayISO } from "@/lib/dates";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -19,6 +20,7 @@ export async function generateWorkoutPlan(supabase: DB, userId: string) {
   if (!profile || !exercises?.length) throw new Error("Missing profile or exercise catalogue");
 
   const parq = (screening?.parq ?? {}) as Record<string, boolean>;
+  const adapt = (profile.adapt_state ?? {}) as AdaptState;
   const p: WorkoutProfile = {
     goal: (profile.goal as WorkoutProfile["goal"]) ?? "maintain",
     experience: (profile.experience_level as WorkoutProfile["experience"]) ?? "beginner",
@@ -26,7 +28,8 @@ export async function generateWorkoutPlan(supabase: DB, userId: string) {
     daysPerWeek: profile.days_per_week ?? 3,
     minutesPerSession: profile.minutes_per_session ?? 30,
     beginnerCap: Boolean(screening?.flagged),
-    lowImpactOnly: Boolean(screening?.pregnant_or_bf || parq.bone_joint),
+    lowImpactOnly: Boolean(screening?.pregnant_or_bf || parq.bone_joint || adapt.posePaused),
+    setAdjust: adapt.setAdjust ?? 0,
   };
   const plan = recommendWorkoutPlan(p, exercises as CatalogExercise[]);
   const weekStart = todayISO();

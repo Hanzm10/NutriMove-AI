@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CONSENT_VERSIONS } from "@/lib/consent/versions";
 import { EXERCISE_SETUP } from "@/lib/pose/analyzers/exercises";
 import { requireUser } from "@/lib/supabase/auth";
+import { resumeCameraCoach } from "@/app/(app)/check-in/actions";
 import { POSE_KIND_BY_SLUG } from "@/lib/workout/plan";
 import { acceptCameraConsent } from "./actions";
 
@@ -22,10 +23,12 @@ const clampInt = (v: string | undefined, lo: number, hi: number, dflt: number) =
 export default async function LiveCoachPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
   const { supabase, user } = await requireUser();
-  const [{ data: consent }, { data: settings }] = await Promise.all([
+  const [{ data: consent }, { data: settings }, { data: profile }] = await Promise.all([
     supabase.from("consents").select("id").eq("user_id", user.id).eq("type", "camera").eq("version", CONSENT_VERSIONS.camera).limit(1).maybeSingle(),
     supabase.from("user_settings").select("tts_cues").eq("user_id", user.id).maybeSingle(),
+    supabase.from("profiles").select("adapt_state").eq("user_id", user.id).single(),
   ]);
+  const posePaused = Boolean((profile?.adapt_state as { posePaused?: boolean } | null)?.posePaused);
   const slug = sp.exercise && sp.exercise in POSE_KIND_BY_SLUG ? (sp.exercise as keyof typeof POSE_KIND_BY_SLUG) : null;
   const kind = slug ? POSE_KIND_BY_SLUG[slug] : null;
 
@@ -37,7 +40,19 @@ export default async function LiveCoachPage({ searchParams }: { searchParams: Pr
         subtitle="Real-time rep counting and form cues. Video stays on this device."
       />
       <div className="mt-8">
-        {!consent ? (
+        {posePaused ? (
+          <NmCard className="max-w-2xl">
+            <h2 className="text-[1.777rem] leading-tight">Camera coach paused</h2>
+            <p className="mt-3 text-nm-muted">
+              You reported new pain or an injury in your check-in, so we paused coached sets. Rest, and talk to a health
+              professional if the pain continues. You can still log light sessions by hand from AI Workout.
+            </p>
+            <form action={async () => { "use server"; await resumeCameraCoach(); }} className="mt-6 flex flex-wrap gap-3">
+              <Button type="submit" className="h-12 rounded-xl px-6 text-base font-bold">I&apos;m pain-free, resume</Button>
+              <Link href="/workout" className="inline-flex h-12 items-center rounded-xl border border-nm-line bg-white px-5 font-bold">Back to AI Workout</Link>
+            </form>
+          </NmCard>
+        ) : !consent ? (
           <NmCard className="max-w-2xl">
             <h2 className="text-[1.777rem] leading-tight">Before we use your camera</h2>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-nm-muted">

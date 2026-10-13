@@ -24,6 +24,8 @@ export type WorkoutProfile = {
   lowImpactOnly?: boolean;
   /** e.g. ["knee"] from screening or a reported injury. */
   avoid?: string[];
+  /** AGENT-03: cumulative set change from weekly check-ins (−2…+2). */
+  setAdjust?: number;
 };
 
 export type PlanItem = { slug: string; sets: number; reps: number; timed: boolean; restS: number; score: number };
@@ -96,7 +98,8 @@ export function recommendWorkoutPlan(p: WorkoutProfile, catalog: CatalogExercise
   const days = Math.min(6, Math.max(2, p.daysPerWeek));
   const { split, sessions } = sessionTemplates(days, p.goal);
   const intermediate = p.experience === "intermediate" && !p.beginnerCap;
-  const sets = intermediate ? 3 : 2;
+  const adjust = Math.max(-2, Math.min(2, Math.round(p.setAdjust ?? 0)));
+  const sets = Math.max(1, Math.min(5, (intermediate ? 3 : 2) + adjust));
   const reps = intermediate ? 12 : 10;
   const restS = intermediate ? 75 : 60;
 
@@ -105,6 +108,10 @@ export function recommendWorkoutPlan(p: WorkoutProfile, catalog: CatalogExercise
     reasons.push("Your plan uses beginner-level, low-impact moves because of your health answers.");
   }
   if (p.lowImpactOnly) reasons.push("High-impact moves (jumping) are left out.");
+  if (adjust !== 0) {
+    ruleIds.push(adjust > 0 ? "AGT-WORKOUT-PROGRESS" : "AGT-WORKOUT-REGRESS");
+    reasons.push(adjust > 0 ? `Your check-ins showed workouts felt easy, so sets go up by ${adjust}.` : `Your check-ins showed workouts felt hard or painful, so sets go down by ${-adjust}.`);
+  }
   reasons.push(
     `${days} sessions a week as a ${split.replaceAll("_", " ")} split, ${sets} sets of about ${reps} reps with ${restS} s rest.`,
   );

@@ -8,7 +8,7 @@ export function Logo({ href = "/overview" }: { href?: string }) {
         <Leaf className="size-5" aria-hidden />
       </span>
       <span className="text-lg font-black tracking-tight text-nm-ink">
-        NutriMove <span className="text-nm-primary-dark">AI</span>
+        NutriMove <span className="text-nm-primary-ink">AI</span>
       </span>
     </Link>
   );

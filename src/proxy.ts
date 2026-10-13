@@ -8,6 +8,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Skip static files, images and the ONNX/WASM assets.
-    "/((?!_next/static|_next/image|favicon.ico|models/|ort/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|onnx|wasm|mjs)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|models/|ort/|icons/|sw\\.js|manifest\\.webmanifest|offline|.*\\.(?:svg|png|jpg|jpeg|gif|webp|onnx|wasm|mjs)$).*)",
   ],
 };
