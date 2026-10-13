@@ -23,8 +23,9 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // ORT's pthread workers are spawned from these files and must opt in too.
-        source: "/ort/:path*",
+        // Workers spawned from cross-origin-isolated pages (ORT pthreads, our pose worker chunk)
+        // must be served with COEP themselves.
+        source: "/(ort|_next/static)/:path*",
         headers: [
           { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },

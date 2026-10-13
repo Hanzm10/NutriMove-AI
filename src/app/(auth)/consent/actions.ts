@@ -21,5 +21,5 @@ export async function acceptConsent(_: ConsentState, form: FormData): Promise<Co
     { user_id: user.id, type: "health", version: CONSENT_VERSIONS.health },
   ]);
   if (error) return { error: "Could not save your consent. Please try again." };
-  redirect("/overview"); // → /onboarding once ONB-* lands (Day 2)
+  redirect("/onboarding");
 }
