@@ -31,7 +31,7 @@ export async function runCheckIn(supabase: DB, userId: string, answers: CheckInA
     supabase.from("profiles").select("goal, sex, adapt_state").eq("user_id", userId).single(),
     supabase.from("targets").select("*").eq("user_id", userId).lte("effective_from", today)
       .order("effective_from", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("screenings").select("flagged").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("screenings").select("flagged, pregnant_or_bf").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("weight_logs").select("log_date, weight_kg").eq("user_id", userId).gte("log_date", addDaysISO(today, -20)),
     supabase.from("food_logs").select("log_date, kcal").eq("user_id", userId).gte("log_date", weekAgo).lte("log_date", today),
     supabase.from("workout_sessions").select("session_sets(reps_counted, reps_good)").eq("user_id", userId)
@@ -54,6 +54,7 @@ export async function runCheckIn(supabase: DB, userId: string, answers: CheckInA
 
   const r = adaptPlan({
     goal: (profile.goal as Goal) ?? "maintain",
+    maintenanceOnly: Boolean(screening?.pregnant_or_bf),
     today,
     targets: before,
     floorKcal,

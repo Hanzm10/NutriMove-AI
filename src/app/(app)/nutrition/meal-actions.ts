@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recommendSwap, type MealSlot } from "@/lib/agent/meal-recommender";
+import { NoRecipesError, recommendSwap, type MealSlot } from "@/lib/agent/meal-recommender";
 import { todayISO } from "@/lib/dates";
 import { generateMealPlan, loadCatalog, loadMealProfile } from "@/lib/meals/plan";
 import { requireUser } from "@/lib/supabase/auth";
@@ -21,6 +21,12 @@ export async function regenerateMealPlan(): Promise<Result> {
   try {
     await generateMealPlan(supabase, user.id);
   } catch (e) {
+    if (e instanceof NoRecipesError) {
+      return {
+        ok: false,
+        error: `We don't have enough recipes that fit your allergies and diet yet (no ${e.slots.join(" or ")} options). You can still log meals from the Today tab, and we're adding recipes.`,
+      };
+    }
     console.error("meal plan generation failed", e);
     return { ok: false, error: "Could not build a plan. Check that onboarding is finished." };
   }

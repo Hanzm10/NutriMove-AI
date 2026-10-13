@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import recipes from "../../../supabase/seed/recipes.json";
 import {
+  NoRecipesError,
   PLAN_SLOTS,
   eligibleRecipe,
   rankForSlot,
@@ -133,6 +134,7 @@ describe("recommendMealPlan (MEAL-01)", () => {
 
   it("throws a clear error when a slot has no eligible recipe", () => {
     const tiny = catalog.filter((r) => !r.meal_slots.includes("snack"));
+    expect(() => recommendMealPlan(base, tiny)).toThrow(NoRecipesError);
     expect(() => recommendMealPlan(base, tiny)).toThrow(/snack/);
   });
 });

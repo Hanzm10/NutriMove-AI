@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { NAV_ITEMS } from "./nav-items";
@@ -53,6 +53,11 @@ export function Sidebar({ user, weekly }: { user: ShellUser; weekly: { done: num
           </span>
           <ChevronRight className="size-4 text-nm-muted" aria-hidden />
         </Link>
+        <form action="/auth/signout" method="post">
+          <button type="submit" className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-bold text-nm-muted hover:bg-nm-soft/60 hover:text-nm-ink">
+            <LogOut className="size-4" aria-hidden /> Sign out
+          </button>
+        </form>
       </div>
     </aside>
   );
