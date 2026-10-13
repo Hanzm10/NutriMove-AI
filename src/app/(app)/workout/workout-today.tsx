@@ -122,7 +122,7 @@ export function WorkoutToday({ view, reasons }: { view: View; reasons: string[] 
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{it.exercise!.name}</span>
                         <span className="block text-xs text-nm-muted">
-                          {it.sets} sets · {amount(it)}
+                          {it.sets} {it.sets === 1 ? "set" : "sets"} · {amount(it)}
                         </span>
                       </span>
                       {it.exercise!.pose_supported && <Camera className="size-4 shrink-0 text-nm-primary-dark" aria-label="Camera coach available" />}
@@ -181,7 +181,7 @@ function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: num
           <p className="text-xs font-bold tracking-[0.12em] text-nm-primary-ink uppercase">Exercise {index + 1} of {total}</p>
           <h3 id="ex-h" className="mt-1 text-[1.777rem] leading-tight">{ex.name}</h3>
         </div>
-        <p className="rounded-xl bg-nm-soft px-3 py-2 text-sm font-bold">{item.sets} sets · {amount(item)}</p>
+        <p className="rounded-xl bg-nm-soft px-3 py-2 text-sm font-bold">{item.sets} {item.sets === 1 ? "set" : "sets"} · {amount(item)}</p>
       </div>
       <ol className="mt-6 grid gap-4 sm:grid-cols-3">
         {ex.steps.map((s, i) => (

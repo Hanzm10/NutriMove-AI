@@ -9,7 +9,7 @@ import { NAV_ITEMS } from "./nav-items";
 
 export type ShellUser = { name: string; initials: string; subtitle: string };
 
-export function Sidebar({ user }: { user: ShellUser }) {
+export function Sidebar({ user, weekly }: { user: ShellUser; weekly: { done: number; planned: number } }) {
   const pathname = usePathname();
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-nm-line bg-white px-5 py-7 lg:flex">
@@ -39,7 +39,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-4">
-        <WeeklyGoalCard done={0} planned={0} />
+        <WeeklyGoalCard done={weekly.done} planned={weekly.planned} />
         <Link
           href="/profile"
           className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-nm-soft/60"
@@ -85,7 +85,7 @@ export function WeeklyGoalCard({ done, planned }: { done: number; planned: numbe
       </div>
       <p className="mt-3 text-xs leading-relaxed text-white/80">
         {planned === 0
-          ? "Finish onboarding to get your weekly plan."
+          ? "Open AI Workout to build your weekly plan."
           : remaining === 0
             ? "Weekly goal reached. Great work!"
             : `${remaining} more session${remaining === 1 ? "" : "s"} to reach your goal.`}

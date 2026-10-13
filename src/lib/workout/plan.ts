@@ -104,3 +104,20 @@ export async function loadCurrentPlan(supabase: DB, userId: string) {
     })),
   };
 }
+
+/** Sidebar weekly goal: planned training days this plan week vs days with at least one logged session. */
+export async function weeklyProgress(supabase: DB, userId: string) {
+  const { data: plan } = await supabase
+    .from("workout_plans").select("id, week_start").eq("user_id", userId)
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!plan) return { done: 0, planned: 0 };
+  const [{ data: items }, { data: sessions }] = await Promise.all([
+    supabase.from("workout_plan_items").select("day").eq("workout_plan_id", plan.id),
+    supabase.from("workout_sessions").select("started_at").eq("user_id", userId)
+      .gte("started_at", `${plan.week_start}T00:00:00+08:00`)
+      .lt("started_at", `${addDaysISO(plan.week_start, 7)}T00:00:00+08:00`),
+  ]);
+  const planned = new Set((items ?? []).map((i) => i.day)).size;
+  const done = new Set((sessions ?? []).map((s) => todayISO(new Date(s.started_at)))).size;
+  return { done: Math.min(done, planned), planned };
+}
