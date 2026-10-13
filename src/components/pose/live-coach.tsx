@@ -3,18 +3,37 @@
 import { Camera, CameraOff, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
 type Phase = "idle" | "loading" | "camera" | "running" | "error";
-type Stats = { fps: number; inferenceMs: number; backend: string };
+export type Stats = { fps: number; inferenceMs: number; backend: string };
 
 /**
  * Live camera + InstantHMR skeleton (POSE-01…04, 08). Frames stay on this device and are closed right after
  * inference. Exercise analyzers plug in via `onPose` (Day 3).
  */
-export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }) {
+export function LiveCoach({
+  onPose,
+  onStats,
+  hud,
+  startLabel = "Start camera coach",
+}: {
+  onPose?: (pose: CanonicalPose) => void;
+  onStats?: (s: Stats) => void;
+  /** Overlay drawn on top of the video while running (rep counter, cues…). */
+  hud?: React.ReactNode;
+  startLabel?: string;
+}) {
+  // Keep the latest callbacks without restarting the camera loop.
+  const onPoseRef = useRef(onPose);
+  const onStatsRef = useRef(onStats);
+  useEffect(() => {
+    onPoseRef.current = onPose;
+    onStatsRef.current = onStats;
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const estimatorRef = useRef<InstantHmrEstimator | null>(null);
@@ -31,6 +50,8 @@ export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }
 
   async function start() {
     setError(null);
+    const synthetic = new URLSearchParams(location.search).get("synthetic");
+    if (synthetic) return startSynthetic(synthetic);
     try {
       setPhase("loading");
       const override = new URLSearchParams(location.search).get("model");
@@ -88,10 +109,14 @@ export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }
         const visible = now - lastSeen < 1000;
         setInFrame((prev) => (prev === visible ? prev : visible));
         draw(canvas, w, h, pose, visible);
-        if (visible) onPose?.(pose);
+        if (visible) onPoseRef.current?.(pose);
         fps = fps ? fps * 0.9 + (1000 / (now - last)) * 0.1 : 1000 / (now - last);
         last = now;
-        if (++frames % 10 === 0) setStats({ fps, inferenceMs: s.inferenceMs, backend: s.backend });
+        if (++frames % 10 === 0) {
+          const st = { fps, inferenceMs: s.inferenceMs, backend: s.backend };
+          setStats(st);
+          onStatsRef.current?.(st);
+        }
       } catch (e) {
         if (runningRef.current) {
           setError(String(e));
@@ -100,6 +125,42 @@ export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }
         }
       }
     }
+  }
+
+  /**
+   * Test mode (?synthetic=squat|pushup|lunge): no camera or model. Generates stick-figure reps at 30 fps
+   * (every 3rd rep with a form fault) to exercise the analyzer → HUD → cues → summary path end to end.
+   */
+  function startSynthetic(kind: string) {
+    setPhase("running");
+    runningRef.current = true;
+    const canvas = canvasRef.current!;
+    const frames: CanonicalPose[] = [];
+    let t = performance.now();
+    for (let rep = 0; rep < 200; rep++) {
+      const fault = rep % 3 === 2;
+      for (const a of repTrajectory(175, 85, 2000)) {
+        t += 1000 / 30;
+        frames.push(
+          kind === "pushup" ? pushupPose(a, t, { hipDrop: fault ? 0.2 : 0 })
+          : kind === "lunge" ? squatPose(175, t, { leftKnee: a })
+          : squatPose(a, t, a < 120 && fault ? { valgus: true } : {}),
+        );
+      }
+      for (let i = 0; i < 12; i++) frames.push(kind === "pushup" ? pushupPose(170, (t += 1000 / 30)) : squatPose(175, (t += 1000 / 30)));
+    }
+    const t0 = performance.now() - frames[0]!.timestamp;
+    let i = 0;
+    const tick = () => {
+      if (!runningRef.current || i >= frames.length) return;
+      const f = frames[i++]!;
+      const pose = { ...f, timestamp: f.timestamp + t0 };
+      draw(canvas, 640, 480, pose, true);
+      onPoseRef.current?.(pose);
+      if (i % 10 === 0) setStats({ fps: 30, inferenceMs: 0, backend: "synthetic" });
+      setTimeout(tick, 1000 / 30);
+    };
+    tick();
   }
 
   function stopCamera() {
@@ -134,6 +195,7 @@ export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }
             )}
           </div>
         )}
+        {phase === "running" && hud}
         {phase === "running" && !inFrame && (
           <p className="absolute inset-x-4 top-4 rounded-xl bg-white/95 p-3 text-center font-bold text-nm-ink">
             Step into frame so I can see your whole body
@@ -162,7 +224,7 @@ export function LiveCoach({ onPose }: { onPose?: (pose: CanonicalPose) => void }
           </Button>
         ) : (
           <Button className="h-12 rounded-xl px-6 text-base font-bold" onClick={start} disabled={phase === "loading" || phase === "camera"}>
-            <Camera aria-hidden /> Start camera coach
+            <Camera aria-hidden /> {startLabel}
           </Button>
         )}
       </div>

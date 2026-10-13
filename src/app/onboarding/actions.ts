@@ -8,6 +8,7 @@ import {
 } from "@/lib/onboarding/schema";
 import { requireUser } from "@/lib/supabase/auth";
 import type { Json } from "@/lib/supabase/database.types";
+import { generateWorkoutPlan } from "@/lib/workout/plan";
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -197,6 +198,12 @@ export async function saveDietAndFinish(input: DietForm): Promise<ActionResult<P
       .update({ onboarding_step: 6, onboarding_completed_at: new Date().toISOString() })
       .eq("user_id", user.id),
   ]);
+  // WORK-01: first weekly plan. A failure here must not block onboarding; /workout offers a retry.
+  try {
+    await generateWorkoutPlan(supabase, user.id);
+  } catch (e) {
+    console.error("workout plan generation failed", e);
+  }
   revalidatePath("/", "layout");
 
   return {

@@ -1,27 +1,38 @@
 import type { Metadata } from "next";
-import { PlaceholderGrid } from "@/components/shell/placeholder-grid";
-import Link from "next/link";
+import { NmCard, Eyebrow } from "@/components/shell/card";
 import { PageHeader } from "@/components/shell/page-header";
+import { Button } from "@/components/ui/button";
+import { requireUser } from "@/lib/supabase/auth";
+import { loadCurrentPlan } from "@/lib/workout/plan";
+import { regeneratePlan } from "./actions";
+import { WorkoutToday } from "./workout-today";
 
 export const metadata: Metadata = { title: "AI Workout" };
 
-const SECTIONS = [
-  { title: "Today’s plan", body: "Session flow with sets, reps and timing (WORK-01/02).", req: "WORK-02" },
-  { title: "Camera coach", body: "Live rep counting and form cues for squat, push-up and lunge (POSE-*).", req: "POSE-09" },
-  { title: "Week plan", body: "Your weekly split and progressions (WORK-04).", req: "WORK-04" },
-];
+export default async function WorkoutPage() {
+  const { supabase, user } = await requireUser();
+  const view = await loadCurrentPlan(supabase, user.id);
+  const reasons = ((view?.plan.explanation as { reasons?: string[] } | null)?.reasons ?? []) as string[];
 
-export default function Page() {
   return (
     <>
-      <PageHeader eyebrow="Personalized movement" title="AI Workout" subtitle="A guided plan built around your goals, energy and experience." />
-      <Link
-        href="/workout/live"
-        className="mt-8 inline-flex h-12 items-center rounded-xl bg-nm-primary px-6 font-bold text-nm-ink"
-      >
-        Try the live camera coach
-      </Link>
-      <PlaceholderGrid sections={SECTIONS} />
+      <PageHeader
+        eyebrow="Personalized movement"
+        title="AI Workout"
+        subtitle="A guided plan built around your goals, energy and experience."
+      />
+      {view ? (
+        <WorkoutToday view={view} reasons={reasons} />
+      ) : (
+        <NmCard className="mt-8 max-w-2xl">
+          <Eyebrow>WORK-01</Eyebrow>
+          <h2 className="mt-2 text-[1.777rem] leading-tight">Let&apos;s build your weekly plan</h2>
+          <p className="mt-2 text-nm-muted">We&apos;ll use your goal, schedule, equipment and health answers.</p>
+          <form action={regeneratePlan} className="mt-6">
+            <Button type="submit" className="h-12 rounded-xl px-6 text-base font-bold">Generate my plan</Button>
+          </form>
+        </NmCard>
+      )}
     </>
   );
 }

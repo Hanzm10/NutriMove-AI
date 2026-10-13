@@ -4,13 +4,17 @@ import { Sidebar, type ShellUser } from "@/components/shell/sidebar";
 import { redirect } from "next/navigation";
 import { getGate } from "@/lib/onboarding/state";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { weeklyProgress } from "@/lib/workout/plan";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
+  let weekly = { done: 0, planned: 0 };
   if (user) {
-    const gate = await getGate(await createClient(), user.id);
+    const supabase = await createClient();
+    const gate = await getGate(supabase, user.id);
     if (!gate.consented) redirect("/consent");
     if (!gate.onboarded) redirect("/onboarding");
+    weekly = await weeklyProgress(supabase, user.id);
   }
   const name =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split("@")[0] ?? "Guest";
@@ -22,7 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-dvh bg-nm-canvas">
-      <Sidebar user={shellUser} />
+      <Sidebar user={shellUser} weekly={weekly} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between border-b border-nm-line bg-white px-4 py-3 lg:hidden">
           <Logo />

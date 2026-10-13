@@ -72,10 +72,31 @@ New migrations: add a file under `supabase/migrations/` and apply it with `pnpm 
 
 ## Camera coach
 
-`/workout/live` asks for camera consent once (AUTH-03), then runs InstantHMR in a Web Worker and draws the
-skeleton live. Add `?debug=1` for backend/FPS/latency and `?model=/models/instanthmr.onnx` to use a local model copy.
+`/workout/live?exercise=squat|pushup|reverse-lunge` asks for camera consent once (AUTH-03), then:
+InstantHMR in a Web Worker → One-Euro smoothing → exercise analyzer (rep state machine + form checks,
+thresholds in `src/lib/pose/analyzers/exercise-rules.json`) → rep counter, cue banner, spoken cues (Web Speech),
+3D skeleton (three.js), rest timer, summary and save (`workout_sessions` + `session_sets`, aggregates only).
+
+Query flags:
+- `?debug=1` — backend / FPS / latency overlay.
+- `?model=/models/instanthmr.onnx` — load a local copy of the model.
+- `?synthetic=squat|pushup|lunge` — **test mode**: no camera or model; generated stick-figure reps (every 3rd rep has
+  a form fault). Use it to demo or test the HUD, cues and summary on any machine.
+- `sets`, `reps` — override the target (the workout plan passes these).
+
 Static chunks and `/ort` are served with COEP/CORP headers because workers started from cross-origin-isolated pages
 must opt in too (see `next.config.ts`).
+
+## Agent modules (`src/lib/agent`, pure + unit-tested)
+
+| Module | PRD | What it does |
+|---|---|---|
+| `targets.ts`, `guardrails.ts` | TGT-*, ONB-02…04 | Calorie/macro targets, floors, caps, screening rules |
+| `workout-recommender.ts` | WORK-01 | Weekly plan: eligibility filters + cosine-similarity ranking per slot |
+| `nudges.ts` | AGENT-05 | Rule-based "AI coach insight" on Overview |
+| `vectors.ts` | — | Cosine similarity |
+
+Exercise catalogue: `supabase/seed/exercises.{json,sql}` (30 moves; squat, push-up and reverse lunge are camera-coached).
 
 ## Pose spike (Day-1 gate, PRD §7.7)
 

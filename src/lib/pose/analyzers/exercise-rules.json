@@ -1,0 +1,16 @@
+{
+  "$comment": "Starting thresholds from PRD Appendix C (degrees, metres). Tune on labelled clips; POSE-17.",
+  "common": { "minRepMs": 600, "maxRepMs": 8000, "minBottomFrames": 2, "hysteresis": 10, "cueCooldownMs": 2000 },
+  "squat": {
+    "top": 160, "bottom": 100, "shallowFloor": 120,
+    "valgusRatio": 0.8, "torsoLeanMax": 45
+  },
+  "pushup": {
+    "top": 155, "bottom": 90, "shallowFloor": 110,
+    "bodyLineMin": 160, "hipOffsetM": 0.06
+  },
+  "lunge": {
+    "top": 155, "bottom": 100, "shallowFloor": 115,
+    "torsoLeanMax": 30
+  }
+}

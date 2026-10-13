@@ -351,7 +351,7 @@ function PlanView({ plan }: { plan: PlanSummary }) {
           These are estimates, not medical advice. We&apos;ll adjust them with your weekly check-ins.
         </p>
       </section>
-      <p className="mt-5 text-sm text-nm-muted">Your meal plan and workout plan are being added this week.</p>
+      <p className="mt-5 text-sm text-nm-muted">Your weekly workout plan is ready in AI Workout. Your meal plan arrives later this week.</p>
       <Link href="/overview" className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-nm-ink px-6 font-bold text-white">
         Go to my dashboard <ArrowRight className="size-4" aria-hidden />
       </Link>
