@@ -51,6 +51,32 @@ Still to do in the Supabase dashboard (owner):
 New migrations: add a file under `supabase/migrations/` and apply it with `pnpm exec supabase db push`
 (after `supabase login` + `supabase link --project-ref satiqygzrdhzwkwqunoj`), then run `pnpm db:types`.
 
+## Food data & Edge Functions
+
+- **Filipino foods:** 1,542 items from the DOST-FNRI Philippine Food Composition Tables (PhilFCT), per 100 g edible
+  portion, in [`supabase/seed/foods_fnri.csv`](supabase/seed/foods_fnri.csv) (each row cites its FNRI Food ID).
+  Already loaded into the hosted project. To reload: `node scripts/build-food-seed.mjs` and run
+  `supabase/seed/foods_fnri.sql` in the SQL editor (idempotent upsert).
+- **Edge Functions** (in `supabase/functions/`, deployed):
+  - `food-search` — `POST { q }` → FNRI + cached + USDA FoodData Central results, Filipino first. Understands common
+    Tagalog words (kanin, itlog, manok…). Caches USDA hits in `foods`.
+  - `food-barcode` — `POST { code }` → Open Food Facts lookup (cached).
+  - Both require a signed-in user's JWT and are rate-limited per user.
+  - Call them from the app with `supabase.functions.invoke("food-search", { body: { q } })`.
+- **Secrets (Supabase → Edge Functions → Secrets):**
+  - `USDA_API_KEY` — get a free key at https://fdc.nal.usda.gov/api-key-signup. Without it the function falls back to
+    the shared `DEMO_KEY`, which is rate-limited and often unavailable.
+  - `OFF_CONTACT` (optional) — an email for the Open Food Facts User-Agent.
+- Deno code under `supabase/functions` is excluded from the Next.js typecheck; check it with
+  `npx deno check supabase/functions/*/index.ts`. Pure helpers in `_shared/food-mappers.ts` are unit-tested by Vitest.
+
+## Camera coach
+
+`/workout/live` asks for camera consent once (AUTH-03), then runs InstantHMR in a Web Worker and draws the
+skeleton live. Add `?debug=1` for backend/FPS/latency and `?model=/models/instanthmr.onnx` to use a local model copy.
+Static chunks and `/ort` are served with COEP/CORP headers because workers started from cross-origin-isolated pages
+must opt in too (see `next.config.ts`).
+
 ## Pose spike (Day-1 gate, PRD §7.7)
 
 Open **`/dev/pose-spike`** on each laptop/phone you plan to demo with. It downloads `instanthmr.onnx` (~81 MB,

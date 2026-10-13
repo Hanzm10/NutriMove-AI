@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PlaceholderGrid } from "@/components/shell/placeholder-grid";
+import Link from "next/link";
 import { PageHeader } from "@/components/shell/page-header";
 
 export const metadata: Metadata = { title: "AI Workout" };
@@ -14,6 +15,12 @@ export default function Page() {
   return (
     <>
       <PageHeader eyebrow="Personalized movement" title="AI Workout" subtitle="A guided plan built around your goals, energy and experience." />
+      <Link
+        href="/workout/live"
+        className="mt-8 inline-flex h-12 items-center rounded-xl bg-nm-primary px-6 font-bold text-nm-ink"
+      >
+        Try the live camera coach
+      </Link>
       <PlaceholderGrid sections={SECTIONS} />
     </>
   );
