@@ -8,6 +8,7 @@ import {
 } from "@/lib/onboarding/schema";
 import { requireUser } from "@/lib/supabase/auth";
 import type { Json } from "@/lib/supabase/database.types";
+import { generateMealPlan } from "@/lib/meals/plan";
 import { generateWorkoutPlan } from "@/lib/workout/plan";
 
 export type ActionResult<T = undefined> =
@@ -203,6 +204,12 @@ export async function saveDietAndFinish(input: DietForm): Promise<ActionResult<P
     await generateWorkoutPlan(supabase, user.id);
   } catch (e) {
     console.error("workout plan generation failed", e);
+  }
+  // MEAL-01: first 7-day meal plan. Same rule: never block onboarding; Nutrition → Meal plan can rebuild it.
+  try {
+    await generateMealPlan(supabase, user.id);
+  } catch (e) {
+    console.error("meal plan generation failed", e);
   }
   revalidatePath("/", "layout");
 
