@@ -1,12 +1,15 @@
 "use client";
 
-import { Camera, CameraOff, Loader2 } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Camera, CameraOff, Laptop, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
+import { RemotePoseEstimator } from "@/lib/pose/remote/estimator";
+import { PAIRING_KEY, loadPairing, pairingFromRaw } from "@/lib/pose/remote/protocol";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
@@ -38,7 +41,7 @@ export function LiveCoach({
   });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const estimatorRef = useRef<InstantHmrEstimator | null>(null);
+  const estimatorRef = useRef<InstantHmrEstimator | RemotePoseEstimator | null>(null);
   const runningRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState("");
@@ -57,6 +60,13 @@ export function LiveCoach({
   const [previousLog, setPreviousLog] = useState<string[]>([]);
   const [rungLabel, setRungLabel] = useState("");
   const [exhausted, setExhausted] = useState(false);
+  // A paired laptop (PRD §7.7.3) replaces the on-device model, e.g. on phones that can't run it.
+  const pairedRaw = useSyncExternalStore(
+    () => () => {},
+    () => (parseLoadParams(location.search).pose === "device" ? null : safeStorage().getItem(PAIRING_KEY)),
+    () => null,
+  );
+  const paired = useMemo(() => pairingFromRaw(pairedRaw), [pairedRaw]);
   const getGuard = () => (guardRef.current ??= createLoadGuard(safeStorage()));
 
   useEffect(() => {
@@ -78,6 +88,25 @@ export function LiveCoach({
       setPhase("loading");
       const params = parseLoadParams(location.search);
       const guard = getGuard();
+      const pairing = params.pose === "device" ? null : loadPairing(safeStorage());
+      let ready = false;
+      let lastError = "";
+      if (pairing) {
+        // Laptop coach: no model runs on this device, so there is nothing for the crash ladder to guard.
+        setRungLabel("laptop coach");
+        const est = new RemotePoseEstimator(pairing);
+        estimatorRef.current = est;
+        setProgress("Connecting to your laptop…");
+        try {
+          await est.load();
+          setLines(["laptop coach connected"]);
+          ready = true;
+        } catch (e) {
+          est.dispose();
+          estimatorRef.current = null;
+          throw e;
+        }
+      } else {
       const begin = guard.begin(defaultRung(isIOS()), params.rung);
       setPreviousLog(begin.previousLog);
       if (begin.crashed) {
@@ -87,12 +116,12 @@ export function LiveCoach({
         );
       }
       let rung: Rung | null = begin.rung;
-      let lastError = "";
-      let ready = false;
       while (rung && !ready) {
         setRungLabel(rung.label);
         const model = params.model ?? rung.model;
         const url = model === "lite" ? LITE_MODEL_URL : model === "full" ? DEFAULT_MODEL_URL : model;
+        guard.stage("starting worker");
+        setLines([...guard.lines()]);
         const est = new InstantHmrEstimator(url, {
           prefer: params.ep ?? rung.prefer,
           threads: params.threads ?? rung.threads,
@@ -119,8 +148,9 @@ export function LiveCoach({
       if (!ready) {
         setExhausted(true);
         throw new Error(
-          `This device couldn't run the camera coach in the browser. Please use a laptop for now, or tap Reset in Diagnostics to try again. ${lastError}`.trim(),
+          `This device couldn't run the camera coach in the browser. Pair a laptop below, or use a laptop browser. ${lastError}`.trim(),
         );
+      }
       }
       setPhase("camera");
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -256,7 +286,11 @@ export function LiveCoach({
               <div className="max-w-sm">
                 <Camera className="mx-auto size-10 text-nm-accent" aria-hidden />
                 <p className="mt-3 text-lg font-bold">Stand 2–3 m from your camera, whole body in view.</p>
-                <p className="mt-1 text-sm text-white/80">Video is processed on this device and never uploaded.</p>
+                <p className="mt-1 text-sm text-white/80">
+                  {paired
+                    ? "Laptop coach: a small, encrypted crop of you is sent to your own laptop and never stored."
+                    : "Video is processed on this device and never uploaded."}
+                </p>
               </div>
             )}
           </div>
@@ -315,6 +349,14 @@ export function LiveCoach({
           <Button className="h-12 rounded-xl px-6 text-base font-bold" onClick={start} disabled={phase === "loading" || phase === "camera"}>
             <Camera aria-hidden /> {exhausted ? "Try again" : startLabel}
           </Button>
+        )}
+        {phase !== "running" && (
+          <Link
+            href="/workout/pair"
+            className="inline-flex h-12 items-center gap-2 rounded-xl border border-nm-line bg-white px-5 text-base font-bold text-nm-ink"
+          >
+            <Laptop className="size-5" aria-hidden /> {paired ? "Laptop coach settings" : "Use a laptop as the coach"}
+          </Link>
         )}
       </div>
     </div>
