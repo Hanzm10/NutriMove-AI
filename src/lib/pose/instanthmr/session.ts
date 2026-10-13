@@ -22,22 +22,48 @@ export type LoadedModel = {
 };
 
 const MODEL_CACHE = "nutrimove-models-v1";
+/** Byte size of the released instanthmr.onnx; a download of any other size is truncated or wrong. */
+const KNOWN_SIZES: Record<string, number> = {
+  "https://huggingface.co/momolesang/InstantHMR/resolve/main/instanthmr.onnx": 80_961_622,
+};
 
-/** Downloads the model (cached in Cache Storage after the first load; POSE-01). */
+/** iPhone/iPad (including iPadOS reporting as Mac). Used to keep wasm memory low on WebKit. */
+const isIOS = () =>
+  typeof navigator !== "undefined" &&
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1));
+
+async function openCache() {
+  return typeof caches !== "undefined" ? caches.open(MODEL_CACHE).catch(() => null) : null;
+}
+
+/** Drops a cached model copy so the next load downloads it again. */
+export async function forgetModel(url: string) {
+  await (await openCache())?.delete(url).catch(() => false);
+}
+
+/**
+ * Downloads the model (cached in Cache Storage after the first load; POSE-01). Rejects truncated
+ * downloads and stale/corrupt cache entries instead of handing ORT a partial file.
+ */
 export async function fetchModel(
   url: string,
   onProgress?: (loaded: number, total: number) => void,
-): Promise<ArrayBuffer> {
-  const cache = typeof caches !== "undefined" ? await caches.open(MODEL_CACHE).catch(() => null) : null;
-  const cached = await cache?.match(url);
+): Promise<{ bytes: Uint8Array; fromCache: boolean }> {
+  const expected = KNOWN_SIZES[url];
+  const cache = await openCache();
+  const cached = await cache?.match(url).catch(() => undefined);
   if (cached) {
-    const buf = await cached.arrayBuffer();
-    onProgress?.(buf.byteLength, buf.byteLength);
-    return buf;
+    const bytes = new Uint8Array(await cached.arrayBuffer());
+    if (!expected || bytes.byteLength === expected) {
+      onProgress?.(bytes.byteLength, bytes.byteLength);
+      return { bytes, fromCache: true };
+    }
+    await cache?.delete(url).catch(() => false);
   }
-  const res = await fetch(url, { mode: "cors" });
-  if (!res.ok || !res.body) throw new Error(`Model download failed (${res.status})`);
-  const total = Number(res.headers.get("content-length")) || 0;
+  const res = await fetch(url, { mode: "cors", cache: "no-store" });
+  if (!res.ok || !res.body) throw new Error(`Model download failed (HTTP ${res.status})`);
+  const encoded = Boolean(res.headers.get("content-encoding"));
+  const total = expected ?? (encoded ? 0 : Number(res.headers.get("content-length")) || 0);
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let loaded = 0;
@@ -48,37 +74,71 @@ export async function fetchModel(
     loaded += value.byteLength;
     onProgress?.(loaded, total);
   }
-  const buf = new Uint8Array(loaded);
+  if (total && loaded !== total) {
+    throw new Error(`Model download was cut off (${(loaded / 1e6).toFixed(1)} of ${(total / 1e6).toFixed(1)} MB). Check the connection and try again.`);
+  }
+  const bytes = new Uint8Array(loaded);
   let off = 0;
   for (const c of chunks) {
-    buf.set(c, off);
+    bytes.set(c, off);
     off += c.byteLength;
   }
-  await cache?.put(url, new Response(buf.slice().buffer)).catch(() => undefined);
-  return buf.buffer;
+  chunks.length = 0;
+  await cache?.put(url, new Response(bytes)).catch(() => undefined);
+  return { bytes, fromCache: false };
 }
 
-export async function createSession(model: ArrayBuffer, prefer: Backend = "webgpu"): Promise<LoadedModel> {
+/**
+ * Creates an ORT session, trying WebGPU then WASM. `getBytes` is called per attempt so a failed
+ * backend can't leave the next one with a consumed buffer. All backend errors are reported.
+ */
+export async function createSession(
+  getBytes: () => Uint8Array | Promise<Uint8Array>,
+  prefer: Backend = "webgpu",
+): Promise<LoadedModel> {
   const ort = await loadOrt();
   ort.env.wasm.wasmPaths = "/ort/";
-  ort.env.wasm.numThreads = typeof crossOriginIsolated !== "undefined" && crossOriginIsolated
+  // WebKit caps wasm memory tightly; one thread avoids the extra per-thread heaps on iPhone.
+  ort.env.wasm.numThreads = typeof crossOriginIsolated !== "undefined" && crossOriginIsolated && !isIOS()
     ? Math.min(4, navigator.hardwareConcurrency || 2)
     : 1;
 
   const order: Backend[] = prefer === "webgpu" && "gpu" in navigator ? ["webgpu", "wasm"] : ["wasm"];
-  let lastError: unknown;
+  const errors: string[] = [];
   for (const backend of order) {
     try {
-      const session = await ort.InferenceSession.create(model, {
+      const bytes = await getBytes();
+      if (!bytes.byteLength) throw new Error("model bytes are empty");
+      const session = await ort.InferenceSession.create(bytes, {
         executionProviders: [backend],
         graphOptimizationLevel: "all",
       });
       return { ort, session, backend, inputNames: session.inputNames, outputNames: session.outputNames };
     } catch (e) {
-      lastError = e;
+      errors.push(`${backend}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
-  throw lastError;
+  throw new Error(errors.join(" | "));
+}
+
+/**
+ * Download (or read from cache) + create a session. If ORT can't parse a cached copy, the cache
+ * entry is dropped and the model is downloaded once more before giving up.
+ */
+export async function loadModel(
+  url: string,
+  prefer: Backend,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<LoadedModel> {
+  let { bytes, fromCache } = await fetchModel(url, onProgress);
+  try {
+    return await createSession(() => (bytes.byteLength ? bytes : fetchModel(url).then((r) => r.bytes)), prefer);
+  } catch (e) {
+    await forgetModel(url);
+    if (!fromCache) throw e;
+    ({ bytes, fromCache } = await fetchModel(url, onProgress));
+    return createSession(() => bytes, prefer);
+  }
 }
 
 export type HmrOutput = {
