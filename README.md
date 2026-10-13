@@ -97,6 +97,13 @@ was killed, so it starts one setup lighter: `auto` (full model, WebGPU→CPU) �
 thread). iPhones start at `lite-1t`. Measured in headless Chromium (CPU, 4 vCPU): page ≈ 160 MB, lite model ≈ +0.5 GB,
 full model ≈ +0.75 GB single-thread (+0.9 GB multi-thread); ORT graph-optimisation / arena / prepacking options did not change it.
 
+**Laptop coach (phones that can't run the model).** `pose-server/` is a small FastAPI server that runs the same ONNX model
+on a laptop (CUDA on the RTX 3060, CPU otherwise). The phone keeps its own box tracker, crops the person to 224 px, and
+sends only that JPEG over a secure WebSocket (`src/lib/pose/remote/`); joints come back in the same format, so the
+analyzers, HUD and cues are unchanged. Frames stay in memory on the laptop. Setup, in `pose-server/README.md`: install
+`requirements.txt`, run `./start.sh` (or `start.ps1`), open the printed link on the phone, tap **Connect**. Add
+`?pose=device` to the coach URL to ignore a pairing.
+
 Static chunks and `/ort` are served with COEP/CORP headers because workers started from cross-origin-isolated pages
 must opt in too (see `next.config.ts`).
 

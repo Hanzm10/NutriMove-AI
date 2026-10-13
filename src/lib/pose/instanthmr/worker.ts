@@ -20,6 +20,8 @@ let model: LoadedModel | null = null;
 const canvas = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
 const c2d = canvas.getContext("2d", { willReadFrequently: true })!;
 
+ctx.postMessage({ type: "stage", stage: "worker started" } satisfies WorkerResponse);
+
 ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   try {

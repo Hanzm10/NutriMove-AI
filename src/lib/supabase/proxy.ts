@@ -39,7 +39,9 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublic(pathname)) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
-    login.searchParams.set("next", pathname);
+    // Keep the query (e.g. a laptop-coach pairing link) so it survives signing in; safeNext still only allows local paths.
+    login.search = "";
+    login.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
   }
   return response;

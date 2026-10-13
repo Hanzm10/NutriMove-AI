@@ -1,0 +1,6 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+numpy>=1.26
+pillow>=10
+# GPU (RTX 3060): install onnxruntime-gpu INSTEAD of onnxruntime. CPU-only machines: onnxruntime.
+onnxruntime-gpu>=1.19
