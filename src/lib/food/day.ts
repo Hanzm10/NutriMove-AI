@@ -11,7 +11,7 @@ export async function loadDay(supabase: DB, userId: string, date: string) {
     supabase.from("targets").select("kcal, protein_g, carbs_g, fat_g, fiber_g, explanation")
       .eq("user_id", userId).lte("effective_from", date)
       .order("effective_from", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("food_logs").select("id, food_id, name, meal_slot, quantity_g, kcal, protein_g, carbs_g, fat_g, fiber_g, created_at")
+    supabase.from("food_logs").select("id, food_id, recipe_id, name, meal_slot, quantity_g, kcal, protein_g, carbs_g, fat_g, fiber_g, created_at")
       .eq("user_id", userId).eq("log_date", date).order("created_at"),
     supabase.from("water_logs").select("glasses").eq("user_id", userId).eq("log_date", date).maybeSingle(),
     supabase.from("user_settings").select("water_goal").eq("user_id", userId).maybeSingle(),

@@ -57,6 +57,10 @@ New migrations: add a file under `supabase/migrations/` and apply it with `pnpm 
   portion, in [`supabase/seed/foods_fnri.csv`](supabase/seed/foods_fnri.csv) (each row cites its FNRI Food ID).
   Already loaded into the hosted project. To reload: `node scripts/build-food-seed.mjs` and run
   `supabase/seed/foods_fnri.sql` in the SQL editor (idempotent upsert).
+- **Recipes:** 65 recipes (48 Filipino, 74%) in [`supabase/seed/recipes.source.json`](supabase/seed/recipes.source.json),
+  one serving each, written as FNRI ingredient IDs + grams. `node scripts/build-recipe-seed.mjs` sums the FNRI values
+  into per-serving nutrition, derives allergens and diet pattern from the ingredients, and writes `recipes.json` and an
+  idempotent `recipes.sql`. Already loaded into the hosted project; to reload, run `recipes.sql` in the SQL editor.
 - **Edge Functions** (in `supabase/functions/`, deployed):
   - `food-search` — `POST { q }` → FNRI + cached + USDA FoodData Central results, Filipino first. Understands common
     Tagalog words (kanin, itlog, manok…). Caches USDA hits in `foods`.
@@ -93,6 +97,7 @@ must opt in too (see `next.config.ts`).
 |---|---|---|
 | `targets.ts`, `guardrails.ts` | TGT-*, ONB-02…04 | Calorie/macro targets, floors, caps, screening rules |
 | `workout-recommender.ts` | WORK-01 | Weekly plan: eligibility filters + cosine-similarity ranking per slot |
+| `meal-recommender.ts` | MEAL-01…05 | 7-day meal plan: hard filters (allergens, diet, dislikes, slot) → weighted cosine on macro/kcal/fiber/Filipino/budget/prep/tag features → repeat and same-protein penalties → servings in 0.25 steps to land within ±10% kcal and ≥ 90% protein → greedy swaps. 👍/👎 ratings blend into the user vector; `recommendSwap` gives the next-best recipe for a slot |
 | `nudges.ts` | AGENT-05 | Rule-based "AI coach insight" on Overview |
 | `vectors.ts` | — | Cosine similarity |
 
