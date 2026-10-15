@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, CameraOff, Laptop, Loader2 } from "lucide-react";
+import { Camera, CameraOff, Gauge, Laptop, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,9 @@ export function LiveCoach({
     onStatsRef.current = onStats;
   });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // The camera box takes the camera's own shape (portrait on phones) so nothing is cropped and the skeleton lines up.
+  const [aspect, setAspect] = useState(16 / 9);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const estimatorRef = useRef<InstantHmrEstimator | RemotePoseEstimator | null>(null);
   const runningRef = useRef(false);
@@ -54,6 +57,13 @@ export function LiveCoach({
     () => parseLoadParams(location.search).debug,
     () => false,
   );
+  // The speed readout (fps, round trip) can also be switched on with a button: typing ?debug=1 on a phone is fiddly.
+  const statsOn = useSyncExternalStore(
+    subscribeStatsPref,
+    () => safeStorage().getItem(STATS_KEY) === "1",
+    () => false,
+  );
+  const showStats = debug || statsOn;
   const guardRef = useRef<LoadGuard | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [lines, setLines] = useState<string[]>([]);
@@ -160,7 +170,11 @@ export function LiveCoach({
       const v = videoRef.current!;
       v.srcObject = stream;
       await v.play();
+      const fit = () => v.videoWidth && v.videoHeight && setAspect(v.videoWidth / v.videoHeight);
+      fit();
+      v.onresize = fit; // rotating the phone changes the stream's shape
       setPhase("running");
+      frameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       runningRef.current = true;
       void loop();
     } catch (e) {
@@ -228,6 +242,7 @@ export function LiveCoach({
    * (every 3rd rep with a form fault) to exercise the analyzer → HUD → cues → summary path end to end.
    */
   function startSynthetic(kind: string) {
+    setAspect(640 / 480);
     setPhase("running");
     runningRef.current = true;
     const canvas = canvasRef.current!;
@@ -273,8 +288,13 @@ export function LiveCoach({
 
   return (
     <div className="grid gap-5">
-      <div className="relative overflow-hidden rounded-card bg-nm-ink-card">
-        <video ref={videoRef} playsInline muted className="block aspect-video w-full -scale-x-100 object-cover" aria-hidden />
+      <div
+        ref={frameRef}
+        className="relative mx-auto overflow-hidden rounded-card bg-nm-ink-card"
+        // As tall as the screen allows (minus browser bars), never wider than the page, always the camera's shape.
+        style={{ aspectRatio: aspect, width: `min(100%, calc(82svh * ${aspect.toFixed(4)}))` }}
+      >
+        <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full -scale-x-100 object-contain" aria-hidden />
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100" aria-hidden />
         {phase !== "running" && (
           <div className="absolute inset-0 grid place-items-center p-6 text-center text-white">
@@ -301,10 +321,12 @@ export function LiveCoach({
             Step into frame so I can see your whole body
           </p>
         )}
-        {debug && stats && (
+        {showStats && phase === "running" && (
           <p className="absolute bottom-3 left-3 rounded-lg bg-black/70 px-2 py-1 font-mono text-xs text-white">
-            {stats.backend} · {stats.fps.toFixed(1)} fps · infer {stats.inferenceMs.toFixed(0)} ms ·{" "}
-            {String(globalThis.crossOriginIsolated)}
+            {stats
+              ? `${stats.backend} · ${stats.fps.toFixed(1)} fps · model ${stats.inferenceMs.toFixed(0)} ms`
+              : "measuring speed…"}
+            {debug && ` · isolated ${String(globalThis.crossOriginIsolated)}`}
           </p>
         )}
       </div>
@@ -350,6 +372,15 @@ export function LiveCoach({
             <Camera aria-hidden /> {exhausted ? "Try again" : startLabel}
           </Button>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          aria-pressed={statsOn}
+          className="h-12 rounded-xl bg-white px-5 font-bold"
+          onClick={() => setStatsPref(!statsOn)}
+        >
+          <Gauge aria-hidden /> {statsOn ? "Hide speed" : "Show speed"}
+        </Button>
         {phase !== "running" && (
           <Link
             href="/workout/pair"
@@ -361,6 +392,23 @@ export function LiveCoach({
       </div>
     </div>
   );
+}
+
+const STATS_KEY = "nm-coach-stats-v1";
+const STATS_EVENT = "nm-coach-stats";
+
+function subscribeStatsPref(onChange: () => void) {
+  window.addEventListener(STATS_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(STATS_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function setStatsPref(on: boolean) {
+  safeStorage().setItem(STATS_KEY, on ? "1" : "0");
+  window.dispatchEvent(new Event(STATS_EVENT));
 }
 
 /** localStorage, or a no-op store when the browser blocks it (private mode). */
