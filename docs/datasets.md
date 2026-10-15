@@ -29,9 +29,11 @@ for training.
 | Labels | Rep count and per-rep mistakes (`shallow`, `knees-in`, `lean-forward`, `heels-up`, `hip-sag`, …), written by a person watching the video |
 | Results | `docs/evaluation.md` (rep accuracy, per-check precision / recall / F1) |
 
-### 1c. Public datasets for comparison (optional, not used in the app)
+### 1c. Public datasets for comparison (not used to build the app)
 
-If the panel asks for a public benchmark, these match our exercises; download terms must be checked on each site.
+**EC3D was used as a held-out test**, with results and steps to reproduce in `docs/evaluation.md`: 98.6 % squat and 99.2 % lunge rep
+counting, knee cave-in F1 0.80 on 4 people the rules were never tuned on. The others are options for further testing;
+check the download terms on each site.
 
 | Dataset | Contents | Fit for NutriMove |
 |---|---|---|

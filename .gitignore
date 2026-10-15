@@ -49,3 +49,6 @@ next-env.d.ts
 # supabase
 supabase/.branches
 supabase/.temp
+
+# EC3D held-out clips (scripts/ec3d-to-clips.py); the dataset has no stated licence, so it is not committed
+/eval/ec3d/
