@@ -821,6 +821,9 @@ export type Database = {
       workout_sessions: {
         Row: {
           avg_fps: number | null
+          device_class: string | null
+          p50_latency_ms: number | null
+          p95_latency_ms: number | null
           created_at: string
           ended_at: string | null
           exercise_id: string
@@ -833,6 +836,9 @@ export type Database = {
         }
         Insert: {
           avg_fps?: number | null
+          device_class?: string | null
+          p50_latency_ms?: number | null
+          p95_latency_ms?: number | null
           created_at?: string
           ended_at?: string | null
           exercise_id: string
@@ -845,6 +851,9 @@ export type Database = {
         }
         Update: {
           avg_fps?: number | null
+          device_class?: string | null
+          p50_latency_ms?: number | null
+          p95_latency_ms?: number | null
           created_at?: string
           ended_at?: string | null
           exercise_id?: string

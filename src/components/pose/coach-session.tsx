@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CUES, EXERCISE_SETUP, createAnalyzer } from "@/lib/pose/analyzers/exercises";
 import type { Cue, ExerciseKind } from "@/lib/pose/analyzers/types";
 import { PoseSmoother } from "@/lib/pose/one-euro";
+import { deviceClass, summarizeSpeed } from "@/lib/pose/speed";
 import type { CanonicalPose } from "@/lib/pose/types";
 import { cn } from "@/lib/utils";
 import { LiveCoach, type Stats } from "./live-coach";
@@ -38,6 +39,8 @@ export function CoachSession({
   const setStart = useRef<number>(0);
   const sessionStart = useRef<string>(new Date().toISOString());
   const fpsSamples = useRef<number[]>([]);
+  const latencySamples = useRef<number[]>([]);
+  const remoteRef = useRef(false);
   const modeRef = useRef<Mode>("active");
 
   const [mode, setModeState] = useState<Mode>("active");
@@ -49,7 +52,7 @@ export function CoachSession({
   const [restLeft, setRestLeft] = useState(0);
   const [voice, setVoice] = useState(voiceDefault);
   const [announce, setAnnounce] = useState({ polite: "", assertive: "" });
-  const [summaryInfo, setSummaryInfo] = useState<{ startedAt: string; avgFps: number | null } | null>(null);
+  const [summaryInfo, setSummaryInfo] = useState<{ startedAt: string; speed: SessionSpeed } | null>(null);
   const voiceRef = useRef(voice);
   useEffect(() => { voiceRef.current = voice; }, [voice]);
 
@@ -73,8 +76,10 @@ export function CoachSession({
     const next = [...sets, result];
     setSets(next);
     if (next.length >= targetSets) {
-      const f = fpsSamples.current;
-      setSummaryInfo({ startedAt: sessionStart.current, avgFps: f.length ? f.reduce((a, b) => a + b, 0) / f.length : null });
+      setSummaryInfo({
+        startedAt: sessionStart.current,
+        speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current },
+      });
       setMode("summary");
       speak("Great work. Session complete.");
     } else {
@@ -135,10 +140,12 @@ export function CoachSession({
 
   function onStats(s: Stats) {
     fpsSamples.current.push(s.fps);
+    if (s.backend !== "synthetic") latencySamples.current.push(s.latencyMs);
+    remoteRef.current = s.remote;
   }
 
   if (mode === "summary" && summaryInfo) {
-    return <Summary kind={kind} slug={slug} sets={sets} planItemId={planItemId} startedAt={summaryInfo.startedAt} avgFps={summaryInfo.avgFps} />;
+    return <Summary kind={kind} slug={slug} sets={sets} planItemId={planItemId} startedAt={summaryInfo.startedAt} speed={summaryInfo.speed} />;
   }
 
   const hud = (
@@ -207,8 +214,10 @@ export function CoachSession({
   );
 }
 
-function Summary({ kind, slug, sets, planItemId, startedAt, avgFps }: {
-  kind: ExerciseKind; slug: string; sets: SetResult[]; planItemId: string | null; startedAt: string; avgFps: number | null;
+type SessionSpeed = ReturnType<typeof summarizeSpeed> & { remote: boolean };
+
+function Summary({ kind, slug, sets, planItemId, startedAt, speed }: {
+  kind: ExerciseKind; slug: string; sets: SetResult[]; planItemId: string | null; startedAt: string; speed: SessionSpeed;
 }) {
   const [rating, setRating] = useState<"easy" | "right" | "hard">("right");
   const [saved, setSaved] = useState(false);
@@ -222,8 +231,9 @@ function Summary({ kind, slug, sets, planItemId, startedAt, avgFps }: {
   function save() {
     start(async () => {
       const res = await saveSession({
-        exerciseSlug: slug, planItemId, backend: "instanthmr", avgFps: avgFps ? Math.round(avgFps * 10) / 10 : null,
-        startedAt, rating, sets,
+        exerciseSlug: slug, planItemId, backend: speed.remote ? "remote" : "instanthmr",
+        avgFps: speed.avgFps, p50LatencyMs: speed.p50LatencyMs, p95LatencyMs: speed.p95LatencyMs,
+        deviceClass: deviceClass(navigator.userAgent, navigator.maxTouchPoints), startedAt, rating, sets,
       });
       if (res.ok) { setSaved(true); toast.success("Session saved"); } else toast.error(res.error ?? "Could not save");
     });

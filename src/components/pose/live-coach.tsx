@@ -14,7 +14,8 @@ import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
 type Phase = "idle" | "loading" | "camera" | "running" | "error";
-export type Stats = { fps: number; inferenceMs: number; backend: string };
+/** latencyMs = time from frame capture to joints back (model only on-device; full round trip in laptop mode). */
+export type Stats = { fps: number; inferenceMs: number; backend: string; latencyMs: number; remote: boolean };
 
 /**
  * Live camera + InstantHMR skeleton (POSE-01…04, 08). Frames stay on this device and are closed right after
@@ -229,7 +230,7 @@ export function LiveCoach({
         setLines([...(guardRef.current?.lines() ?? [])]);
       }
       if (++frames % 10 === 0) {
-        const st = { fps, inferenceMs: s.inferenceMs, backend: s.backend };
+        const st: Stats = { fps, inferenceMs: s.inferenceMs, backend: s.backend, latencyMs: s.preprocessMs + s.inferenceMs, remote: !!remote };
         setStats(st);
         onStatsRef.current?.(st);
       }
@@ -308,7 +309,7 @@ export function LiveCoach({
       const pose = { ...f, timestamp: f.timestamp + t0 };
       draw(canvas, 640, 480, pose, true);
       onPoseRef.current?.(pose);
-      if (i % 10 === 0) setStats({ fps: 30, inferenceMs: 0, backend: "synthetic" });
+      if (i % 10 === 0) setStats({ fps: 30, inferenceMs: 0, backend: "synthetic", latencyMs: 0, remote: false });
       setTimeout(tick, 1000 / 30);
     };
     tick();
