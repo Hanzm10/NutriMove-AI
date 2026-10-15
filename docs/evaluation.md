@@ -102,3 +102,58 @@ tracker repeatedly lost the body (shoulders placed off-screen, body angle jumpin
 fraction of a second), so the counts (2 of 5, 0 of 10) measure the recording, not the checks. In the hip-sag clip the
 elbows also stayed near 150° throughout. Push-up thresholds stay at the starting values; the camera tip now says to
 turn the phone sideways. Re-record push-ups in **landscape, camera at floor height, 2–3 m to the side**.
+
+## Dietary calculation accuracy (PRD §12.4)
+
+Checked by `src/lib/food/accuracy.test.ts`, which recomputes everything **independently of the app's build script**:
+meal nutrition straight from `foods_fnri.csv` (Σ grams / 100 × the FNRI per-100 g value), and BMR / TDEE by hand
+from Mifflin-St Jeor (1990). The live database recipes were spot-checked against the seed and match.
+
+**20 sample meals** (every third recipe), app value vs hand calculation:
+
+| Meal | App kcal | Hand kcal | Error |
+|---|---|---|---|
+| Tapsilog (lean beef tapa, garlic rice, egg) | 484 | 484.0 | 0.00 % |
+| Lugaw with egg | 302 | 302.4 | 0.14 % |
+| Pandesal with peanut butter and banana | 458 | 458.2 | 0.04 % |
+| Ginisang itlog na may kamatis with rice | 387 | 386.6 | 0.11 % |
+| Oatmeal with banana and milk | 458 | 458.4 | 0.09 % |
+| Banana-oat pancakes | 453 | 453.2 | 0.04 % |
+| Tinolang manok with rice | 489 | 489.4 | 0.08 % |
+| Pinakbet with rice | 496 | 496.5 | 0.09 % |
+| Nilagang baka with rice | 517 | 517.0 | 0.01 % |
+| Ginataang kalabasa at sitaw with hipon | 514 | 513.7 | 0.06 % |
+| Pancit canton with chicken, shrimp and vegetables | 546 | 546.3 | 0.05 % |
+| Adobong kangkong with tokwa and rice | 451 | 451.1 | 0.03 % |
+| Bistek tagalog with rice | 451 | 451.5 | 0.10 % |
+| Pritong galunggong with kamatis and rice | 443 | 443.4 | 0.08 % |
+| Ginisang sayote with chicken and rice | 401 | 401.1 | 0.03 % |
+| Tinolang tahong with rice | 452 | 451.8 | 0.04 % |
+| Tuna-tomato spaghetti | 469 | 469.0 | 0.00 % |
+| Baked tilapia with potatoes and carrots | 374 | 374.3 | 0.07 % |
+| Chicken, avocado and tomato rice bowl | 413 | 413.0 | 0.00 % |
+| Nilagang kamote | 162 | 162.0 | 0.00 % |
+| MAPE over the 20 meals | kcal | protein | carbs | fat | Target |
+|---|---|---|---|---|---|
+| | **0.05 %** | 0.18 % | 0.03 % | 0.35 % | ≤ 5 % |
+
+The only differences come from rounding (whole kcal, 0.1 g); the arithmetic is exact. Logging a food by weight
+uses the same per-100 g scaling (5 FNRI foods checked).
+
+**10 profiles, Mifflin-St Jeor:** BMR = 10 × kg + 6.25 × cm − 5 × age + 5 (men) / − 161 (women); TDEE = BMR × activity
+factor (1.2 / 1.375 / 1.55 / 1.725 / 1.9), rounded half-up.
+
+| Profile | BMR by hand | App BMR | TDEE by hand | App TDEE |
+|---|---|---|---|---|
+| F, 22 y, 155 cm, 52 kg, light | 1217.75 → 1218 | 1218 | 1674 | 1674 |
+| M, 25 y, 170 cm, 68 kg, moderate | 1622.5 → 1623 | 1623 | 2515 | 2515 |
+| F, 30 y, 160 cm, 70 kg, sedentary | 1389 | 1389 | 1667 | 1667 |
+| M, 35 y, 175 cm, 90 kg, light | 1823.75 → 1824 | 1824 | 2508 | 2508 |
+| F, 40 y, 150 cm, 58 kg, moderate | 1156.5 → 1157 | 1157 | 1793 | 1793 |
+| M, 45 y, 168 cm, 75 kg, sedentary | 1580 | 1580 | 1896 | 1896 |
+| F, 50 y, 162 cm, 80 kg, active | 1401.5 → 1402 | 1402 | 2418 | 2418 |
+| M, 19 y, 180 cm, 60 kg, very active | 1635 | 1635 | 3107 | 3107 |
+| F, 60 y, 155 cm, 65 kg, sedentary | 1157.75 → 1158 | 1158 | 1389 | 1389 |
+| M, 55 y, 172 cm, 82 kg, moderate | 1625 | 1625 | 2519 | 2519 |
+
+**Result: 10 of 10 exact matches** (target: exact).
