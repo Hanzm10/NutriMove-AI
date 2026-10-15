@@ -55,14 +55,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
     }
   }
 
-  async function google() {
-    setError(null);
-    const { error } = await createClient().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-    });
-    if (error) setError(error.message);
-  }
 
   return (
     <div>
@@ -114,19 +106,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {pending ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </Button>
       </form>
-
-      <div className="my-6 flex items-center gap-3 text-xs text-nm-muted">
-        <span className="h-px flex-1 bg-nm-line" /> or <span className="h-px flex-1 bg-nm-line" />
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={google}
-        disabled={!configured}
-        className="h-12 w-full rounded-xl bg-white text-base font-bold"
-      >
-        Continue with Google
-      </Button>
 
       <p className="mt-8 text-sm text-nm-muted">
         {mode === "login" ? (

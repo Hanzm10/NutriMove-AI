@@ -202,7 +202,7 @@ Percepts  │  Knowledge base         Decision modules          Actions      │
 
 | ID | Pri | Requirement | Acceptance criteria |
 |---|---|---|---|
-| AUTH-01 | P0 | Sign up and log in with email + password and Google OAuth via Supabase Auth | A user can register, verify, log in and log out; the session persists across reloads |
+| AUTH-01 | P0 | Sign up and log in with email + password via Supabase Auth (Google OAuth dropped from the MVP on Day 7) | A user can register, verify, log in and log out; the session persists across reloads |
 | AUTH-02 | P0 | **Informed consent** screen before any data is collected: purpose, data collected, on-device video processing, retention, rights under RA 10173, contact | Consent stored with timestamp and version in `consents`; nobody can continue without consenting |
 | AUTH-03 | P0 | Separate **camera consent** prompt before the first pose session, stating that "video is processed on your device and never uploaded" | Stored as a consent type `camera` |
 | AUTH-04 | P0 | Delete account → cascade-delete all user rows | All rows for that `user_id` are gone (verified by SQL) |
