@@ -15,9 +15,14 @@ function readCsv(text: string): Record<string, string>[] {
     let cur = "", q = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i]!;
-      if (c === '"') q = line[i + 1] === '"' && q ? ((cur += '"'), i++, true) : !q;
-      else if (c === "," && !q) (out.push(cur), (cur = ""));
-      else cur += c;
+      if (c === '"' && q && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (c === '"') q = !q;
+      else if (c === "," && !q) {
+        out.push(cur);
+        cur = "";
+      } else cur += c;
     }
     out.push(cur);
     return out;
