@@ -5,6 +5,12 @@ import { encodeFrame, parseReply, wsUrl, type Pairing, type RemoteResult } from 
 
 const JPEG_QUALITY = 0.85;
 
+/** A frame the laptop dropped (too far behind) or couldn't decode. The coach just skips it. */
+class SkippedFrame extends Error {
+  override name = "SkippedFrame";
+}
+export const isSkippedFrame = (e: unknown) => e instanceof SkippedFrame;
+
 /**
  * Pose estimation on the user's own laptop (PRD §7.7.3). The phone crops the person to 224 px and sends only that
  * small JPEG over a secure WebSocket; the server returns the same joints the in-browser model would. Nothing runs
@@ -17,6 +23,7 @@ export class RemotePoseEstimator {
   private pending = new Map<number, { resolve: (r: RemoteResult) => void; reject: (e: Error) => void }>();
   private canvas?: HTMLCanvasElement;
   private rtt = 0;
+  private serverMs = 0;
 
   constructor(private readonly pairing: Pairing) {}
 
@@ -58,7 +65,7 @@ export class RemotePoseEstimator {
         const p = r && this.pending.get(r.id);
         if (!r || !p) return;
         this.pending.delete(r.id);
-        if (r.ms < 0) p.reject(new Error("The laptop could not read that frame"));
+        if (r.ms < 0) p.reject(new SkippedFrame(r.error ?? "skipped"));
         else p.resolve(r);
       };
     });
@@ -73,10 +80,20 @@ export class RemotePoseEstimator {
     const res = await this.send(jpeg, cliff);
     const roundTrip = performance.now() - t0;
     this.rtt = this.rtt ? this.rtt * 0.8 + roundTrip * 0.2 : roundTrip;
+    this.serverMs = this.serverMs ? this.serverMs * 0.8 + res.ms * 0.2 : res.ms;
     const joints2d = cropJointsToFrame(res.joints2d, sq);
     const pose = mhr70ToCanonical(joints2d, res.joints3d, box, performance.now());
     const stats: EstimatorStats = { preprocessMs: roundTrip - res.ms, inferenceMs: res.ms, backend: `laptop · ${Math.round(this.rtt)} ms round trip` };
     return { pose, stats, raw2d: joints2d };
+  }
+
+  /**
+   * How many frames to keep in flight: enough to hide the network delay, but no more than the laptop can keep up with.
+   * Round trip ≈ network + laptop time; at ~15 fps (67 ms per frame) we need ⌈round trip / max(laptop time, 67)⌉ frames.
+   */
+  get suggestedInFlight() {
+    if (!this.rtt) return 1;
+    return Math.max(1, Math.min(3, Math.round(this.rtt / Math.max(this.serverMs, 1000 / 15))));
   }
 
   dispose() {

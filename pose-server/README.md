@@ -43,7 +43,9 @@ To test locally without a tunnel: `python server.py`, then pair with `localhost:
 - A random 6-digit **token** is required, and only the web app's origins may connect (`NM_ORIGINS`, default
   `https://nutri-move-ai.vercel.app,http://localhost:3000`; Vercel preview URLs are allowed, switch off with
   `NM_ALLOW_PREVIEWS=0`).
-- One phone at a time; stale frames are dropped so latency doesn't build up.
+- One phone at a time. Frames are answered in order; the phone keeps up to 3 in flight (enough to hide the tunnel's
+  delay) and, if the laptop falls behind, the oldest waiting frames are dropped so latency doesn't build up.
+- If the GPU fails on its first run (e.g. a missing cuDNN file), the server switches to the CPU at start-up and says so.
 - The tunnel URL is public but useless without the token. Stop the script when you're done.
 - The web app only accepts `*.trycloudflare.com` or `localhost` servers, so a crafted link can't point it elsewhere,
   and nothing is saved until the user taps **Connect**.
@@ -55,4 +57,5 @@ To test locally without a tunnel: `python server.py`, then pair with `localhost:
 ## Protocol
 
 `/ws/pose?token=…` · client → server binary `[uint32 LE frame id][float32 LE ×3 CLIFF condition][JPEG]` · server →
-client JSON `{id, ms, j2: 140 floats in crop space [-1,1], j3: 210 floats (metres, Y down)}`. `/health` returns the provider.
+client JSON, in order, `{id, ms, j2: 140 floats in crop space [-1,1], j3: 210 floats (metres, Y down)}` or
+`{id, error: "dropped" | "bad frame"}`. `/health` returns the provider.
