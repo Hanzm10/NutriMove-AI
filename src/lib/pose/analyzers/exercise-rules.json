@@ -9,10 +9,10 @@
   },
   "squat": {
     "top": 150,
-    "bottom": 100,
+    "bottom": 95,
     "shallowFloor": 135,
     "torsoLeanMax": 55,
-    "valgusDrop": 0.85
+    "valgusDrop": 0.9
   },
   "pushup": {
     "top": 155,

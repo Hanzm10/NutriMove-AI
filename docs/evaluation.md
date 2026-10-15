@@ -68,8 +68,23 @@ What changed (`src/lib/pose/analyzers/exercise-rules.json`), with the reason fro
 - Knee cave-in (`valgusDrop` 0.85) is now measured against the person's own knee/ankle spacing while standing,
   instead of a fixed ratio, so a side or 45° camera doesn't trigger it. It fires on 3 reps of the mixed clip.
 
-F1 is not final yet: `labels.csv` covered 3 of the 13 mixed reps. Label every rep, then re-score in `/dev/replay`.
-The clips' joints are in `eval/clips/` and `src/lib/pose/eval/real-clips.test.ts` keeps them passing.
+Second pass with every mixed rep labelled (`eval/clips/squat-day6.labels.csv`): `bottom` 100 → 95° (reps that
+stopped at 97–107° were labelled shallow; good reps reach 58–80°) and `valgusDrop` 0.85 → 0.9.
+
+| Squat, both clips (25 reps) | Result | PRD target |
+|---|---|---|
+| Rep accuracy | **100 %** (12/12 and 13/13 attempts) | ≥ 90 % |
+| Shallow (`SQ_DEPTH`) | P 1.00 · R 1.00 · F1 **1.00** | |
+| Knees in (`SQ_KNEE_VALGUS`) | P 0.67 · R 0.80 · F1 **0.73** (2 false, 1 missed) | |
+| Lean forward (`SQ_TORSO_LEAN`) | P 1.00 · R 1.00 · F1 **1.00** (1 rep) | |
+| Macro F1 | **0.91** | ≥ 0.75 |
+
+**Caveat for the paper:** these thresholds were tuned on the same two clips they are scored on (one person, one room,
+side / 45° view), so this is a training-set score. Report it as such, and score fresh clips from other people
+before quoting a generalisation number. Knee cave-in is the weakest check because a side camera sees little of the
+knees' sideways movement; a front-facing camera would help. `heels-up` (4 reps) has no check in the app.
+The clips' joints and labels are in `eval/clips/`; `src/lib/pose/eval/real-clips.test.ts` fails if a change drops
+below the targets.
 
 ### Day 6, lunge (`lunge_good_15`, side / 45°, portrait)
 

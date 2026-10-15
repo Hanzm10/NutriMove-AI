@@ -56,6 +56,11 @@ describe("scoring", () => {
     expect(parseClipName("random.mp4")).toBeNull();
   });
 
+  it("ignores # notes in labels.csv", () => {
+    const csv = parseLabelsCsv("squat_mixed_2.mp4,1,shallow      # ~6.5 s\n# a whole-line note\nsquat_mixed_2.mp4,2,good # ok");
+    expect(clipTruth("squat_mixed_2.mp4", csv)!.reps).toEqual([{ rep: 1, labels: ["shallow"] }, { rep: 2, labels: [] }]);
+  });
+
   it("reads labels.csv and falls back to the file name", () => {
     const csv = parseLabelsCsv("file,rep,errors\nsquat_mixed_3.mp4,2,knees-in+shallow\nsquat_mixed_3.mp4,1,good\nsquat_mixed_3.mp4,3,Heels-Up\n");
     expect(clipTruth("squat_mixed_3.joints.json", csv)!.reps).toEqual([
