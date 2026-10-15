@@ -11,16 +11,23 @@ phone (Vercel app) ── wss ──► Cloudflare quick tunnel ──► cloudf
 ## One-time setup (laptop)
 
 1. Python 3.10+ and `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
-2. `python -m venv .venv` and activate it, then `pip install -r requirements.txt`.
-   - NVIDIA GPU (RTX 3060): keep `onnxruntime-gpu` (needs the CUDA 12 + cuDNN 9 runtime; `pip install nvidia-cudnn-cu12` helps).
+2. In the `pose-server` folder: `python -m venv .venv`, then `.venv\Scripts\pip install -r requirements.txt`
+   (macOS / Linux: `.venv/bin/pip install -r requirements.txt`).
+   - NVIDIA GPU (RTX 3060): `onnxruntime-gpu[cuda,cudnn]` pulls the CUDA 12 / cuDNN 9 libraries from pip (~1–2 GB);
+     you only need a recent NVIDIA driver. The server prints `provider: CUDAExecutionProvider` when the GPU is used.
+     If you installed an older requirements file: `.venv\Scripts\pip install -U "onnxruntime-gpu[cuda,cudnn]"`.
    - No GPU: replace it with `onnxruntime` in `requirements.txt` (about 90 ms per frame on 4 CPU cores).
 3. `python download_model.py` downloads `models/instanthmr.onnx` (81 MB). Starting the server also does this if it's missing.
 
 ## Each session
 
 ```bash
-./start.sh                       # Windows: .\start.ps1
+./start.sh            # macOS / Linux
 ```
+
+On **Windows**, double-click `start.cmd` in the `pose-server` folder (or run `start.cmd` from Command Prompt or
+PowerShell). It runs `start.ps1` through PowerShell; typing `.\start.ps1` in Command Prompt just opens it in Notepad.
+Both scripts use `.venv` automatically if it exists, so you don't need to activate it.
 
 It starts the server, opens a free `trycloudflare.com` tunnel, and prints a link like
 `https://nutri-move-ai.vercel.app/workout/pair?server=abc-def.trycloudflare.com&token=123456`.

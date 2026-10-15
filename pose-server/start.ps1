@@ -4,7 +4,8 @@ param([string]$App = "https://nutri-move-ai.vercel.app", [int]$Port = 8000)
 Set-Location $PSScriptRoot
 $env:NM_TOKEN = if ($env:NM_TOKEN) { $env:NM_TOKEN } else { "{0:D6}" -f (Get-Random -Maximum 1000000) }
 $env:PORT = "$Port"
-$py = if ($env:PYTHON) { $env:PYTHON } else { "python" }
+# Prefer the project's virtual environment so nothing needs activating first.
+$py = if ($env:PYTHON) { $env:PYTHON } elseif (Test-Path ".venv\Scripts\python.exe") { (Resolve-Path ".venv\Scripts\python.exe").Path } else { "python" }
 if (-not (Test-Path "models\instanthmr.onnx")) { & $py download_model.py }
 $server = Start-Process -FilePath $py -ArgumentList "server.py" -PassThru -NoNewWindow
 try {
