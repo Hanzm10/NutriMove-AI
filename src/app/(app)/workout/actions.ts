@@ -24,6 +24,9 @@ const sessionSchema = z.object({
   planItemId: z.uuid().nullable(),
   backend: z.enum(["instanthmr", "remote", "mediapipe", "manual"]),
   avgFps: z.number().min(0).max(240).nullable().default(null),
+  p50LatencyMs: z.number().min(0).max(60_000).nullable().default(null),
+  p95LatencyMs: z.number().min(0).max(60_000).nullable().default(null),
+  deviceClass: z.enum(["iphone", "ipad", "android", "windows", "mac", "linux", "other"]).nullable().default(null),
   startedAt: z.iso.datetime(),
   rating: z.enum(["easy", "right", "hard"]).nullable().default(null),
   sets: z.array(setSchema).min(1).max(20),
@@ -48,6 +51,9 @@ export async function saveSession(input: SessionInput): Promise<{ ok: boolean; e
       ended_at: new Date().toISOString(),
       pose_backend: s.backend,
       avg_fps: s.avgFps,
+      p50_latency_ms: s.p50LatencyMs,
+      p95_latency_ms: s.p95LatencyMs,
+      device_class: s.deviceClass,
       rating: s.rating,
     })
     .select("id")
