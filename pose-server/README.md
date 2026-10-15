@@ -13,7 +13,9 @@ phone (Vercel app) ── wss ──► Cloudflare quick tunnel ──► cloudf
 1. Python 3.10+ and `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
 2. In the `pose-server` folder: `python -m venv .venv`, then `.venv\Scripts\pip install -r requirements.txt`
    (macOS / Linux: `.venv/bin/pip install -r requirements.txt`).
-   - NVIDIA GPU (RTX 3060): keep `onnxruntime-gpu` (needs the CUDA 12 + cuDNN 9 runtime; `pip install nvidia-cudnn-cu12` helps).
+   - NVIDIA GPU (RTX 3060): `onnxruntime-gpu[cuda,cudnn]` pulls the CUDA 12 / cuDNN 9 libraries from pip (~1–2 GB);
+     you only need a recent NVIDIA driver. The server prints `provider: CUDAExecutionProvider` when the GPU is used.
+     If you installed an older requirements file: `.venv\Scripts\pip install -U "onnxruntime-gpu[cuda,cudnn]"`.
    - No GPU: replace it with `onnxruntime` in `requirements.txt` (about 90 ms per frame on 4 CPU cores).
 3. `python download_model.py` downloads `models/instanthmr.onnx` (81 MB). Starting the server also does this if it's missing.
 

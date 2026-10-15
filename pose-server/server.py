@@ -49,6 +49,12 @@ def make_session(path: Path) -> ort.InferenceSession:
             f"Model not found at {path}.\n"
             "Download it once:  python download_model.py   (or set NM_MODEL=/path/to/instanthmr.onnx)"
         )
+    if hasattr(ort, "preload_dlls"):
+        # Loads CUDA / cuDNN from the nvidia-* pip packages (onnxruntime-gpu[cuda,cudnn]) so no system install is needed.
+        try:
+            ort.preload_dlls()
+        except Exception as e:  # noqa: BLE001 - fall back to CPU below
+            print(f"GPU libraries not loaded ({e}); using the CPU")
     wanted = ["CUDAExecutionProvider", "CPUExecutionProvider"]
     providers = [p for p in wanted if p in ort.get_available_providers()]
     opts = ort.SessionOptions()

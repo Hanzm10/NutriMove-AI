@@ -2,5 +2,6 @@ fastapi>=0.115
 uvicorn[standard]>=0.30
 numpy>=1.26
 pillow>=10
-# GPU (RTX 3060): install onnxruntime-gpu INSTEAD of onnxruntime. CPU-only machines: onnxruntime.
-onnxruntime-gpu>=1.19
+# GPU (RTX 3060): onnxruntime-gpu plus the CUDA 12 / cuDNN 9 libraries as pip packages (no CUDA toolkit install
+# needed). CPU-only machines: replace this line with `onnxruntime`.
+onnxruntime-gpu[cuda,cudnn]>=1.21
