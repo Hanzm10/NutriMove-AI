@@ -56,6 +56,7 @@ export function ClipReplay() {
       }
       setStatus("Done.");
     } catch (e) {
+      setStatus("");
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
