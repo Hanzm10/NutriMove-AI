@@ -88,3 +88,13 @@ describe("scoring", () => {
     expect(report.unscored).toEqual(["notes.json"]);
   });
 });
+
+describe("label names", () => {
+  it("accepts hip-sag as well as hips-sag", () => {
+    const report = scoreClips(
+      [{ file: "pushup_hip-sag_1.joints.json", attempts: [{ index: 1, counted: true, errors: ["PU_HIP_SAG"], tMs: 0 }] }],
+      new Map(),
+    );
+    expect(report.classes.find((c) => c.code === "PU_HIP_SAG")?.tp).toBe(1);
+  });
+});

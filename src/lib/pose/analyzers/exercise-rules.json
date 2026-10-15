@@ -1,5 +1,5 @@
 {
-  "$comment": "Thresholds in degrees / metres (PRD Appendix C). Squat tuned on team clips on Day 6 (docs/evaluation.md); push-up and lunge still use the starting values until their clips are labelled. POSE-17.",
+  "$comment": "Thresholds in degrees / metres (PRD Appendix C). Squat and lunge tuned on team clips on Day 6 (docs/evaluation.md); push-up keeps the starting values until clips filmed in landscape are labelled. POSE-17.",
   "common": {
     "minRepMs": 600,
     "maxRepMs": 8000,
@@ -22,9 +22,9 @@
     "hipOffsetM": 0.06
   },
   "lunge": {
-    "top": 155,
+    "top": 145,
     "bottom": 100,
-    "shallowFloor": 115,
-    "torsoLeanMax": 30
+    "shallowFloor": 120,
+    "torsoLeanMax": 50
   }
 }

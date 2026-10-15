@@ -5,7 +5,10 @@ import type { Attempt } from "./replay";
 /** Label words the team writes → the app's form-check codes. Anything else is "not checked by the app". */
 export const LABEL_CODES: Record<ExerciseKind, Record<string, string>> = {
   squat: { "knees-in": "SQ_KNEE_VALGUS", shallow: "SQ_DEPTH", "lean-forward": "SQ_TORSO_LEAN" },
-  pushup: { "hips-sag": "PU_HIP_SAG", "hips-pike": "PU_HIP_PIKE", "half-rep": "PU_DEPTH", shallow: "PU_DEPTH" },
+  pushup: {
+    "hips-sag": "PU_HIP_SAG", "hip-sag": "PU_HIP_SAG", "hips-pike": "PU_HIP_PIKE", "hip-pike": "PU_HIP_PIKE",
+    "half-rep": "PU_DEPTH", shallow: "PU_DEPTH",
+  },
   lunge: { shallow: "LU_DEPTH", "lean-forward": "LU_TORSO" },
 };
 

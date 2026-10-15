@@ -69,3 +69,20 @@ What changed (`src/lib/pose/analyzers/exercise-rules.json`), with the reason fro
 
 F1 is not final yet: `labels.csv` covered 3 of the 13 mixed reps. Label every rep, then re-score in `/dev/replay`.
 The clips' joints are in `eval/clips/` and `src/lib/pose/eval/real-clips.test.ts` keeps them passing.
+
+### Day 6, lunge (`lunge_good_15`, side / 45°, portrait)
+
+| | Before tuning | After tuning |
+|---|---|---|
+| `lunge_good_15` | 7 of 15 counted, 4 false "stay upright" | **15 of 15 counted, 0 flags** |
+
+- `top` 155 → 145°: the lunge signal is the more-bent knee, and between reps it only straightened to 145–157°.
+- `shallowFloor` 115 → 120°, `torsoLeanMax` 30 → 50°: good reps leaned 20–43° forward at the bottom.
+
+### Day 6, push-up: not usable yet
+
+`pushup_good_5` and `pushup_hip-sag_10` were filmed in portrait. With the person lying across a narrow frame, the
+tracker repeatedly lost the body (shoulders placed off-screen, body angle jumping between 170° and 90° within a
+fraction of a second), so the counts (2 of 5, 0 of 10) measure the recording, not the checks. In the hip-sag clip the
+elbows also stayed near 150° throughout. Push-up thresholds stay at the starting values; the camera tip now says to
+turn the phone sideways. Re-record push-ups in **landscape, camera at floor height, 2–3 m to the side**.

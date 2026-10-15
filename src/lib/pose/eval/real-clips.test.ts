@@ -24,3 +24,12 @@ describe("squat clips (Day 6)", () => {
     expect(r.attempts.some((a) => a.errors.includes("SQ_TORSO_LEAN"))).toBe(true);
   });
 });
+
+describe("lunge clips (Day 6)", () => {
+  it("counts all 15 good lunges and flags none of them", () => {
+    const [clip] = load("lunge-day6.joints.json");
+    const r = analyzeClip("lunge", clip!.frames);
+    expect(r.reps).toBe(15);
+    expect(r.attempts.every((a) => a.counted && a.errors.length === 0)).toBe(true);
+  });
+});

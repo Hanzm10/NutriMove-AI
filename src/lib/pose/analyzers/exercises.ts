@@ -100,6 +100,10 @@ export function createAnalyzer(kind: ExerciseKind, rules: ExerciseRules = DEFAUL
 
 export const EXERCISE_SETUP: Record<ExerciseKind, { label: string; camera: string; tip: string }> = {
   squat: { label: "Bodyweight squat", camera: "Face the camera, or turn 45°", tip: "Feet shoulder-width apart, whole body in view." },
-  pushup: { label: "Push-up", camera: "Side view, camera at floor height", tip: "Hands under shoulders, body in a straight line." },
+  pushup: {
+    label: "Push-up",
+    camera: "Side view, phone turned sideways, at floor height",
+    tip: "Turn the phone sideways so your whole body fits across the screen. Hands under shoulders, body in a straight line.",
+  },
   lunge: { label: "Lunge", camera: "Side view", tip: "Step forward, lower until both knees bend." },
 };
