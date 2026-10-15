@@ -7,6 +7,9 @@ Filipino foods, and meal and workout plans that adapt every week.
 - **Product requirements:** [docs/PRD.md](docs/PRD.md). Build against the requirement IDs (e.g. `POSE-09`).
 - **Design reference:** [docs/design-reference/](docs/design-reference/) and PRD §10.
 - **Agent/contributor rules:** [AGENTS.md](AGENTS.md).
+- **Demo:** [docs/demo.md](docs/demo.md) (demo account + 10-minute script) · **Evaluation:** [docs/evaluation.md](docs/evaluation.md)
+  (pilot results, latency, calorie accuracy, surveys) · **Datasets:** [docs/datasets.md](docs/datasets.md) ·
+  **Security:** [docs/security.md](docs/security.md).
 
 ## Stack
 
@@ -159,15 +162,29 @@ Audit results, the ASVS-style checklist, security headers and the commands to re
 [`docs/security.md`](docs/security.md). Guardrail scenarios (age gate, calorie floor, 1%/week cap, pregnancy, health
 flag, pain pause, allergy sweeps) run as `src/lib/agent/guardrail-scenarios.test.ts`.
 
+## Pilot evaluation and demo (Day 7)
+
+- **Demo account:** sign up and onboard, then run [`supabase/seed/demo.sql`](supabase/seed/demo.sql) in the SQL editor
+  to add 13 days of meals, weights and camera sessions. The weekly check-in is then due. Script: [docs/demo.md](docs/demo.md).
+- **Latency:** each saved camera session stores fps, p50/p95 round trip and device class; `/dev/latency` exports them as CSV.
+- **Calorie accuracy:** `src/lib/food/accuracy.test.ts` (20 meals vs. hand-summed FNRI values; 10 Mifflin-St Jeor profiles).
+- **Surveys:** `/survey` (linked from Profile) collects SUS and ISO 25010 answers into `survey_responses`. The SQL to
+  summarise them is in `docs/evaluation.md`.
+- **Form-check accuracy:** labelled clips in `eval/clips/` are scored by `real-clips.test.ts` (squat: 100% reps, macro-F1 0.91;
+  lunge: 15/15).
+
 ## Project layout
 
 ```
 src/app/(app)/        Overview · AI Workout · Nutrition · Progress · Profile (app shell)
 src/app/(auth)/       sign-in, sign-up, consent
-src/app/dev/          developer pages (pose spike)
+src/app/dev/          developer pages (pose spike, clip replay, latency export)
 src/lib/agent/        pure, unit-tested agent logic (targets, guardrails, …)
 src/lib/pose/         pose pipeline (InstantHMR preprocessing, session, skeleton)
 src/lib/supabase/     browser/server clients + session proxy
 supabase/migrations/  database schema + RLS
-docs/                 PRD and design reference
+supabase/seed/        FNRI foods, recipes, exercises, demo history
+pose-server/          laptop pose server (FastAPI + ONNX Runtime GPU)
+eval/clips/           labelled pose clips (joints only, no video)
+docs/                 PRD, design reference, evaluation, datasets, demo, security
 ```
