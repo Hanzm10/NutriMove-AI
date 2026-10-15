@@ -25,9 +25,12 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
   private lastCueAt: Record<string, number> = {};
   private lastAnyCueAt = -Infinity;
 
-  constructor(private readonly spec: AnalyzerSpec) {
+  constructor(
+    private readonly spec: AnalyzerSpec,
+    private readonly common: typeof rules.common = rules.common,
+  ) {
     this.kind = spec.kind;
-    const c = rules.common;
+    const c = common;
     this.counter = new RepCounter({
       ...spec.counter,
       hysteresis: c.hysteresis,
@@ -88,7 +91,7 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
 
   /** One cue at a time, most severe first, each code at most once per cooldown (POSE-12). */
   private pickCue(codes: string[], t: number): Cue | null {
-    const cooldown = rules.common.cueCooldownMs;
+    const cooldown = this.common.cueCooldownMs;
     if (t - this.lastAnyCueAt < cooldown / 2) return null;
     const candidates = codes
       .map((c) => this.spec.cues[c])
