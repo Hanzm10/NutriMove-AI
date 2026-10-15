@@ -103,6 +103,44 @@ fraction of a second), so the counts (2 of 5, 0 of 10) measure the recording, no
 elbows also stayed near 150° throughout. Push-up thresholds stay at the starting values; the camera tip now says to
 turn the phone sideways. Re-record push-ups in **landscape, camera at floor height, 2–3 m to the side**.
 
+### Held-out: public EC3D dataset (4 people the thresholds were never tuned on)
+
+The Day 6 numbers come from the clips the thresholds were tuned on. To test on other people, the same rules were run,
+unchanged, on **EC3D** (Zhao et al., *3D Pose Based Feedback for Physical Exercises*, ACCV 2022): 4 people,
+3D skeletons triangulated from 4 cameras, one repetition per sequence, each labelled correct or with a named mistake.
+
+How to reproduce:
+1. Download `data_3D.pickle` (21 MB) from the Google Drive folder linked in the EC3D repository
+   (github.com/Jacoo-Zhao/3D-Pose-Based-Feedback-For-Physical-Exercises).
+2. `python3 scripts/ec3d-to-clips.py path/to/data_3D.pickle`. This maps OpenPose BODY_25 to our 18 joints, turns Z-up into
+   our Y-down axes, scales each person to adult size, and joins each person's reps into one set with short standing
+   pauses. It writes `eval/ec3d/` (not committed: the dataset states no licence).
+3. `pnpm exec vitest run src/lib/pose/eval/ec3d.test.ts --silent=false` prints the tables below.
+
+| Exercise | Reps (correct + mistakes) | Rep-count accuracy | Form check | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|
+| Squat | 132 (41 + 91) | **98.6 %** | Knees caving in (`SQ_KNEE_VALGUS`) | 0.94 | 0.70 | **0.80** |
+| | | | Not low enough (`SQ_DEPTH`) | 0.82 | 0.43 | 0.56 |
+| Lunge | 127 (46 + 81) | **99.2 %** | Not low enough (`LU_DEPTH`) | 1.00 | 0.35 | 0.52 |
+
+Squat macro-F1 0.68, lunge 0.52. Across all 259 reps the app wrongly flagged a mistake only 3 times (precision ≥ 0.82).
+
+What the numbers mean:
+- **Rep counting holds up on new people** (≥ 98.6 %, PRD target ≥ 90 %).
+- **Knee cave-in transfers well** (F1 0.80, target 0.75), using each person's own standing knee spacing as the baseline.
+- **Depth recall is low because the two sides define "low enough" differently.** EC3D's "not low enough" squats still
+  reach a knee angle of about 86° on average (range 56–112°). Their "correct" squats go to about 57°. Our rule follows
+  PRD Appendix C: thighs about parallel, knee ≤ 95°. So most EC3D "not low enough" reps are full-depth reps by our
+  standard. The same holds for lunges (EC3D "not low enough" ≈ 93°, our bottom is 100°). This is a difference in
+  definition, not missed detections. We did **not** retune on EC3D, so this stays a fair held-out test.
+- **Not testable on EC3D:**
+  - *Front bent* (forward lean): EC3D rotates every pose so the spine is vertical (paper §4), so lean can't be measured.
+  - *Feet too wide* and *knee passes toe*: the app doesn't check these.
+  - Planks: not one of our exercises.
+  - Squat instruction 10 (9 sequences): not described in the paper.
+- For reference, the EC3D authors' own trained network reaches 90.9 % mistake-recognition accuracy on their test
+  person after training on the other three. Our rules use no training data at all.
+
 ## SUS and ISO/IEC 25010 questionnaires (PRD §12.5, §12.6)
 
 Participants sign the consent form above, do the task list (onboard, log 3 foods, one squat set, view the summary),
