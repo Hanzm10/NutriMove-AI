@@ -7,7 +7,8 @@ are unchanged. Frames live in memory only: nothing is written to disk and nothin
 
 Protocol (WebSocket /ws/pose?token=...):
   client -> binary: [uint32 LE frame_id][float32 LE x3 cliff][JPEG bytes]
-  server -> text JSON: {"id", "ms", "j2": [140 floats], "j3": [210 floats] | null}
+  server -> text JSON: {"id", "ms", "j2": [140 floats], "j3": [210 floats] | null}, in the order frames arrived,
+            or {"id", "error": "dropped" | "bad frame"} for a frame that was skipped.
 """
 from __future__ import annotations
 
@@ -39,8 +40,25 @@ ALLOWED_ORIGINS = [
 # Vercel preview URLs (https://nutri-move-ai-git-<branch>-<team>.vercel.app) are allowed too.
 ALLOW_VERCEL_PREVIEWS = os.environ.get("NM_ALLOW_PREVIEWS", "1") == "1"
 SIZE = 224
+MAX_QUEUE = 4  # frames waiting on the laptop before the oldest is dropped
 MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
 STD = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
+
+
+def add_nvidia_dll_dirs() -> None:
+    """Windows: cuDNN loads its sub-libraries (cudnn_engines_*.dll, ...) by name at run time, so the folders of the
+    nvidia-* pip packages must be on the DLL search path, not just preloaded."""
+    if os.name != "nt":
+        return
+    import site
+
+    roots = [Path(p) / "nvidia" for p in site.getsitepackages() + [site.getusersitepackages()]]
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for sub in root.glob("*/bin"):
+            os.add_dll_directory(str(sub))
+            os.environ["PATH"] = f"{sub}{os.pathsep}{os.environ.get('PATH', '')}"
 
 
 def make_session(path: Path) -> ort.InferenceSession:
@@ -49,6 +67,7 @@ def make_session(path: Path) -> ort.InferenceSession:
             f"Model not found at {path}.\n"
             "Download it once:  python download_model.py   (or set NM_MODEL=/path/to/instanthmr.onnx)"
         )
+    add_nvidia_dll_dirs()
     if hasattr(ort, "preload_dlls"):
         # Loads CUDA / cuDNN from the nvidia-* pip packages (onnxruntime-gpu[cuda,cudnn]) so no system install is needed.
         try:
@@ -59,7 +78,22 @@ def make_session(path: Path) -> ort.InferenceSession:
     providers = [p for p in wanted if p in ort.get_available_providers()]
     opts = ort.SessionOptions()
     opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    return ort.InferenceSession(str(path), opts, providers=providers)
+    opts.log_severity_level = 3  # errors only; ORT's performance hints are noise here
+    sess = ort.InferenceSession(str(path), opts, providers=providers)
+    if sess.get_providers()[0] != "CPUExecutionProvider":
+        # A GPU that fails on the first real run (e.g. a missing cuDNN file) is replaced by the CPU now, not mid-workout.
+        try:
+            warm_up(sess)
+        except Exception as e:  # noqa: BLE001
+            print(f"GPU run failed ({str(e).splitlines()[0][:160]}); using the CPU instead")
+            sess = ort.InferenceSession(str(path), opts, providers=["CPUExecutionProvider"])
+    warm_up(sess)
+    return sess
+
+
+def warm_up(sess: ort.InferenceSession) -> None:
+    ins = sess.get_inputs()
+    sess.run(None, {ins[0].name: np.zeros((1, 3, SIZE, SIZE), np.float32), ins[1].name: np.zeros((1, 3), np.float32)})
 
 
 session = make_session(MODEL_PATH)
@@ -114,31 +148,31 @@ async def pose(ws: WebSocket):
     async with busy:
         await ws.accept()
         loop = asyncio.get_running_loop()
-        latest: bytes | None = None
-        wake = asyncio.Event()
-        closed = False
+        # Frames are answered in order. The phone keeps at most a few in flight; if more pile up (slow laptop),
+        # the oldest are dropped with an "error: dropped" reply so latency never builds up.
+        queue: asyncio.Queue[bytes | None] = asyncio.Queue()
 
         async def reader():
-            nonlocal latest, closed
             try:
                 while True:
-                    latest = await ws.receive_bytes()  # keeps only the newest frame
-                    wake.set()
+                    msg = await ws.receive_bytes()
+                    while queue.qsize() >= MAX_QUEUE:
+                        old = queue.get_nowait()
+                        if old is not None and len(old) >= 4:
+                            await ws.send_text(json.dumps({"id": struct.unpack_from("<I", old, 0)[0], "error": "dropped"}))
+                    queue.put_nowait(msg)
             except (WebSocketDisconnect, RuntimeError):
                 pass
             finally:
-                closed = True
-                wake.set()
+                queue.put_nowait(None)
 
         task = asyncio.create_task(reader())
         try:
             while True:
-                await wake.wait()
-                wake.clear()
-                if closed:
+                msg = await queue.get()
+                if msg is None:
                     break
-                msg, latest = latest, None
-                if msg is None or len(msg) < 17:
+                if len(msg) < 17:
                     continue
                 fid = struct.unpack_from("<I", msg, 0)[0]
                 cliff = np.frombuffer(msg, dtype="<f4", count=3, offset=4)

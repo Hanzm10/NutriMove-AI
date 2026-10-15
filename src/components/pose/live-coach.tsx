@@ -8,7 +8,7 @@ import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synth
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
-import { RemotePoseEstimator } from "@/lib/pose/remote/estimator";
+import { RemotePoseEstimator, isSkippedFrame } from "@/lib/pose/remote/estimator";
 import { PAIRING_KEY, loadPairing, pairingFromRaw } from "@/lib/pose/remote/protocol";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
@@ -196,44 +196,84 @@ export function LiveCoach({
     const canvas = canvasRef.current!;
     const estimator = estimatorRef.current!;
     const tracker = new BoxTracker();
+    // Over the tunnel the laptop coach is limited by the network round trip, not the model, so it keeps a few frames
+    // in flight (each uses the latest known person box; the estimator picks how many) and caps capture at 15 fps.
+    // On-device runs one frame at a time.
+    const remote = estimator instanceof RemotePoseEstimator ? estimator : null;
+    const minGapMs = remote ? 1000 / 15 : 0;
+    const inflight = new Set<Promise<void>>();
     let lastSeen = performance.now();
     let fps = 0;
     let last = performance.now();
     let frames = 0;
-    while (runningRef.current) {
+    let seq = 0;
+    let lastDone = 0;
+    let lastSent = 0;
+    let failure: unknown = null;
+
+    const handle = (n: number, w: number, h: number, r: Awaited<ReturnType<typeof estimator.estimate>>) => {
+      if (n < lastDone || !runningRef.current) return; // never go back in time
+      lastDone = n;
+      const { pose, stats: s, raw2d } = r;
+      const { tracking } = tracker.update(raw2d, w, h);
+      const now = performance.now();
+      if (tracking) lastSeen = now;
+      const visible = now - lastSeen < 1000;
+      setInFrame((prev) => (prev === visible ? prev : visible));
+      draw(canvas, w, h, pose, visible);
+      if (visible) onPoseRef.current?.(pose);
+      fps = fps ? fps * 0.9 + (1000 / (now - last)) * 0.1 : 1000 / (now - last);
+      last = now;
+      if (frames === 2) {
+        guardRef.current?.success();
+        setLines([...(guardRef.current?.lines() ?? [])]);
+      }
+      if (++frames % 10 === 0) {
+        const st = { fps, inferenceMs: s.inferenceMs, backend: s.backend };
+        setStats(st);
+        onStatsRef.current?.(st);
+      }
+    };
+
+    while (runningRef.current && !failure) {
       if (v.readyState < 2) {
         await new Promise((r) => requestAnimationFrame(r));
         continue;
       }
-      const w = v.videoWidth, h = v.videoHeight;
-      try {
-        const bitmap = await createImageBitmap(v);
-        const { pose, stats: s, raw2d } = await estimator.estimate(bitmap, tracker.current(w, h));
-        const { tracking } = tracker.update(raw2d, w, h);
-        const now = performance.now();
-        if (tracking) lastSeen = now;
-        const visible = now - lastSeen < 1000;
-        setInFrame((prev) => (prev === visible ? prev : visible));
-        draw(canvas, w, h, pose, visible);
-        if (visible) onPoseRef.current?.(pose);
-        fps = fps ? fps * 0.9 + (1000 / (now - last)) * 0.1 : 1000 / (now - last);
-        last = now;
-        if (frames === 2) {
-          guardRef.current?.success();
-          setLines([...(guardRef.current?.lines() ?? [])]);
-        }
-        if (++frames % 10 === 0) {
-          const st = { fps, inferenceMs: s.inferenceMs, backend: s.backend };
-          setStats(st);
-          onStatsRef.current?.(st);
-        }
-      } catch (e) {
-        if (runningRef.current) {
-          setError(String(e));
-          setPhase("error");
-          stop();
-        }
+      const maxInFlight = remote?.suggestedInFlight ?? 1;
+      if (inflight.size >= maxInFlight) {
+        await Promise.race(inflight);
+        continue;
       }
+      const wait = lastSent + minGapMs - performance.now();
+      if (wait > 0) {
+        await new Promise((r) => setTimeout(r, wait));
+        continue;
+      }
+      lastSent = performance.now();
+      const w = v.videoWidth, h = v.videoHeight;
+      const n = ++seq;
+      let bitmap: ImageBitmap;
+      try {
+        bitmap = await createImageBitmap(v);
+      } catch (e) {
+        failure = e;
+        break;
+      }
+      const p: Promise<void> = estimator
+        .estimate(bitmap, tracker.current(w, h))
+        .then((r) => handle(n, w, h, r))
+        .catch((e: unknown) => {
+          if (!isSkippedFrame(e)) failure ??= e; // a frame the laptop dropped or couldn't read is just skipped
+        })
+        .finally(() => inflight.delete(p));
+      inflight.add(p);
+      if (!remote) await p;
+    }
+    if (failure && runningRef.current) {
+      setError(String(failure));
+      setPhase("error");
+      stop();
     }
   }
 
