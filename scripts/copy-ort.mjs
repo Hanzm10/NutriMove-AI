@@ -3,10 +3,12 @@
 import { cpSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const dist = dirname(require.resolve("onnxruntime-web/ort-wasm-simd-threaded.wasm"));
-const out = new URL("../public/ort/", import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: works on Windows and with spaces in the folder name.
+const out = fileURLToPath(new URL("../public/ort/", import.meta.url));
 mkdirSync(out, { recursive: true });
 let n = 0;
 for (const f of readdirSync(dist)) {
