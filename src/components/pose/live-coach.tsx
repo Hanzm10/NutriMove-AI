@@ -40,6 +40,9 @@ export function LiveCoach({
     onStatsRef.current = onStats;
   });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // The camera box takes the camera's own shape (portrait on phones) so nothing is cropped and the skeleton lines up.
+  const [aspect, setAspect] = useState(16 / 9);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const estimatorRef = useRef<InstantHmrEstimator | RemotePoseEstimator | null>(null);
   const runningRef = useRef(false);
@@ -160,7 +163,11 @@ export function LiveCoach({
       const v = videoRef.current!;
       v.srcObject = stream;
       await v.play();
+      const fit = () => v.videoWidth && v.videoHeight && setAspect(v.videoWidth / v.videoHeight);
+      fit();
+      v.onresize = fit; // rotating the phone changes the stream's shape
       setPhase("running");
+      frameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       runningRef.current = true;
       void loop();
     } catch (e) {
@@ -228,6 +235,7 @@ export function LiveCoach({
    * (every 3rd rep with a form fault) to exercise the analyzer → HUD → cues → summary path end to end.
    */
   function startSynthetic(kind: string) {
+    setAspect(640 / 480);
     setPhase("running");
     runningRef.current = true;
     const canvas = canvasRef.current!;
@@ -273,8 +281,13 @@ export function LiveCoach({
 
   return (
     <div className="grid gap-5">
-      <div className="relative overflow-hidden rounded-card bg-nm-ink-card">
-        <video ref={videoRef} playsInline muted className="block aspect-video w-full -scale-x-100 object-cover" aria-hidden />
+      <div
+        ref={frameRef}
+        className="relative mx-auto overflow-hidden rounded-card bg-nm-ink-card"
+        // As tall as the screen allows (minus browser bars), never wider than the page, always the camera's shape.
+        style={{ aspectRatio: aspect, width: `min(100%, calc(82svh * ${aspect.toFixed(4)}))` }}
+      >
+        <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full -scale-x-100 object-contain" aria-hidden />
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100" aria-hidden />
         {phase !== "running" && (
           <div className="absolute inset-0 grid place-items-center p-6 text-center text-white">
