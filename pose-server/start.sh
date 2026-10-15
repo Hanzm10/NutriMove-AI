@@ -7,6 +7,7 @@ APP="${1:-https://nutri-move-ai.vercel.app}"
 PORT="${PORT:-8000}"
 export NM_TOKEN="${NM_TOKEN:-$(printf '%06d' $((RANDOM * RANDOM % 1000000)))}"
 PY="${PYTHON:-python3}"
+[ -z "${PYTHON:-}" ] && [ -x .venv/bin/python ] && PY=.venv/bin/python
 [ -f models/instanthmr.onnx ] || "$PY" download_model.py
 PORT=$PORT "$PY" server.py &
 SERVER=$!
