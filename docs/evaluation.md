@@ -41,7 +41,8 @@ as "not checked by the app" and leaves them out of F1.
 
 Open `/dev/replay` on a laptop (Chrome or Edge). Pick the clips: each runs through the same model, tracker, smoothing,
 1-second ready gate and form checks as the live coach, at 15 frames per second. Then load `labels.csv` and press
-**Score**. **Save all joints in one file** exports `clips.joints.json`: 18 body joints per frame, no pictures. Share
+**Score**. **Save all joints** exports `clips.joints.json`: 18 body joints per frame (no pictures) **plus the labels
+currently in the labels box**, so fill in the labels before saving. Share
 that file (not the videos) for threshold tuning; it can be loaded back into the page instead of the videos.
 
 How it's scored (`src/lib/pose/eval/score.ts`): an *attempt* is a counted rep or a shallow rep the app flagged (people
@@ -67,5 +68,37 @@ What changed (`src/lib/pose/analyzers/exercise-rules.json`), with the reason fro
 - Knee cave-in (`valgusDrop` 0.85) is now measured against the person's own knee/ankle spacing while standing,
   instead of a fixed ratio, so a side or 45° camera doesn't trigger it. It fires on 3 reps of the mixed clip.
 
-F1 is not final yet: `labels.csv` covered 3 of the 13 mixed reps. Label every rep, then re-score in `/dev/replay`.
-The clips' joints are in `eval/clips/` and `src/lib/pose/eval/real-clips.test.ts` keeps them passing.
+Second pass with every mixed rep labelled (`eval/clips/squat-day6.labels.csv`): `bottom` 100 → 95° (reps that
+stopped at 97–107° were labelled shallow; good reps reach 58–80°) and `valgusDrop` 0.85 → 0.9.
+
+| Squat, both clips (25 reps) | Result | PRD target |
+|---|---|---|
+| Rep accuracy | **100 %** (12/12 and 13/13 attempts) | ≥ 90 % |
+| Shallow (`SQ_DEPTH`) | P 1.00 · R 1.00 · F1 **1.00** | |
+| Knees in (`SQ_KNEE_VALGUS`) | P 0.67 · R 0.80 · F1 **0.73** (2 false, 1 missed) | |
+| Lean forward (`SQ_TORSO_LEAN`) | P 1.00 · R 1.00 · F1 **1.00** (1 rep) | |
+| Macro F1 | **0.91** | ≥ 0.75 |
+
+**Caveat for the paper:** these thresholds were tuned on the same two clips they are scored on (one person, one room,
+side / 45° view), so this is a training-set score. Report it as such, and score fresh clips from other people
+before quoting a generalisation number. Knee cave-in is the weakest check because a side camera sees little of the
+knees' sideways movement; a front-facing camera would help. `heels-up` (4 reps) has no check in the app.
+The clips' joints and labels are in `eval/clips/`; `src/lib/pose/eval/real-clips.test.ts` fails if a change drops
+below the targets.
+
+### Day 6, lunge (`lunge_good_15`, side / 45°, portrait)
+
+| | Before tuning | After tuning |
+|---|---|---|
+| `lunge_good_15` | 7 of 15 counted, 4 false "stay upright" | **15 of 15 counted, 0 flags** |
+
+- `top` 155 → 145°: the lunge signal is the more-bent knee, and between reps it only straightened to 145–157°.
+- `shallowFloor` 115 → 120°, `torsoLeanMax` 30 → 50°: good reps leaned 20–43° forward at the bottom.
+
+### Day 6, push-up: not usable yet
+
+`pushup_good_5` and `pushup_hip-sag_10` were filmed in portrait. With the person lying across a narrow frame, the
+tracker repeatedly lost the body (shoulders placed off-screen, body angle jumping between 170° and 90° within a
+fraction of a second), so the counts (2 of 5, 0 of 10) measure the recording, not the checks. In the hip-sag clip the
+elbows also stayed near 150° throughout. Push-up thresholds stay at the starting values; the camera tip now says to
+turn the phone sideways. Re-record push-ups in **landscape, camera at floor height, 2–3 m to the side**.

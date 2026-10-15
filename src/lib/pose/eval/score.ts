@@ -5,7 +5,10 @@ import type { Attempt } from "./replay";
 /** Label words the team writes → the app's form-check codes. Anything else is "not checked by the app". */
 export const LABEL_CODES: Record<ExerciseKind, Record<string, string>> = {
   squat: { "knees-in": "SQ_KNEE_VALGUS", shallow: "SQ_DEPTH", "lean-forward": "SQ_TORSO_LEAN" },
-  pushup: { "hips-sag": "PU_HIP_SAG", "hips-pike": "PU_HIP_PIKE", "half-rep": "PU_DEPTH", shallow: "PU_DEPTH" },
+  pushup: {
+    "hips-sag": "PU_HIP_SAG", "hip-sag": "PU_HIP_SAG", "hips-pike": "PU_HIP_PIKE", "hip-pike": "PU_HIP_PIKE",
+    "half-rep": "PU_DEPTH", shallow: "PU_DEPTH",
+  },
   lunge: { shallow: "LU_DEPTH", "lean-forward": "LU_TORSO" },
 };
 
@@ -22,11 +25,11 @@ export function parseClipName(name: string): { exercise: ExerciseKind; label: st
   return { exercise: EXERCISE_ALIASES[m[1]!]!, label: m[2]!, reps: m[3] ? Number(m[3]) : NaN };
 }
 
-/** labels.csv with columns `file,rep,errors` (errors: `good`, or names joined with `+`). Header optional. */
+/** labels.csv with columns `file,rep,errors` (errors: `good`, or names joined with `+`). Header optional; `#` starts a note. */
 export function parseLabelsCsv(text: string): Map<string, RepLabel[]> {
   const out = new Map<string, RepLabel[]>();
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
+    const line = raw.replace(/#.*$/, "").trim(); // "# ~6.5 s" notes are allowed
     if (!line || line.startsWith("#")) continue;
     const [file, rep, errors = ""] = line.split(",").map((s) => s.trim());
     const n = Number(rep);
