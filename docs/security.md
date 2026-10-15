@@ -58,8 +58,10 @@ section before the demo.
 - Supabase Auth (email + Google OAuth), cookie sessions via `@supabase/ssr`, refreshed in `src/proxy.ts`.
 - Protected routes redirect to `/login?next=…`; `next` is validated with `safeNext` (`/` prefix, not `//`).
 - Sign-out clears cached pages in the service worker.
-- **Action for the project owner:** enable *Prevent use of leaked passwords* in Supabase → Authentication → Providers → Email
-  (the Supabase linter flags it as disabled; it may need the Pro plan, in which case note it as a limitation).
+- Password policy (Supabase → Authentication → Sign In / Providers → Email, set Day 6): at least 8 characters with a
+  lowercase letter, an uppercase letter and a digit. The sign-up form shows and checks the same rule.
+- **Accepted limitation:** *Prevent use of leaked passwords* (HaveIBeenPwned check) needs the Supabase Pro plan; the
+  project is on the free plan, so it stays off. The linter warning for it is expected. Google sign-in avoids passwords entirely.
 
 ## Security headers (added Day 6, `next.config.ts`)
 
@@ -117,4 +119,4 @@ select c.relname, c.relrowsecurity, (select count(*) from pg_policies p where p.
 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by 1;
 ```
 Supabase → Advisors → Security should show only: `api_usage` (INFO, intentional), `delete_my_account` (WARN, intentional),
-and leaked-password protection until enabled.
+and leaked-password protection (Pro plan only, accepted).

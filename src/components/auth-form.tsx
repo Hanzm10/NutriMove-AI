@@ -93,6 +93,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
           autoComplete={mode === "login" ? "current-password" : "new-password"}
           minLength={8}
           required
+          {...(mode === "signup" && {
+            // Mirrors the Supabase Auth policy: 8+ characters with a lowercase letter, an uppercase letter and a digit.
+            pattern: "(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}",
+            title: PASSWORD_RULE,
+            hint: PASSWORD_RULE,
+          })}
         />
         {error && (
           <p role="alert" className="text-sm font-bold text-nm-danger">
@@ -143,13 +149,26 @@ export function AuthForm({ mode }: { mode: Mode }) {
   );
 }
 
-function Field({ label, name, ...props }: { label: string; name: string } & React.ComponentProps<"input">) {
+const PASSWORD_RULE = "At least 8 characters, with a lowercase letter, an uppercase letter and a number.";
+
+function Field({ label, name, hint, ...props }: { label: string; name: string; hint?: string } & React.ComponentProps<"input">) {
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={name} className="font-bold">
         {label}
       </Label>
-      <Input id={name} name={name} className="h-12 rounded-xl border-nm-line bg-nm-soft/60 px-4 text-base" {...props} />
+      <Input
+        id={name}
+        name={name}
+        aria-describedby={hint ? `${name}-hint` : undefined}
+        className="h-12 rounded-xl border-nm-line bg-nm-soft/60 px-4 text-base"
+        {...props}
+      />
+      {hint && (
+        <p id={`${name}-hint`} className="text-sm text-nm-muted">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
