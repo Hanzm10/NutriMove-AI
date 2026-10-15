@@ -103,6 +103,34 @@ fraction of a second), so the counts (2 of 5, 0 of 10) measure the recording, no
 elbows also stayed near 150° throughout. Push-up thresholds stay at the starting values; the camera tip now says to
 turn the phone sideways. Re-record push-ups in **landscape, camera at floor height, 2–3 m to the side**.
 
+## SUS and ISO/IEC 25010 questionnaires (PRD §12.5, §12.6)
+
+Participants sign the consent form above, do the task list (onboard, log 3 foods, one squat set, view the summary),
+then open **Profile → Answer the survey** (`/survey`). They pick *user* or *IT expert*; IT experts get the extra
+compatibility, security and maintainability items. Questions and scoring live in `src/lib/eval/survey.ts`
+(SUS: Brooke's 10 items, score 0–100, target ≥ 68; ISO: weighted mean per characteristic, 1–5, with the verbal
+interpretation 4.21–5.00 strongly agree · 3.41–4.20 agree · 2.61–3.40 neutral · 1.81–2.60 disagree · 1.00–1.80
+strongly disagree).
+
+Results for the paper (Supabase → SQL editor; answers are only ever reported as averages):
+
+```sql
+-- SUS: mean score and count per respondent group
+select respondent_role, count(*) as n,
+       round(avg((select sum(case when i % 2 = 1 then (a::int - 1) else (5 - a::int) end) * 2.5
+                  from jsonb_array_elements_text(answers) with ordinality as t(a, i))), 1) as mean_sus
+from survey_responses where kind = 'sus' group by 1;
+
+-- ISO/IEC 25010: weighted mean per characteristic (item ids start with fs/pe/co/us/re/se/ma)
+select respondent_role,
+       case left(key, 2) when 'fs' then 'Functional suitability' when 'pe' then 'Performance efficiency'
+         when 'co' then 'Compatibility' when 'us' then 'Interaction capability (usability)' when 're' then 'Reliability'
+         when 'se' then 'Security' when 'ma' then 'Maintainability' end as characteristic,
+       count(*) as answers, round(avg(value::int), 2) as weighted_mean
+from survey_responses, jsonb_each_text(answers)
+where kind = 'iso25010' group by 1, 2 order by 1, 2;
+```
+
 ## Dietary calculation accuracy (PRD §12.4)
 
 Checked by `src/lib/food/accuracy.test.ts`, which recomputes everything **independently of the app's build script**:

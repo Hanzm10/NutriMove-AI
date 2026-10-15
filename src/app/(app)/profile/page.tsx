@@ -78,6 +78,14 @@ export default async function ProfilePage() {
           }} />
         </NmCard>
 
+        <section aria-labelledby="survey-h" className="rounded-card border border-nm-line bg-white p-6 sm:p-7">
+          <p className="text-xs font-bold tracking-[0.12em] text-nm-primary-ink uppercase">Pilot test</p>
+          <h2 id="survey-h" className="mt-1 text-xl font-bold">Help us improve NutriMove</h2>
+          <p className="mt-2 text-sm text-nm-muted">Two short questionnaires (about 5 minutes) on ease of use and quality.</p>
+          <Link href="/survey" className="mt-4 inline-flex h-11 items-center rounded-xl border border-nm-line bg-white px-5 font-bold text-nm-ink hover:bg-nm-soft">
+            Answer the survey
+          </Link>
+        </section>
         <section aria-labelledby="privacy-h" className="rounded-card bg-nm-ink-card p-6 text-white sm:p-7">
           <p className="text-xs font-bold tracking-[0.12em] text-nm-accent uppercase">Privacy</p>
           <h2 id="privacy-h" className="mt-1 text-xl font-bold">Your data, your choice</h2>

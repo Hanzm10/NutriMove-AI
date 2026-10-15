@@ -5,7 +5,7 @@ import { createClient, getUser } from "@/lib/supabase/server";
 const TABLES = [
   "profiles", "user_settings", "consents", "screenings", "targets", "food_logs", "water_logs", "weight_logs",
   "recipe_ratings", "meal_plans", "meal_plan_items", "workout_plans", "workout_plan_items", "workout_sessions",
-  "session_sets", "check_ins", "agent_events",
+  "session_sets", "check_ins", "agent_events", "survey_responses",
 ] as const;
 
 /** AUTH-05: everything we store about the signed-in user, as one JSON download. RLS scopes every query. */
