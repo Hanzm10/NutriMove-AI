@@ -623,6 +623,33 @@ export type Database = {
           },
         ]
       }
+      survey_responses: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          kind: string
+          respondent_role: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          kind: string
+          respondent_role: string
+          user_id?: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          respondent_role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       targets: {
         Row: {
           bmr: number
