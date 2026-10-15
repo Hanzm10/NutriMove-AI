@@ -1,7 +1,7 @@
 import { angleAt, angleFromVertical, horizontalDist, mid, sub, verticalOffsetFromLine } from "../geometry";
 import type { CanonicalPose } from "../types";
 import { BaseAnalyzer } from "./base";
-import rules from "./exercise-rules.json";
+import defaultRules from "./exercise-rules.json";
 import type { Cue, ExerciseAnalyzer, ExerciseKind } from "./types";
 
 // PRD Appendix C. Messages are spoken aloud, so keep them short and positive.
@@ -18,8 +18,15 @@ export const CUES: Record<string, Cue> = {
 
 const pick = (codes: string[]) => Object.fromEntries(codes.map((c) => [c, CUES[c]!]));
 
-function squat(): ExerciseAnalyzer {
+/** Thresholds for every exercise (PRD Appendix C), tuned on labelled clips (POSE-17, docs/evaluation.md). */
+export type ExerciseRules = typeof defaultRules;
+export const DEFAULT_RULES: ExerciseRules = defaultRules;
+
+function squat(rules: ExerciseRules): ExerciseAnalyzer {
   const r = rules.squat;
+  // Knee cave-in is judged against this person's own knee/ankle spacing while standing, so it works from the
+  // front, at 45° or from the side (a fixed ratio flagged normal squats filmed at an angle).
+  let standingSpread: number | null = null;
   return new BaseAnalyzer({
     kind: "squat",
     counter: { top: r.top, bottom: r.bottom, shallowFloor: r.shallowFloor },
@@ -29,18 +36,21 @@ function squat(): ExerciseAnalyzer {
       const j = p.joints3d;
       if (!j) return null;
       const angle = (angleAt(j.l_hip, j.l_knee, j.l_ankle) + angleAt(j.r_hip, j.r_knee, j.r_ankle)) / 2;
+      const ankles = horizontalDist(j.l_ankle, j.r_ankle);
+      const spread = ankles > 1e-3 ? horizontalDist(j.l_knee, j.r_knee) / ankles : null;
+      if (spread != null && angle > r.top) standingSpread = standingSpread == null ? spread : standingSpread * 0.9 + spread * 0.1;
       const violations: string[] = [];
       if (angle < r.shallowFloor) {
-        if (horizontalDist(j.l_knee, j.r_knee) < r.valgusRatio * horizontalDist(j.l_ankle, j.r_ankle)) violations.push("SQ_KNEE_VALGUS");
+        if (spread != null && standingSpread != null && spread < r.valgusDrop * standingSpread) violations.push("SQ_KNEE_VALGUS");
         const torso = sub(mid(j.l_shoulder, j.r_shoulder), mid(j.l_hip, j.r_hip));
         if (angleFromVertical(torso) > r.torsoLeanMax) violations.push("SQ_TORSO_LEAN");
       }
       return { angle, violations };
     },
-  });
+  }, rules.common);
 }
 
-function pushup(): ExerciseAnalyzer {
+function pushup(rules: ExerciseRules): ExerciseAnalyzer {
   const r = rules.pushup;
   return new BaseAnalyzer({
     kind: "pushup",
@@ -59,10 +69,10 @@ function pushup(): ExerciseAnalyzer {
       }
       return { angle, violations };
     },
-  });
+  }, rules.common);
 }
 
-function lunge(): ExerciseAnalyzer {
+function lunge(rules: ExerciseRules): ExerciseAnalyzer {
   const r = rules.lunge;
   return new BaseAnalyzer({
     kind: "lunge",
@@ -81,11 +91,11 @@ function lunge(): ExerciseAnalyzer {
       }
       return { angle, violations };
     },
-  });
+  }, rules.common);
 }
 
-export function createAnalyzer(kind: ExerciseKind): ExerciseAnalyzer {
-  return kind === "squat" ? squat() : kind === "pushup" ? pushup() : lunge();
+export function createAnalyzer(kind: ExerciseKind, rules: ExerciseRules = DEFAULT_RULES): ExerciseAnalyzer {
+  return kind === "squat" ? squat(rules) : kind === "pushup" ? pushup(rules) : lunge(rules);
 }
 
 export const EXERCISE_SETUP: Record<ExerciseKind, { label: string; camera: string; tip: string }> = {

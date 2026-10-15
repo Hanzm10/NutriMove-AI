@@ -48,3 +48,24 @@ How it's scored (`src/lib/pose/eval/score.ts`): an *attempt* is a counted rep or
 count both). Rep accuracy per clip = 1 − |attempts − true reps| / true reps, averaged over clips. Form errors are
 matched rep by rep in order; extra or missing attempts count as false positives / negatives. F1 per check, then the
 mean over checks that appear in the labels (macro F1).
+
+## Results log
+
+### Day 6, squat (2 clips, side / 45° view, iPhone portrait 576×1024)
+
+| | Before tuning | After tuning |
+|---|---|---|
+| `squat_good_12` | 10 of 12 counted, 6 false "lean" flags | **12 of 12 counted, 0 flags** |
+| `squat_mixed_13` | 8 attempts seen (5 shallow reps missed) | **13 of 13 attempts seen** |
+
+What changed (`src/lib/pose/analyzers/exercise-rules.json`), with the reason from the joints data:
+
+- `top` 160 → 150°: standing between reps only reached 155–162°, so two good reps never "finished".
+- `shallowFloor` 120 → 135°: half squats bottomed out at 115–126° and were ignored entirely instead of being
+  flagged "go deeper".
+- `torsoLeanMax` 45 → 55°: good squats with hips back lean 40–49° at the bottom; the clearly leaning rep reached 63°.
+- Knee cave-in (`valgusDrop` 0.85) is now measured against the person's own knee/ankle spacing while standing,
+  instead of a fixed ratio, so a side or 45° camera doesn't trigger it. It fires on 3 reps of the mixed clip.
+
+F1 is not final yet: `labels.csv` covered 3 of the 13 mixed reps. Label every rep, then re-score in `/dev/replay`.
+The clips' joints are in `eval/clips/` and `src/lib/pose/eval/real-clips.test.ts` keeps them passing.
