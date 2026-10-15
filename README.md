@@ -97,6 +97,8 @@ was killed, so it starts one setup lighter: `auto` (full model, WebGPU→CPU) �
 thread). iPhones start at `lite-1t`. Measured in headless Chromium (CPU, 4 vCPU): page ≈ 160 MB, lite model ≈ +0.5 GB,
 full model ≈ +0.75 GB single-thread (+0.9 GB multi-thread); ORT graph-optimisation / arena / prepacking options did not change it.
 
+**Datasets.** Which data and pretrained models the app uses, and public benchmarks for comparison: `docs/datasets.md`.
+
 **Evaluating the coach.** `/dev/replay` runs recorded clips through the same model and form checks on a laptop and
 scores them against hand labels (rep accuracy, form-error F1). Recording, naming and labelling: `docs/evaluation.md`.
 
