@@ -157,3 +157,36 @@ factor (1.2 / 1.375 / 1.55 / 1.725 / 1.9), rounded half-up.
 | M, 55 y, 172 cm, 82 kg, moderate | 1625 | 1625 | 2519 | 2519 |
 
 **Result: 10 of 10 exact matches** (target: exact).
+
+## Latency log (PRD §12.3)
+
+Every saved camera session now stores mean fps, **p50 / p95 latency** (frame captured → joints back: the model alone
+on-device, the full round trip in laptop-coach mode), the mode (`instanthmr` = on device, `remote` = laptop coach) and
+a coarse device class (`iphone`, `android`, `windows`, …; nothing identifying).
+
+- One account: `/dev/latency` shows the table by device and mode and downloads every session as CSV.
+- Whole team (Supabase → SQL editor):
+
+```sql
+select device_class, pose_backend, count(*) as sessions,
+       round(avg(avg_fps), 1) as mean_fps,
+       percentile_cont(0.5) within group (order by p50_latency_ms) as median_p50_ms,
+       max(p95_latency_ms) as worst_p95_ms
+from workout_sessions where avg_fps is not null
+group by 1, 2 order by 1, 2;
+```
+
+Day 6 reading (iPhone → RTX 3060 laptop through the Cloudflare tunnel, from the Show-speed overlay): **12–13 fps,
+57–66 ms round trip, model 31–42 ms**. Targets: phones ≥ 8 fps and ≤ 200 ms round trip; laptop ≥ 15 fps and ≤ 100 ms.
+
+## Informed consent (PRD §12.7) — template
+
+> **NutriMove AI pilot test — consent**
+> I am 18 or older. I agree to try the NutriMove AI app for about 20 minutes and answer two short questionnaires
+> (SUS and ISO 25010). If I do the camera exercises, the video is processed live and **not recorded by the app**. If the
+> team asks to record a clip for accuracy testing, it stays on the team's devices, only body-joint positions are kept,
+> and the video is deleted after analysis. I can stop at any time without giving a reason. My answers are reported
+> only as group averages, without my name. The app gives general fitness and nutrition guidance and is not medical
+> advice.
+>
+> Name: ____________________  Signature: ____________________  Date: ____________
