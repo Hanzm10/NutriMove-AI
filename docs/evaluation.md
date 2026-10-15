@@ -41,7 +41,8 @@ as "not checked by the app" and leaves them out of F1.
 
 Open `/dev/replay` on a laptop (Chrome or Edge). Pick the clips: each runs through the same model, tracker, smoothing,
 1-second ready gate and form checks as the live coach, at 15 frames per second. Then load `labels.csv` and press
-**Score**. **Save all joints in one file** exports `clips.joints.json`: 18 body joints per frame, no pictures. Share
+**Score**. **Save all joints** exports `clips.joints.json`: 18 body joints per frame (no pictures) **plus the labels
+currently in the labels box**, so fill in the labels before saving. Share
 that file (not the videos) for threshold tuning; it can be loaded back into the page instead of the videos.
 
 How it's scored (`src/lib/pose/eval/score.ts`): an *attempt* is a counted rep or a shallow rep the app flagged (people

@@ -101,8 +101,10 @@ export function ClipReplay() {
     setError(null);
     for (const f of Array.from(files)) {
       try {
-        const data = JSON.parse(await f.text()) as ClipJoints | { clips: ClipJoints[] };
+        const data = JSON.parse(await f.text()) as ClipJoints | { clips: ClipJoints[]; labels?: string };
         const clips = "clips" in data ? data.clips : [data];
+        // Files saved with labels bring them back, so one file carries the whole evaluation.
+        if ("clips" in data && data.labels?.trim()) setLabels((prev) => (prev.trim() ? `${prev.trim()}\n${data.labels}` : data.labels!));
         for (const joints of clips) {
           const r = analyzeClip(joints.exercise, joints.frames);
           setDone((d) => [...d.filter((x) => x.joints.file !== joints.file), { joints, ...r }]);
@@ -196,9 +198,9 @@ export function ClipReplay() {
               type="button"
               variant="outline"
               className="mt-3 h-10 rounded-lg bg-white"
-              onClick={() => save("clips.joints.json", { version: 1, clips: done.map((d) => d.joints) })}
+              onClick={() => save("clips.joints.json", { version: 1, clips: done.map((d) => d.joints), labels })}
             >
-              <FileVideo aria-hidden /> Save all joints in one file
+              <FileVideo aria-hidden /> Save all joints (and the labels below) in one file
             </Button>
           </div>
         )}
