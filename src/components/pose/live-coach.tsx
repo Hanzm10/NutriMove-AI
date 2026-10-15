@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, CameraOff, Laptop, Loader2 } from "lucide-react";
+import { Camera, CameraOff, Gauge, Laptop, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,13 @@ export function LiveCoach({
     () => parseLoadParams(location.search).debug,
     () => false,
   );
+  // The speed readout (fps, round trip) can also be switched on with a button: typing ?debug=1 on a phone is fiddly.
+  const statsOn = useSyncExternalStore(
+    subscribeStatsPref,
+    () => safeStorage().getItem(STATS_KEY) === "1",
+    () => false,
+  );
+  const showStats = debug || statsOn;
   const guardRef = useRef<LoadGuard | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [lines, setLines] = useState<string[]>([]);
@@ -314,10 +321,12 @@ export function LiveCoach({
             Step into frame so I can see your whole body
           </p>
         )}
-        {debug && stats && (
+        {showStats && phase === "running" && (
           <p className="absolute bottom-3 left-3 rounded-lg bg-black/70 px-2 py-1 font-mono text-xs text-white">
-            {stats.backend} · {stats.fps.toFixed(1)} fps · infer {stats.inferenceMs.toFixed(0)} ms ·{" "}
-            {String(globalThis.crossOriginIsolated)}
+            {stats
+              ? `${stats.backend} · ${stats.fps.toFixed(1)} fps · model ${stats.inferenceMs.toFixed(0)} ms`
+              : "measuring speed…"}
+            {debug && ` · isolated ${String(globalThis.crossOriginIsolated)}`}
           </p>
         )}
       </div>
@@ -363,6 +372,15 @@ export function LiveCoach({
             <Camera aria-hidden /> {exhausted ? "Try again" : startLabel}
           </Button>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          aria-pressed={statsOn}
+          className="h-12 rounded-xl bg-white px-5 font-bold"
+          onClick={() => setStatsPref(!statsOn)}
+        >
+          <Gauge aria-hidden /> {statsOn ? "Hide speed" : "Show speed"}
+        </Button>
         {phase !== "running" && (
           <Link
             href="/workout/pair"
@@ -374,6 +392,23 @@ export function LiveCoach({
       </div>
     </div>
   );
+}
+
+const STATS_KEY = "nm-coach-stats-v1";
+const STATS_EVENT = "nm-coach-stats";
+
+function subscribeStatsPref(onChange: () => void) {
+  window.addEventListener(STATS_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(STATS_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function setStatsPref(on: boolean) {
+  safeStorage().setItem(STATS_KEY, on ? "1" : "0");
+  window.dispatchEvent(new Event(STATS_EVENT));
 }
 
 /** localStorage, or a no-op store when the browser blocks it (private mode). */
