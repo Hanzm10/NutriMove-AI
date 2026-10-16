@@ -9,7 +9,8 @@ Filipino foods, and meal and workout plans that adapt every week.
 - **Agent/contributor rules:** [AGENTS.md](AGENTS.md).
 - **Demo:** [docs/demo.md](docs/demo.md) (demo account + 10-minute script) · **Evaluation:** [docs/evaluation.md](docs/evaluation.md)
   (pilot results, latency, calorie accuracy, surveys) · **Datasets:** [docs/datasets.md](docs/datasets.md) ·
-  **Security:** [docs/security.md](docs/security.md).
+  **Security:** [docs/security.md](docs/security.md) ·
+  **Team:** [docs/contributions.md](docs/contributions.md) (roles, AI-tool disclosure) and [docs/qa-prep.md](docs/qa-prep.md).
 
 ## Stack
 
