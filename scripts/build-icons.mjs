@@ -1,6 +1,7 @@
 // Renders the PWA icons in public/icons from the Leaf logo mark.
 // Usage: node scripts/build-icons.mjs  (sharp is a transitive dependency of next; set SHARP_PATH if it isn't resolvable)
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_PATH ?? "sharp");
 
@@ -11,6 +12,6 @@ const leaf = (scale, offset) => `<g transform="translate(${offset} ${offset}) sc
 const any = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#9bd141"/>${leaf(13, 100)}</svg>`;
 const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#9bd141"/>${leaf(10, 136)}</svg>`;
 for (const [name, svg, size] of [["icon-192.png", any, 192], ["icon-512.png", any, 512], ["maskable-512.png", maskable, 512], ["apple-touch-icon.png", maskable, 180]]) {
-  await sharp(Buffer.from(svg)).resize(size, size).png().toFile(new URL(`../public/icons/${name}`, import.meta.url).pathname);
+  await sharp(Buffer.from(svg)).resize(size, size).png().toFile(fileURLToPath(new URL(`../public/icons/${name}`, import.meta.url)));
 }
 console.log("icons written");
