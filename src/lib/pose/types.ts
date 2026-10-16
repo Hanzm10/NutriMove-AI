@@ -36,7 +36,9 @@ export type EstimatorStats = { preprocessMs: number; inferenceMs: number; backen
 export interface PoseEstimator {
   readonly kind: PoseBackend;
   load(onProgress?: (loaded: number, total: number) => void): Promise<{ backend: string }>;
-  /** Estimate the pose for one frame. `box` is the person box to crop around. */
-  estimate(frame: ImageBitmap, box: CanonicalPose["box"]): Promise<{ pose: CanonicalPose; stats: EstimatorStats }>;
+  /** Estimate the pose for one live frame. The estimator crops around `box` on the calling thread. */
+  estimate(source: CanvasImageSource, frameW: number, frameH: number, box: CanonicalPose["box"]): Promise<{ pose: CanonicalPose; stats: EstimatorStats }>;
+  /** False once disposed or broken; the owner must drop it. */
+  readonly alive: boolean;
   dispose(): void;
 }

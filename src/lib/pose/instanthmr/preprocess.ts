@@ -31,10 +31,14 @@ export function cliffCond([x1, y1, x2, y2]: BBox, frameW: number, frameH: number
   ]);
 }
 
-/** RGBA pixels of the 224×224 crop → ImageNet-normalised CHW float tensor data. */
-export function rgbaToNormalizedChw(rgba: Uint8ClampedArray, size = INPUT_SIZE): Float32Array {
+/** RGBA pixels of the 224×224 crop → ImageNet-normalised CHW float tensor data. Pass `out` to reuse a buffer. */
+export function rgbaToNormalizedChw(
+  rgba: Uint8ClampedArray,
+  size = INPUT_SIZE,
+  out: Float32Array = new Float32Array(3 * size * size),
+): Float32Array {
   const plane = size * size;
-  const out = new Float32Array(3 * plane);
+  if (out.length !== 3 * plane) throw new Error(`input buffer must hold ${3 * plane} floats`);
   for (let i = 0; i < plane; i++) {
     const p = i * 4;
     out[i] = (rgba[p]! / 255 - IMAGENET_MEAN[0]) / IMAGENET_STD[0];

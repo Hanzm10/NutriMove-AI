@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, FileVideo, Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EXERCISE_SETUP } from "@/lib/pose/analyzers/exercises";
 import type { ExerciseKind } from "@/lib/pose/analyzers/types";
@@ -20,6 +20,8 @@ export function ClipReplay() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const estimatorRef = useRef<InstantHmrEstimator | null>(null);
+  // Leaving the page ends the worker (and its model memory).
+  useEffect(() => () => estimatorRef.current?.dispose(), []);
   const [exercise, setExercise] = useState<ExerciseKind | "auto">("auto");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,7 +31,7 @@ export function ClipReplay() {
   const [report, setReport] = useState<Report | null>(null);
 
   async function model() {
-    if (estimatorRef.current) return estimatorRef.current;
+    if (estimatorRef.current?.alive) return estimatorRef.current;
     const p = parseLoadParams(location.search);
     const url = p.model === "lite" ? LITE_MODEL_URL : p.model && p.model !== "full" ? p.model : DEFAULT_MODEL_URL;
     const est = new InstantHmrEstimator(url, { prefer: p.ep ?? "webgpu", threads: p.threads ?? undefined });
@@ -79,8 +81,7 @@ export function ClipReplay() {
       for (let i = 0; i * (1 / FPS) < duration; i++) {
         const t = i / FPS;
         await seek(v, t);
-        const bitmap = await createImageBitmap(v);
-        const { pose, raw2d } = await est.estimate(bitmap, tracker.current(w, h));
+        const { pose, raw2d } = await est.estimate(v, w, h, tracker.current(w, h));
         const { tracking } = tracker.update(raw2d, w, h);
         if (tracking) lastSeen = t;
         const visible = t - lastSeen < 1; // same 1 s grace as the live coach
