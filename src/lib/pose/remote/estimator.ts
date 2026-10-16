@@ -1,15 +1,13 @@
+import { FrameCropper, type CropCanvas } from "../crop";
 import { mhr70ToCanonical } from "../instanthmr/adapter";
-import { INPUT_SIZE, cliffCond, cropJointsToFrame, squareCrop } from "../instanthmr/preprocess";
+import { cropJointsToFrame } from "../instanthmr/preprocess";
+import { SkippedFrame } from "../skipped";
 import type { CanonicalPose, EstimatorStats } from "../types";
 import { encodeFrame, parseReply, wsUrl, type Pairing, type RemoteResult } from "./protocol";
 
 const JPEG_QUALITY = 0.85;
 
-/** A frame the laptop dropped (too far behind) or couldn't decode. The coach just skips it. */
-class SkippedFrame extends Error {
-  override name = "SkippedFrame";
-}
-export const isSkippedFrame = (e: unknown) => e instanceof SkippedFrame;
+export { isSkippedFrame } from "../skipped";
 
 /**
  * Pose estimation on the user's own laptop (PRD §7.7.3). The phone crops the person to 224 px and sends only that
@@ -21,11 +19,21 @@ export class RemotePoseEstimator {
   private ws?: WebSocket;
   private nextId = 1;
   private pending = new Map<number, { resolve: (r: RemoteResult) => void; reject: (e: Error) => void }>();
-  private canvas?: HTMLCanvasElement;
+  private cropper?: FrameCropper;
   private rtt = 0;
   private serverMs = 0;
+  private disposed = false;
+  private closed = false;
 
-  constructor(private readonly pairing: Pairing) {}
+  constructor(
+    private readonly pairing: Pairing,
+    private readonly makeCanvas?: (size: number) => CropCanvas,
+  ) {}
+
+  /** False once disposed or once the laptop connection closed. */
+  get alive() {
+    return !this.disposed && !this.closed;
+  }
 
   /** Opens the socket; rejects with a human-readable reason if the laptop can't be reached. */
   load(): Promise<{ backend: string }> {
@@ -55,6 +63,7 @@ export class RemotePoseEstimator {
             : e.code === 4409
               ? "Someone else is already using the laptop coach."
               : "The connection to the laptop closed.";
+        this.closed = true;
         fail(why);
         this.failAll(new Error(why));
       };
@@ -71,11 +80,11 @@ export class RemotePoseEstimator {
     });
   }
 
-  async estimate(frame: ImageBitmap, box: CanonicalPose["box"]) {
-    const sq = squareCrop(box);
-    const cliff = cliffCond(box, frame.width, frame.height);
-    const jpeg = await this.cropToJpeg(frame, sq);
-    frame.close(); // the full frame never leaves this device (POSE-08)
+  /** Crops the person on this device and sends only that 224×224 JPEG; the full frame never leaves the phone. */
+  async estimate(source: CanvasImageSource, frameW: number, frameH: number, box: CanonicalPose["box"]) {
+    const cropper = (this.cropper ??= new FrameCropper(this.makeCanvas));
+    const { sq, cliff } = cropper.draw(source, frameW, frameH, box);
+    const jpeg = await cropper.jpeg(JPEG_QUALITY);
     const t0 = performance.now();
     const res = await this.send(jpeg, cliff);
     const roundTrip = performance.now() - t0;
@@ -97,28 +106,12 @@ export class RemotePoseEstimator {
   }
 
   dispose() {
+    this.disposed = true;
     this.failAll(new Error("disposed"));
     if (this.ws) {
       this.ws.onclose = null;
       this.ws.close();
     }
-  }
-
-  private async cropToJpeg(frame: ImageBitmap, sq: { x: number; y: number; size: number }): Promise<Uint8Array> {
-    const c = (this.canvas ??= document.createElement("canvas"));
-    c.width = c.height = INPUT_SIZE;
-    const ctx = c.getContext("2d")!;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
-    const sx = Math.max(0, sq.x), sy = Math.max(0, sq.y);
-    const ex = Math.min(frame.width, sq.x + sq.size), ey = Math.min(frame.height, sq.y + sq.size);
-    if (ex > sx && ey > sy) {
-      const k = INPUT_SIZE / sq.size;
-      ctx.drawImage(frame, sx, sy, ex - sx, ey - sy, (sx - sq.x) * k, (sy - sq.y) * k, (ex - sx) * k, (ey - sy) * k);
-    }
-    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/jpeg", JPEG_QUALITY));
-    if (!blob) throw new Error("Could not encode the camera crop");
-    return new Uint8Array(await blob.arrayBuffer());
   }
 
   private send(jpeg: Uint8Array, cliff: Float32Array) {

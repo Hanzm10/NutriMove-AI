@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
+import { EstimatorSlot } from "@/lib/pose/estimator-slot";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
@@ -45,7 +46,10 @@ export function LiveCoach({
   // The camera box takes the camera's own shape (portrait on phones) so nothing is cropped and the skeleton lines up.
   const [aspect, setAspect] = useState(16 / 9);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const estimatorRef = useRef<InstantHmrEstimator | RemotePoseEstimator | null>(null);
+  // The one pose estimator (worker or laptop link). Kept across Stop/Start for reuse, released when it is no longer
+  // valid: page hidden too long, page left, worker crashed, or a different setup is needed.
+  const slotRef = useRef<EstimatorSlot<InstantHmrEstimator | RemotePoseEstimator> | null>(null);
+  const slot = () => (slotRef.current ??= new EstimatorSlot());
   const runningRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState("");
@@ -82,12 +86,27 @@ export function LiveCoach({
 
   useEffect(() => {
     // Leaving the page normally is not a crash; a killed page never fires pagehide.
-    const leave = () => guardRef.current?.cleanExit();
+    const leave = () => {
+      guardRef.current?.cleanExit();
+      slot().release("page left");
+    };
+    // In the background the camera is useless (and iOS suspends it): stop the set now, and free the model's memory
+    // if the user doesn't come back within the grace period.
+    const visibility = () => {
+      if (document.hidden) {
+        if (runningRef.current) stop();
+        slot().pageHidden();
+      } else {
+        slot().pageVisible();
+      }
+    };
     window.addEventListener("pagehide", leave);
+    document.addEventListener("visibilitychange", visibility);
     return () => {
       window.removeEventListener("pagehide", leave);
-      leave();
+      document.removeEventListener("visibilitychange", visibility);
       stop();
+      leave();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -105,16 +124,14 @@ export function LiveCoach({
       if (pairing) {
         // Laptop coach: no model runs on this device, so there is nothing for the crash ladder to guard.
         setRungLabel("laptop coach");
-        const est = new RemotePoseEstimator(pairing);
-        estimatorRef.current = est;
+        const { est, reused } = slot().acquire(`remote|${pairing.server}|${pairing.token}`, () => new RemotePoseEstimator(pairing));
         setProgress("Connecting to your laptop…");
         try {
-          await est.load();
+          if (!reused) await est.load();
           setLines(["laptop coach connected"]);
           ready = true;
         } catch (e) {
-          est.dispose();
-          estimatorRef.current = null;
+          slot().release("connect failed");
           throw e;
         }
       } else {
@@ -133,11 +150,10 @@ export function LiveCoach({
         const url = model === "lite" ? LITE_MODEL_URL : model === "full" ? DEFAULT_MODEL_URL : model;
         guard.stage("starting worker");
         setLines([...guard.lines()]);
-        const est = new InstantHmrEstimator(url, {
-          prefer: params.ep ?? rung.prefer,
-          threads: params.threads ?? rung.threads,
-        });
-        estimatorRef.current = est;
+        const prefer = params.ep ?? rung.prefer;
+        const threads = params.threads ?? rung.threads;
+        // Same setup as last time (Stop → Start): reuse the loaded worker. Otherwise the old one is disposed first.
+        const { est } = slot().acquire(`hmr|${url}|${prefer}|${threads ?? "auto"}`, () => new InstantHmrEstimator(url, { prefer, threads }));
         try {
           await est.load(
             (l, t) => setProgress(t ? `Loading coach model… ${Math.round((l / t) * 100)}%` : `Loading coach model… ${(l / 1e6).toFixed(0)} MB`),
@@ -149,8 +165,7 @@ export function LiveCoach({
           ready = true;
         } catch (e) {
           lastError = e instanceof Error ? e.message : String(e);
-          est.dispose(); // frees the worker's memory before trying a lighter setup
-          estimatorRef.current = null;
+          slot().release("load failed"); // frees the worker's memory before trying a lighter setup
           const next = guard.fail(lastError);
           setLines([...guard.lines()]);
           rung = next && !params.rung ? guard.begin(defaultRung(isIOS()), next).rung : null;
@@ -195,7 +210,13 @@ export function LiveCoach({
   async function loop() {
     const v = videoRef.current!;
     const canvas = canvasRef.current!;
-    const estimator = estimatorRef.current!;
+    const estimator = slot().get();
+    if (!estimator) {
+      setError("The pose model is no longer loaded. Tap Start again.");
+      setPhase("error");
+      stop();
+      return;
+    }
     const tracker = new BoxTracker();
     // Over the tunnel the laptop coach is limited by the network round trip, not the model, so it keeps a few frames
     // in flight (each uses the latest known person box; the estimator picks how many) and caps capture at 15 fps.
@@ -251,18 +272,16 @@ export function LiveCoach({
         await new Promise((r) => setTimeout(r, wait));
         continue;
       }
+      if (!estimator.alive) {
+        failure = new Error("The pose worker stopped. Tap Start again.");
+        break;
+      }
       lastSent = performance.now();
       const w = v.videoWidth, h = v.videoHeight;
       const n = ++seq;
-      let bitmap: ImageBitmap;
-      try {
-        bitmap = await createImageBitmap(v);
-      } catch (e) {
-        failure = e;
-        break;
-      }
+      // The estimator crops the person out of the live <video> here on the main thread; only that crop goes on.
       const p: Promise<void> = estimator
-        .estimate(bitmap, tracker.current(w, h))
+        .estimate(v, w, h, tracker.current(w, h))
         .then((r) => handle(n, w, h, r))
         .catch((e: unknown) => {
           if (!isSkippedFrame(e)) failure ??= e; // a frame the laptop dropped or couldn't read is just skipped
@@ -324,7 +343,7 @@ export function LiveCoach({
   function stop() {
     runningRef.current = false;
     stopCamera();
-    if (phase === "running") setPhase("idle");
+    setPhase((p) => (p === "running" ? "idle" : p)); // functional: also correct from the mount-time effect
   }
 
   return (

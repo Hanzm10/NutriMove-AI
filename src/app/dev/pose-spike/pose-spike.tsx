@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { parseLoadParams } from "@/lib/pose/instanthmr/load-guard";
 import { BODY_EDGES, BODY_JOINTS, MHR70 } from "@/lib/pose/instanthmr/skeleton";
@@ -9,7 +9,7 @@ import {
   type BBox,
 } from "@/lib/pose/instanthmr/preprocess";
 import {
-  DEFAULT_MODEL_URL, LITE_MODEL_URL, loadModel, runHmr, type Backend, type LoadedModel,
+  DEFAULT_MODEL_URL, LITE_MODEL_URL, createRunner, loadModel, type Backend, type LoadedModel,
 } from "@/lib/pose/instanthmr/session";
 
 type Stats = { pre: number; infer: number; total: number; fps: number; frames: number };
@@ -54,9 +54,12 @@ export function PoseSpike() {
     }
   }
 
+  // One input buffer + tensors for the model's whole life (same runner as the coach worker).
+  const runner = useMemo(() => (model ? createRunner(model, INPUT_SIZE) : null), [model]);
+
   const step = useCallback(
     async (source: CanvasImageSource, w: number, h: number) => {
-      if (!model) return;
+      if (!runner) return;
       const t0 = performance.now();
       const crop = cropRef.current ?? (cropRef.current = Object.assign(document.createElement("canvas"), { width: INPUT_SIZE, height: INPUT_SIZE }));
       const cctx = crop.getContext("2d", { willReadFrequently: true })!;
@@ -65,9 +68,10 @@ export function PoseSpike() {
       cctx.fillStyle = "#000";
       cctx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
       drawClipped(cctx, source, w, h, sq);
-      const tensor = rgbaToNormalizedChw(cctx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE).data);
+      rgbaToNormalizedChw(cctx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE).data, INPUT_SIZE, runner.input);
+      runner.cliff.set(cliffCond(box, w, h));
       const t1 = performance.now();
-      const out = await runHmr(model, tensor, cliffCond(box, w, h));
+      const out = await runner.run();
       const t2 = performance.now();
       const joints = cropJointsToFrame(out.joints2dNorm, sq);
       setHas3d(out.joints3d !== null);
@@ -87,7 +91,7 @@ export function PoseSpike() {
       };
       if (n % 5 === 0 || n < 5) setStats(statsRef.current);
     },
-    [model],
+    [runner],
   );
 
   async function startCamera() {

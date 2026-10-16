@@ -33,4 +33,15 @@ describe("InstantHMR preprocessing (matches inference.py)", () => {
     expect(bboxFromJoints(j, [0, 1, 2], 640, 480)).toEqual([0, 10, 100, 300]);
     expect(bboxFromJoints(j, [2], 640, 480)).toBeNull();
   });
+
+  it("writes into a caller's buffer instead of allocating a new one", () => {
+    const rgba = new Uint8ClampedArray(2 * 2 * 4).fill(128);
+    const buf = new Float32Array(3 * 2 * 2);
+    const a = rgbaToNormalizedChw(rgba, 2, buf);
+    const b = rgbaToNormalizedChw(rgba, 2, buf);
+    expect(a).toBe(buf);
+    expect(b).toBe(buf);
+    expect(Array.from(buf)).toEqual(Array.from(rgbaToNormalizedChw(rgba, 2)));
+    expect(() => rgbaToNormalizedChw(rgba, 2, new Float32Array(5))).toThrow("input buffer must hold 12 floats");
+  });
 });
