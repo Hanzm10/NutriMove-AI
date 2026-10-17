@@ -30,13 +30,14 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Do not put code between createServerClient and getUser (Supabase SSR guidance).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Do not put code between createServerClient and the auth call (Supabase SSR guidance). getClaims refreshes an
+  // expired session like getUser does, but verifies the token's signature locally (ES256, public keys cached for
+  // 10 min) instead of a round trip to Supabase Auth on every navigation. Pages still verify with getUser.
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = !!data?.claims?.sub;
 
   const { pathname } = request.nextUrl;
-  if (!user && !isPublic(pathname)) {
+  if (!signedIn && !isPublic(pathname)) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     // Keep the query (e.g. a laptop-coach pairing link) so it survives signing in; safeNext still only allows local paths.
