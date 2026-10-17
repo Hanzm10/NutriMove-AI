@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
       {
         // Workers spawned from cross-origin-isolated pages (ORT pthreads, our pose worker chunk)
         // must be served with COEP themselves.
-        source: "/(ort|_next/static)/:path*",
+        source: "/(ort|mediapipe|_next/static)/:path*",
         headers: [
           { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },

@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "public/ort/**",
+    "public/mediapipe/**",
     "supabase/functions/**",
   ]),
 ]);

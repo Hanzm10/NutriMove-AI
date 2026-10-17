@@ -43,8 +43,11 @@ next-env.d.ts
 
 # onnxruntime-web runtime (copied on install) and local models
 /public/ort/
+/public/mediapipe/
 /public/models/*.onnx
 !/public/models/instanthmr-int8.onnx
+# MediaPipe heavy (31 MB) is benchmark-only: node scripts/fetch-pose-models.mjs
+/public/models/pose_landmarker_heavy.task
 
 # supabase
 supabase/.branches

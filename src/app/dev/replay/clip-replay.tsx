@@ -10,6 +10,7 @@ import { parseClipName, parseLabelsCsv, scoreClips, type Report } from "@/lib/po
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { parseLoadParams } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL } from "@/lib/pose/instanthmr/session";
+import { MediaPipePoseEstimator, type MediaPipeVariant } from "@/lib/pose/mediapipe/estimator";
 import { BoxTracker } from "@/lib/pose/tracker";
 import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
 
@@ -19,7 +20,9 @@ type Done = { joints: ClipJoints; attempts: Attempt[]; reps: number; partials: n
 export function ClipReplay() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const estimatorRef = useRef<InstantHmrEstimator | null>(null);
+  const estimatorRef = useRef<InstantHmrEstimator | MediaPipePoseEstimator | null>(null);
+  // Which pose model processes the clips (Phase 0: compare MediaPipe against InstantHMR on the same labelled videos).
+  const [poseModel, setPoseModel] = useState<"instanthmr" | `mediapipe-${MediaPipeVariant}`>("instanthmr");
   // Leaving the page ends the worker (and its model memory).
   useEffect(() => () => estimatorRef.current?.dispose(), []);
   const [exercise, setExercise] = useState<ExerciseKind | "auto">("auto");
@@ -31,7 +34,19 @@ export function ClipReplay() {
   const [report, setReport] = useState<Report | null>(null);
 
   async function model() {
-    if (estimatorRef.current?.alive) return estimatorRef.current;
+    const cur = estimatorRef.current;
+    const wanted = poseModel === "instanthmr" ? "instanthmr" : poseModel;
+    const curId = cur instanceof MediaPipePoseEstimator ? `mediapipe-${cur.variant}` : cur ? "instanthmr" : null;
+    if (cur?.alive && curId === wanted) return cur;
+    cur?.dispose(); // one model in memory at a time
+    estimatorRef.current = null;
+    if (poseModel !== "instanthmr") {
+      const mp = new MediaPipePoseEstimator(poseModel.split("-")[1] as MediaPipeVariant, "GPU");
+      setStatus("Loading MediaPipe…");
+      await mp.load();
+      estimatorRef.current = mp;
+      return mp;
+    }
     const p = parseLoadParams(location.search);
     const url = p.model === "lite" ? LITE_MODEL_URL : p.model && p.model !== "full" ? p.model : DEFAULT_MODEL_URL;
     const est = new InstantHmrEstimator(url, { prefer: p.ep ?? "webgpu", threads: p.threads ?? undefined });
@@ -65,7 +80,7 @@ export function ClipReplay() {
     }
   }
 
-  async function runClip(est: InstantHmrEstimator, file: File, kind: ExerciseKind): Promise<ClipJoints> {
+  async function runClip(est: InstantHmrEstimator | MediaPipePoseEstimator, file: File, kind: ExerciseKind): Promise<ClipJoints> {
     const v = videoRef.current!;
     const url = URL.createObjectURL(file);
     try {
@@ -81,7 +96,9 @@ export function ClipReplay() {
       for (let i = 0; i * (1 / FPS) < duration; i++) {
         const t = i / FPS;
         await seek(v, t);
-        const { pose, raw2d } = await est.estimate(v, w, h, tracker.current(w, h));
+        const r = await est.estimate(v, w, h, tracker.current(w, h));
+        if (!r.pose) continue; // MediaPipe found nobody in this frame: the coach would skip it too
+        const { pose, raw2d } = r;
         const { tracking } = tracker.update(raw2d, w, h);
         if (tracking) lastSeen = t;
         const visible = t - lastSeen < 1; // same 1 s grace as the live coach
@@ -89,7 +106,7 @@ export function ClipReplay() {
         drawPose(canvasRef.current!, w, h, pose, visible);
         if (i % 5 === 0) setStatus(`${file.name} (${EXERCISE_SETUP[kind].label}): ${Math.round((t / duration) * 100)}%`);
       }
-      return { version: 1, file: file.name, exercise: kind, fps: FPS, width: w, height: h, durationS: Math.round(duration * 10) / 10, backend: "instanthmr", frames };
+      return { version: 1, file: file.name, exercise: kind, fps: FPS, width: w, height: h, durationS: Math.round(duration * 10) / 10, backend: est instanceof MediaPipePoseEstimator ? `mediapipe-${est.variant}` : "instanthmr", frames };
     } finally {
       v.removeAttribute("src");
       v.load();
@@ -136,6 +153,20 @@ export function ClipReplay() {
               <option value="squat">Squat</option>
               <option value="pushup">Push-up</option>
               <option value="lunge">Lunge</option>
+            </select>
+          </label>
+          <label className="grid gap-1.5 text-sm font-bold">
+            Pose model
+            <select
+              className="h-11 rounded-xl border border-nm-line bg-white px-3 font-normal"
+              value={poseModel}
+              disabled={busy}
+              onChange={(e) => setPoseModel(e.target.value as typeof poseModel)}
+            >
+              <option value="instanthmr">InstantHMR (current)</option>
+              <option value="mediapipe-lite">MediaPipe lite</option>
+              <option value="mediapipe-full">MediaPipe full</option>
+              <option value="mediapipe-heavy">MediaPipe heavy (if fetched)</option>
             </select>
           </label>
           <label className="grid gap-1.5 text-sm font-bold">

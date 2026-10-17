@@ -10,11 +10,12 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "db:types": "supabase gen types typescript --project-id satiqygzrdhzwkwqunoj --schema public > src/lib/supabase/database.types.ts",
-    "postinstall": "node scripts/copy-ort.mjs"
+    "postinstall": "node scripts/copy-ort.mjs && node scripts/copy-mediapipe.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@hookform/resolvers": "^5.9.1",
+    "@mediapipe/tasks-vision": "1.0.1",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
     "@supabase/ssr": "^0.12.7",
