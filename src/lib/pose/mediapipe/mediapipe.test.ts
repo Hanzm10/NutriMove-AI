@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { MHR70, NUM_JOINTS } from "../instanthmr/skeleton";
 import { BLAZEPOSE, blazePoseToMhr70, worldIsYDown, type Landmark } from "./adapter";
+import { EstimatorSlot } from "../estimator-slot";
 import { MediaPipePoseEstimator, type CreateLandmarker, type LandmarkerLike } from "./estimator";
 
 /** 33 BlazePose landmarks of an upright person: image coords 0–1 (y down), world metres (y down, hip-centred). */
@@ -115,5 +116,33 @@ describe("MediaPipePoseEstimator", () => {
     expect(lm.close).toHaveBeenCalledTimes(1);
     expect(est.alive).toBe(false);
     expect(() => est.estimate({} as CanvasImageSource, 640, 480, [0, 0, 640, 480])).toThrow("not loaded");
+  });
+
+  it("never hands MediaPipe an empty frame (a stopped camera leaves a 0×0 video)", async () => {
+    const { lm, calls } = fakeLandmarker();
+    const est = new MediaPipePoseEstimator("full", "GPU", async () => lm);
+    await est.load();
+    expect(est.estimate({} as CanvasImageSource, 0, 0, [0, 0, 0, 0])).toMatchObject({ found: false, pose: null });
+    expect(calls).toHaveLength(0);
+    expect(est.alive).toBe(true);
+  });
+
+  it("marks itself dead when MediaPipe's graph fails, so Start loads a fresh one instead of reusing it", async () => {
+    const broken = fakeLandmarker().lm;
+    vi.mocked(broken.detectForVideo).mockImplementation(() => {
+      throw new Error("INTERNAL: Graph has errors");
+    });
+    const fresh = fakeLandmarker().lm;
+    const made = [broken, fresh];
+    const slot = new EstimatorSlot<MediaPipePoseEstimator>();
+    const first = slot.acquire("mediapipe|full", () => new MediaPipePoseEstimator("full", "GPU", async () => made.shift()!)).est;
+    await first.load();
+    expect(() => first.estimate({} as CanvasImageSource, 640, 480, [0, 0, 640, 480])).toThrow("Graph has errors");
+    expect(first.alive).toBe(false);
+    const again = slot.acquire("mediapipe|full", () => new MediaPipePoseEstimator("full", "GPU", async () => made.shift()!));
+    expect(again.reused).toBe(false);
+    expect(broken.close).toHaveBeenCalledTimes(1); // the broken one is freed
+    await again.est.load();
+    expect(again.est.estimate({} as CanvasImageSource, 640, 480, [0, 0, 640, 480]).found).toBe(true);
   });
 });

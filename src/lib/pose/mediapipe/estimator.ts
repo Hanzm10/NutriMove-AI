@@ -32,6 +32,7 @@ export class MediaPipePoseEstimator {
   private landmarker: LandmarkerLike | null = null;
   private lastTs = 0;
   private disposed = false;
+  private broken = false;
   /** The delegate actually in use after load (GPU can fall back to CPU). */
   delegate: MediaPipeDelegate;
 
@@ -43,8 +44,9 @@ export class MediaPipePoseEstimator {
     this.delegate = prefer;
   }
 
+  /** False once disposed, or once MediaPipe's graph has failed (it stays failed, so the owner must load a new one). */
   get alive() {
-    return !this.disposed;
+    return !this.disposed && !this.broken;
   }
 
   /** Loads the model; if the GPU delegate fails (no WebGL2, blocked GPU), retries once on CPU. */
@@ -70,15 +72,23 @@ export class MediaPipePoseEstimator {
    * `found` is false when no person was detected in this frame.
    */
   estimate(source: CanvasImageSource, frameW: number, frameH: number, box: CanonicalPose["box"]) {
-    if (!this.landmarker || this.disposed) throw new Error("MediaPipe pose model is not loaded");
+    if (!this.landmarker || !this.alive) throw new Error("MediaPipe pose model is not loaded");
     const t0 = performance.now();
+    const stats: EstimatorStats = { preprocessMs: 0, inferenceMs: 0, backend: this.backendLabel };
+    // An empty frame (camera just stopped) puts MediaPipe's graph into a permanent error state: never send one.
+    if (!(frameW > 0 && frameH > 0)) return { pose: null, stats, raw2d: null, found: false as const, minVisibility: 0 };
     // VIDEO mode needs strictly increasing timestamps.
     const ts = Math.max(Math.round(t0), this.lastTs + 1);
     this.lastTs = ts;
-    const res = this.landmarker.detectForVideo(source, ts);
-    const ms = performance.now() - t0;
+    let res: ReturnType<LandmarkerLike["detectForVideo"]>;
+    try {
+      res = this.landmarker.detectForVideo(source, ts);
+    } catch (e) {
+      this.broken = true;
+      throw e;
+    }
+    stats.inferenceMs = performance.now() - t0;
     const lm = res.landmarks[0];
-    const stats: EstimatorStats = { preprocessMs: 0, inferenceMs: ms, backend: this.backendLabel };
     if (!lm) return { pose: null, stats, raw2d: null, found: false as const, minVisibility: 0 };
     const j = blazePoseToMhr70(lm, res.worldLandmarks[0] ?? null, frameW, frameH);
     const pose = mhr70ToCanonical(j.joints2d, j.joints3d, box, performance.now());

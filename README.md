@@ -102,6 +102,11 @@ full model ≈ +0.75 GB single-thread (+0.9 GB multi-thread); ORT graph-optimisa
 
 **Datasets.** Which data and pretrained models the app uses, and public benchmarks for comparison: `docs/datasets.md`.
 
+**Start/stop soak test.** `node scripts/coach-soak.mjs [url] [--pose=mediapipe|instanthmr]` drives the coach on
+`/dev/coach` in headless Chromium with a fake camera: it starts and stops it 20 times (button, tab hidden, instant
+restart) and fails if memory keeps growing, a camera stream or frame loop is left running, more than one pose worker
+exists, or the page still uses CPU after stopping. Needs Playwright and a running app (`pnpm build && pnpm start`).
+
 **Evaluating the coach.** `/dev/replay` runs recorded clips through the same model and form checks on a laptop and
 scores them against hand labels (rep accuracy, form-error F1). Recording, naming and labelling: `docs/evaluation.md`.
 
