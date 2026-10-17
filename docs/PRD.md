@@ -27,7 +27,7 @@
 | D2 | Main feature: camera pose tracking with **InstantHMR** (3D pose). | ✅ Final | Group |
 | D3 | Onboarding collects the user profile → generates a **meal plan** and a **workout plan**. | ✅ Final | Group |
 | D4 | **Calorie tracking** is included. | ✅ Final | Group |
-| D5 | Pose inference runs **in the browser** (onnxruntime-web) by default. **No video leaves the device** (in fallback mode, frames are streamed encrypted to the team laptop and never stored; see D15). | ✅ Final | This session |
+| D5 | Pose inference runs **in the browser** by default (MediaPipe first, InstantHMR on onnxruntime-web as the fallback; see D19). **No video leaves the device** (in fallback mode, frames are streamed encrypted to the team laptop and never stored; see D15). | ✅ Final | This session |
 | D6 | Platform: **responsive web app + PWA** (installable on Android, iOS and desktop). This is how we meet "cross-platform". | ✅ Final | This session |
 | D7 | Agent: **rule-based targets (Mifflin-St Jeor) + content-based filtering (cosine similarity) + weekly feedback rules**. **No LLM** makes decisions. | ✅ Final | This session |
 | D8 | Exercises: **squat, push-up, lunge**. Squat is built first. | ✅ Final | This session |
@@ -37,16 +37,17 @@
 | D12 | Food data: **USDA FoodData Central**, **Open Food Facts** (barcode), and a **custom Filipino food table** (FNRI PhilFCT). API keys stay server-side. | ✅ Final | Group |
 | D13 | Photo-based food logging → **future work**. | ✅ Final | Group |
 | D14 | Build order: onboarding & targets → calorie logging → workout plans → pose tracking → meal plans. Pose work starts **in parallel on Day 1** because it carries the most risk. | ✅ Final | Group + this session |
-| D15 | **Pose fallback = a laptop Python pose server.** If InstantHMR can't run in the browser, Hanz's RTX 3060 laptop runs the reference InstantHMR + MHR pipeline in Python. The phone reaches it through a **free Cloudflare quick tunnel** (HTTPS, so the camera is allowed), with a second phone as the hotspot (§7.7.3). MediaPipe becomes the last-resort fallback. | ✅ Final | Group |
+| D15 | **Pose fallback = a laptop Python pose server.** If InstantHMR can't run in the browser, Hanz's RTX 3060 laptop runs the reference InstantHMR + MHR pipeline in Python. The phone reaches it through a **free Cloudflare quick tunnel** (HTTPS, so the camera is allowed), with a second phone as the hotspot (§7.7.3). MediaPipe becomes the last-resort fallback. **Order changed by D19:** the laptop is now an optional fallback. | ✅ Final, revised by D19 | Group |
 | D16 | The panel demo runs on **both a laptop and a phone**. | ✅ Final | Group |
 | D17 | Objectives O2 and O4 are **merged** into one feedback objective. The proposal now has **4 objectives** (§3.1). | ✅ Final | Group |
 | D18 | No PE instructor/physical therapist validation of thresholds, and no department ethics form needed. Thresholds are tuned on the team's labeled clips; participant consent is still collected (§12.7). | ✅ Final | Group |
+| D19 | **Pose model order (Oct 17):** **MediaPipe Pose Landmarker** in the browser is the default. **InstantHMR in the browser** takes over if MediaPipe can't load (`?pose=instanthmr` forces it). The **laptop pose server** (D15) stays as an optional fallback, offered only when neither model runs on the device or a laptop is already paired. Why: MediaPipe runs at ~50 fps on iPhone vs 1.4 fps for InstantHMR lite (the full model crashes), with rep accuracy ≥ 90 % and knee cave-in caught 10/10 when facing the camera. Trade-off: no knee check side-on with MediaPipe (InstantHMR's 3D still does it). Details: `docs/pose-optimization-plan.md`. | ✅ Final | This session |
 
 ### 0.1 Changes from the concept proposal (to note in the revised proposal or chapter 3)
 
 | Proposal said | PRD does | Why |
 |---|---|---|
-| "WebSockets for camera feed streaming" | Pose runs **on the device** by default. In fallback mode (§7.7.3), frames stream over **secure WebSockets (wss)** from the phone to the team laptop through a Cloudflare tunnel. They're processed in memory and never stored. Only rep counts and form-error summaries reach the backend. | Privacy (RA 10173), no cloud GPU costs, lower latency. The WebSocket promise is still met in fallback mode. |
+| "WebSockets for camera feed streaming" | Pose runs **on the device** by default (MediaPipe, then InstantHMR; D19). In the optional laptop mode (§7.7.3), frames stream over **secure WebSockets (wss)** from the phone to the team laptop through a Cloudflare tunnel. They're processed in memory and never stored. Only rep counts and form-error summaries reach the backend. | Privacy (RA 10173), no cloud GPU costs, lower latency. The WebSocket streaming is implemented and kept as the laptop mode, but phones no longer need it (D19). |
 | "Cross-platform application" | Responsive web app + installable PWA | One codebase that can be built in one week. Native apps → future work. |
 | "Voice controls" | **Spoken feedback** (Web Speech TTS) is P0. **Voice commands** ("start", "stop", "next") are P2. | Speech recognition support across browsers is inconsistent. |
 | "AES-256 encryption at rest, OAuth 2.0/JWT" | Supabase Postgres (encrypted at rest by the platform) + Supabase Auth (JWT, Google OAuth) + Row-Level Security | Delivers the promise using managed services. |
@@ -59,7 +60,7 @@
 NutriMove AI is a web app that acts as an **intelligent fitness and nutrition coach**.
 
 - **Onboarding** collects the user's body data, goal, activity level, preferences and health screening. The agent then computes **daily calorie and macro targets** and generates a **7-day meal plan** (with Filipino dishes) and a **weekly workout plan**.
-- During workouts, the phone or laptop camera runs **InstantHMR 3D pose estimation in the browser**. The app counts reps for squats, push-ups and lunges, shows a live **3D skeleton**, and gives **real-time spoken and visual form cues**.
+- During workouts, the phone or laptop camera runs **3D pose estimation in the browser** (MediaPipe Pose Landmarker by default, InstantHMR as the fallback; D19). The app counts reps for squats, push-ups and lunges, shows a live **3D skeleton**, and gives **real-time spoken and visual form cues**.
 - Users **log food** by searching USDA and Filipino foods or scanning barcodes (Open Food Facts).
 - A **weekly check-in** feeds weight, adherence and workout performance back to the agent, which **adjusts targets, meals and workout difficulty**. This closes the perceive → decide → act loop.
 
@@ -325,6 +326,8 @@ getUserMedia (640×480 or 1280×720, user-facing)
 > - **D (last resort):** **MediaPipe Pose Landmarker** in the browser (33 joints, 3D world landmarks), only if the laptop server also fails or no laptop is available.
 >
 > Also gate on speed: if in-browser InstantHMR runs at **< 10 FPS** on the reference laptop with WebGPU/WASM → use C for the live demo.
+>
+> ✅ **Update (Oct 17, D19):** the Phase 0 benchmark (`docs/pose-optimization-plan.md`) moved **D up to the default**: MediaPipe in the browser first, InstantHMR in the browser second, the laptop server (C) optional.
 
 **Design rule:** exercise logic **never** reads raw model indices. It reads `CanonicalPose` (named joints). Every backend has an adapter, so switching is a one-line config change: `NEXT_PUBLIC_POSE_BACKEND=instanthmr|remote|mediapipe`. Analyzers, cues, the 3D skeleton and session saving run in the browser **in all modes**. Only the source of keypoints changes.
 
@@ -720,7 +723,7 @@ Built with AI coding agents. Each person owns a module, writes the tests, and re
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **RTX 3060 laptop Python pose server via Cloudflare tunnel** (§7.7.3); MediaPipe as the last resort |
+| Released InstantHMR ONNX lacks `joints_3d`, or is too slow in the browser | Med | High | Day-1 gate; `PoseEstimator` interface; **RTX 3060 laptop Python pose server via Cloudflare tunnel** (§7.7.3); MediaPipe in the browser (now the default, D19) |
 | Hotspot data is slow or runs out (remote mode) | Med | High | Dedicated hotspot phone on a data promo; adaptive 10 fps / 480 px; laptop-only layout (no internet needed for pose) as the backup demo |
 | Cloudflare quick tunnel is down or rate-limited (it has no uptime guarantee) | Low | Med | Restart for a new URL and re-scan the QR; a free named tunnel on a Cloudflare account as plan B; laptop-only layout |
 | Phone refuses camera access (needs HTTPS) | Low | Med | Solved by design: the app is on Vercel (HTTPS) and the pose server is reached via `wss://` through the tunnel |

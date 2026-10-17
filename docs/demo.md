@@ -22,8 +22,9 @@ for food, workouts (camera coach) and the weekly adaptation.
    replaces the demo account's past days and leaves today alone.
 3. Before the demo:
    - Log today's breakfast yourself, so the rings aren't empty.
-   - Start the laptop pose server (`pose-server/start.cmd`) and pair the phone (camera coach → **Use a laptop as the coach**, then **Connect**). Check the
-     phone shows ~12 fps with **Show speed**.
+   - The phone coach runs MediaPipe on the device by default: no laptop, tunnel or hotspot needed. Check it shows
+     **MediaPipe** and well over 15 fps with **Show speed**.
+   - Optional laptop coach: start `pose-server/start.cmd` and scan its QR code (or open `/workout/pair`), then **Connect**.
    - Keep `?synthetic=squat` ready as a fallback if the camera, Wi-Fi or tunnel fails on the day.
 
 ## 2. Script (≈10 min)
@@ -33,7 +34,7 @@ for food, workouts (camera coach) and the weekly adaptation.
 | 1 | **Overview** | Calorie ring, macros, today's workout, AI coach insight, check-in banner | The agent's *state*: targets come from Mifflin-St Jeor + guardrails (TGT-*); the insight is a rule-based nudge (AGENT-05). |
 | 2 | **Nutrition → search** | Type `adobo`, then `kanin`. Log 1 serving. Open the meal plan and press **Swap** on one meal | Food data from DOST-FNRI (1,542 foods, 65 recipes). The meal plan is content-based: hard filters (allergy, diet), then cosine similarity, then serving sizes to fit ±10% kcal (MEAL-01…05). Point out that no shellfish dish shows up. |
 | 3 | **AI Workout** | Weekly plan, eligibility reasons | Recommender: eligibility filters + cosine ranking per slot (WORK-01). |
-| 4 | **Camera coach** (phone → laptop) | 1 set of squats: do 3 good reps, then 2 shallow ones, then 1 with knees caving in. Point at the rep counter, the cue banner, the voice cue and the 3D skeleton | Perceive: InstantHMR 3D joints. Decide: a rep state machine plus form rules (POSE-09…). Act: spoken cues. Squat replay results: 100% rep accuracy, macro-F1 0.91. No frames are stored (POSE-08). |
+| 4 | **Camera coach** (phone, on-device) | 1 set of squats: do 3 good reps, then 2 shallow ones, then 1 with knees caving in. Point at the rep counter, the cue banner, the voice cue and the 3D skeleton | Perceive: MediaPipe 3D joints on the phone (InstantHMR as the fallback). Decide: a rep state machine plus form rules (POSE-09…). Act: spoken cues. Squat replay results: InstantHMR 100% rep accuracy, macro-F1 0.91; MediaPipe ≥ 90% reps, knee cave-in 10/10 facing the camera. No frames are stored (POSE-08). |
 | 5 | **Session summary** | Reps, good-form %, faults, rating, Save | Only aggregates are saved. The difficulty rating feeds back into the next check-in. |
 | 6 | **Progress** | 4w view: weight trend, adherence, good-form % | The 13 seeded days. The weight trend is a 14-day least-squares slope. |
 | 7 | **Check-in** | Enter today's weight, adherence "mostly", hunger "often", workout "too hard". Submit | Adaptation (AGENT-02/03/06): the trend vs. goal changes kcal by ±150/−100 with the floor; hunger adds protein and fiber; "too hard" means fewer sets. Read the **What changed and why** card aloud. |
@@ -49,7 +50,7 @@ for food, workouts (camera coach) and the weekly adaptation.
 
 | Problem | Fallback |
 |---|---|
-| Tunnel / Wi-Fi down | Coach on the laptop webcam directly (`/workout/live?exercise=squat`, GPU in-browser), or `?synthetic=squat` |
+| Phone coach fails | Coach on the laptop webcam directly (`/workout/live?exercise=squat`, GPU in-browser), or `?synthetic=squat` |
 | Supabase slow | Show Progress/Overview from screenshots in the slides; explain the RLS design |
 | Phone tab reloads | The load guard steps down a setup automatically; otherwise use the laptop |
 | USDA search empty | FNRI results still come first; use Filipino food names |

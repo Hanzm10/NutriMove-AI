@@ -105,12 +105,13 @@ full model ≈ +0.75 GB single-thread (+0.9 GB multi-thread); ORT graph-optimisa
 **Evaluating the coach.** `/dev/replay` runs recorded clips through the same model and form checks on a laptop and
 scores them against hand labels (rep accuracy, form-error F1). Recording, naming and labelling: `docs/evaluation.md`.
 
-**Laptop coach (phones that can't run the model).** `pose-server/` is a small FastAPI server that runs the same ONNX model
+**Laptop coach (optional fallback).** The coach runs MediaPipe on the device by default and InstantHMR if that fails
+(PRD D19), so phones no longer need this. `pose-server/` is a small FastAPI server that runs the same ONNX model
 on a laptop (CUDA on the RTX 3060, CPU otherwise). The phone keeps its own box tracker, crops the person to 224 px, and
 sends only that JPEG over a secure WebSocket (`src/lib/pose/remote/`); joints come back in the same format, so the
 analyzers, HUD and cues are unchanged. Frames stay in memory on the laptop. Setup, in `pose-server/README.md`: install
-`requirements.txt`, run `./start.sh` (or `start.ps1`), open the printed link on the phone, tap **Connect**. Add
-`?pose=device` to the coach URL to ignore a pairing.
+`requirements.txt`, run `./start.sh` (or `start.ps1`), open the printed link on the phone, tap **Connect** (or open
+`/workout/pair`). Add `?pose=device` to the coach URL to ignore a pairing.
 
 Static chunks and `/ort` are served with COEP/CORP headers because workers started from cross-origin-isolated pages
 must opt in too (see `next.config.ts`).

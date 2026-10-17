@@ -473,7 +473,9 @@ export function LiveCoach({
         >
           <Gauge aria-hidden /> {statsOn ? "Hide speed" : "Show speed"}
         </Button>
-        {phase !== "running" && (
+        {/* The laptop coach is a fallback now that MediaPipe runs on phones: offered only when this device can't run
+            either model, or to manage an existing pairing. */}
+        {phase !== "running" && (paired || exhausted) && (
           <Link
             href="/workout/pair"
             className="inline-flex h-12 items-center gap-2 rounded-xl border border-nm-line bg-white px-5 text-base font-bold text-nm-ink"
