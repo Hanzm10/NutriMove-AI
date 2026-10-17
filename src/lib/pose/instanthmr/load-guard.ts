@@ -149,6 +149,7 @@ export function parseLoadParams(search: string) {
     ep: q.get("ep") === "wasm" ? ("wasm" as const) : null,
     threads: Number.isInteger(threads) && threads >= 1 && threads <= 8 ? threads : null,
     debug: q.has("debug"),
-    pose: q.get("pose") === "device" ? ("device" as const) : null,
+    // "device": ignore a laptop pairing; "mediapipe": use MediaPipe Pose Landmarker on this device (Phase 1 trial).
+    pose: q.get("pose") === "device" ? ("device" as const) : q.get("pose") === "mediapipe" ? ("mediapipe" as const) : null,
   };
 }

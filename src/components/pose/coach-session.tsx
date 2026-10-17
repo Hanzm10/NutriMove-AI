@@ -7,8 +7,9 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { saveSession } from "@/app/(app)/workout/actions";
 import { Button } from "@/components/ui/button";
-import { CUES, EXERCISE_SETUP, createAnalyzer } from "@/lib/pose/analyzers/exercises";
+import { CUES, EXERCISE_SETUP, createAnalyzer, rulesFor, type PoseModel } from "@/lib/pose/analyzers/exercises";
 import type { Cue, ExerciseKind } from "@/lib/pose/analyzers/types";
+import { parseLoadParams } from "@/lib/pose/instanthmr/load-guard";
 import { PoseSmoother } from "@/lib/pose/one-euro";
 import { deviceClass, summarizeSpeed } from "@/lib/pose/speed";
 import type { CanonicalPose } from "@/lib/pose/types";
@@ -33,6 +34,7 @@ export function CoachSession({
 }) {
   const setup = EXERCISE_SETUP[kind];
   const analyzer = useRef(createAnalyzer(kind));
+  const model = useRef<PoseModel>("instanthmr");
   const smoother = useRef(new PoseSmoother());
   const poseRef = useRef<CanonicalPose | null>(null);
   const readySince = useRef<number | null>(null);
@@ -78,7 +80,7 @@ export function CoachSession({
     if (next.length >= targetSets) {
       setSummaryInfo({
         startedAt: sessionStart.current,
-        speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current },
+        speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current, model: model.current },
       });
       setMode("summary");
       speak("Great work. Session complete.");
@@ -97,6 +99,13 @@ export function CoachSession({
     setLastRep(null);
     setMode("active");
   }
+
+  // ?pose=mediapipe (Phase 1): MediaPipe joints need their own thresholds (docs/pose-optimization-plan.md).
+  useEffect(() => {
+    if (parseLoadParams(location.search).pose !== "mediapipe") return;
+    model.current = "mediapipe";
+    analyzer.current = createAnalyzer(kind, rulesFor("mediapipe"));
+  }, [kind]);
 
   // Rest countdown → next set automatically.
   useEffect(() => {
@@ -214,7 +223,7 @@ export function CoachSession({
   );
 }
 
-type SessionSpeed = ReturnType<typeof summarizeSpeed> & { remote: boolean };
+type SessionSpeed = ReturnType<typeof summarizeSpeed> & { remote: boolean; model: PoseModel };
 
 function Summary({ kind, slug, sets, planItemId, startedAt, speed }: {
   kind: ExerciseKind; slug: string; sets: SetResult[]; planItemId: string | null; startedAt: string; speed: SessionSpeed;
@@ -231,7 +240,7 @@ function Summary({ kind, slug, sets, planItemId, startedAt, speed }: {
   function save() {
     start(async () => {
       const res = await saveSession({
-        exerciseSlug: slug, planItemId, backend: speed.remote ? "remote" : "instanthmr",
+        exerciseSlug: slug, planItemId, backend: speed.remote ? "remote" : speed.model,
         avgFps: speed.avgFps, p50LatencyMs: speed.p50LatencyMs, p95LatencyMs: speed.p95LatencyMs,
         deviceClass: deviceClass(navigator.userAgent, navigator.maxTouchPoints), startedAt, rating, sets,
       });

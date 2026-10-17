@@ -173,3 +173,29 @@ standing** is 0.62–0.72 facing the camera and 0.10–0.41 (median) side-on or 
   - Knee cave-in checked only when the user films from the **front** (2D knee-inside-ankle test). This needs new
     front-view clips to validate.
   - Otherwise, the knee check stays on InstantHMR.
+
+## 5. Phases 1–2: status
+
+**Phase 1: done (opt-in).** Open the coach with `?pose=mediapipe` to run MediaPipe Pose Landmarker full (GPU, with CPU
+fallback) on the main thread, one frame per animation frame. The default is still InstantHMR. Sessions save with
+`backend: "mediapipe"`, so the latency export can compare the two.
+
+**Phase 2: done.**
+- Per-model thresholds: `exercise-rules.json` → `backends.mediapipe` (squat top 155°, bottom 110°, shallow floor 145°,
+  lean limit 70°). The coach uses `rulesFor("mediapipe")` with `?pose=mediapipe`.
+- View-aware knee check (`analyzers/view.ts`). The camera angle is the median shoulder-width ÷ torso-height ratio over
+  about 10 s of standing frames: facing the camera is ≥ 0.55 (measured 0.66–0.67), side/45° is 0.10–0.41.
+  - Facing the camera: knees caved in when knee spacing < 0.85 × ankle spacing. This is an absolute rule, so there is no
+    drifting baseline.
+  - Side/45°: InstantHMR keeps its baseline rule; MediaPipe skips the knee check.
+- Gate (`src/lib/pose/eval/mediapipe-clips.test.ts`, on the team clips):
+
+| Clips (MediaPipe full) | Reps | Knee cave-in | Depth F1 | False flags on good reps |
+| --- | --- | --- | --- | --- |
+| Front: `squat_good_10`, `squat_knees-in_10` | ≥ 90 % | 10/10, precision 1.0 | – | 0 |
+| Side/45°: `squat_good_12`, `squat_mixed_13` | 96 % | not checked (by design) | 0.92 | 0 |
+
+InstantHMR's existing clip tests (`real-clips.test.ts`) still pass unchanged.
+
+**Still open:** the forward-lean threshold has only one labelled example; a front-view lean clip would validate it.
+Make MediaPipe the default on phones once it has been tried live on an iPhone.

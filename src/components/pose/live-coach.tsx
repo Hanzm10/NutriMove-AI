@@ -9,10 +9,11 @@ import { EstimatorSlot } from "@/lib/pose/estimator-slot";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
 import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
+import { MediaPipePoseEstimator } from "@/lib/pose/mediapipe/estimator";
 import { RemotePoseEstimator, isSkippedFrame } from "@/lib/pose/remote/estimator";
 import { PAIRING_KEY, loadPairing, pairingFromRaw } from "@/lib/pose/remote/protocol";
 import { BoxTracker } from "@/lib/pose/tracker";
-import { CANONICAL_EDGES, type CanonicalPose } from "@/lib/pose/types";
+import { CANONICAL_EDGES, type CanonicalPose, type EstimatorStats } from "@/lib/pose/types";
 
 type Phase = "idle" | "loading" | "camera" | "running" | "error";
 /** latencyMs = time from frame capture to joints back (model only on-device; full round trip in laptop mode). */
@@ -48,7 +49,7 @@ export function LiveCoach({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The one pose estimator (worker or laptop link). Kept across Stop/Start for reuse, released when it is no longer
   // valid: page hidden too long, page left, worker crashed, or a different setup is needed.
-  const slotRef = useRef<EstimatorSlot<InstantHmrEstimator | RemotePoseEstimator> | null>(null);
+  const slotRef = useRef<EstimatorSlot<InstantHmrEstimator | RemotePoseEstimator | MediaPipePoseEstimator> | null>(null);
   const slot = () => (slotRef.current ??= new EstimatorSlot());
   const runningRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -78,7 +79,7 @@ export function LiveCoach({
   // A paired laptop (PRD §7.7.3) replaces the on-device model, e.g. on phones that can't run it.
   const pairedRaw = useSyncExternalStore(
     () => () => {},
-    () => (parseLoadParams(location.search).pose === "device" ? null : safeStorage().getItem(PAIRING_KEY)),
+    () => (parseLoadParams(location.search).pose ? null : safeStorage().getItem(PAIRING_KEY)),
     () => null,
   );
   const paired = useMemo(() => pairingFromRaw(pairedRaw), [pairedRaw]);
@@ -118,10 +119,23 @@ export function LiveCoach({
       setPhase("loading");
       const params = parseLoadParams(location.search);
       const guard = getGuard();
-      const pairing = params.pose === "device" ? null : loadPairing(safeStorage());
+      const pairing = params.pose ? null : loadPairing(safeStorage());
       let ready = false;
       let lastError = "";
-      if (pairing) {
+      if (params.pose === "mediapipe") {
+        // MediaPipe Pose Landmarker full: ~6 MB, real-time on phones (docs/pose-optimization-plan.md, Phase 1).
+        setRungLabel("MediaPipe full");
+        const { est, reused } = slot().acquire("mediapipe|full", () => new MediaPipePoseEstimator("full", "GPU"));
+        setProgress("Loading coach model…");
+        try {
+          if (!reused) await est.load();
+          setLines([`ready: ${est.backendLabel}`]);
+          ready = true;
+        } catch (e) {
+          slot().release("load failed");
+          throw e;
+        }
+      } else if (pairing) {
         // Laptop coach: no model runs on this device, so there is nothing for the crash ladder to guard.
         setRungLabel("laptop coach");
         const { est, reused } = slot().acquire(`remote|${pairing.server}|${pairing.token}`, () => new RemotePoseEstimator(pairing));
@@ -222,6 +236,8 @@ export function LiveCoach({
     // in flight (each uses the latest known person box; the estimator picks how many) and caps capture at 15 fps.
     // On-device runs one frame at a time.
     const remote = estimator instanceof RemotePoseEstimator ? estimator : null;
+    // MediaPipe runs synchronously on this thread: pace it to the display so the UI stays responsive.
+    const onMainThread = estimator instanceof MediaPipePoseEstimator;
     const minGapMs = remote ? 1000 / 15 : 0;
     const inflight = new Set<Promise<void>>();
     let lastSeen = performance.now();
@@ -233,17 +249,21 @@ export function LiveCoach({
     let lastSent = 0;
     let failure: unknown = null;
 
-    const handle = (n: number, w: number, h: number, r: Awaited<ReturnType<typeof estimator.estimate>>) => {
+    type Result = { pose: CanonicalPose | null; stats: EstimatorStats; raw2d: Float32Array | null };
+    const handle = (n: number, w: number, h: number, r: Result) => {
       if (n < lastDone || !runningRef.current) return; // never go back in time
       lastDone = n;
       const { pose, stats: s, raw2d } = r;
-      const { tracking } = tracker.update(raw2d, w, h);
+      // MediaPipe reports "nobody in frame" as no pose at all.
+      const { tracking } = pose && raw2d ? tracker.update(raw2d, w, h) : { tracking: false };
       const now = performance.now();
       if (tracking) lastSeen = now;
       const visible = now - lastSeen < 1000;
       setInFrame((prev) => (prev === visible ? prev : visible));
-      draw(canvas, w, h, pose, visible);
-      if (visible) onPoseRef.current?.(pose);
+      if (pose) {
+        draw(canvas, w, h, pose, visible);
+        if (visible) onPoseRef.current?.(pose);
+      }
       fps = fps ? fps * 0.9 + (1000 / (now - last)) * 0.1 : 1000 / (now - last);
       last = now;
       if (frames === 2) {
@@ -276,12 +296,13 @@ export function LiveCoach({
         failure = new Error("The pose worker stopped. Tap Start again.");
         break;
       }
+      if (onMainThread) await new Promise((r) => requestAnimationFrame(r));
       lastSent = performance.now();
       const w = v.videoWidth, h = v.videoHeight;
       const n = ++seq;
       // The estimator crops the person out of the live <video> here on the main thread; only that crop goes on.
-      const p: Promise<void> = estimator
-        .estimate(v, w, h, tracker.current(w, h))
+      const p: Promise<void> = Promise.resolve()
+        .then((): Result | Promise<Result> => estimator.estimate(v, w, h, tracker.current(w, h)))
         .then((r) => handle(n, w, h, r))
         .catch((e: unknown) => {
           if (!isSkippedFrame(e)) failure ??= e; // a frame the laptop dropped or couldn't read is just skipped

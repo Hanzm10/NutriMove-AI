@@ -1,5 +1,5 @@
 {
-  "$comment": "Thresholds in degrees / metres (PRD Appendix C). Squat and lunge tuned on team clips on Day 6 (docs/evaluation.md); push-up keeps the starting values until clips filmed in landscape are labelled. POSE-17.",
+  "$comment": "Thresholds in degrees / metres (PRD Appendix C). Squat and lunge tuned on team clips on Day 6 (docs/evaluation.md); push-up keeps the starting values until clips filmed in landscape are labelled. POSE-17. 'backends' overrides values per pose model (docs/pose-optimization-plan.md, Phase 2).",
   "common": {
     "minRepMs": 600,
     "maxRepMs": 8000,
@@ -12,7 +12,10 @@
     "bottom": 95,
     "shallowFloor": 135,
     "torsoLeanMax": 55,
-    "valgusDrop": 0.9
+    "valgusDrop": 0.9,
+    "frontViewMin": 0.55,
+    "valgusFrontMax": 0.85,
+    "valgusSide": true
   },
   "pushup": {
     "top": 155,
@@ -26,5 +29,17 @@
     "bottom": 100,
     "shallowFloor": 120,
     "torsoLeanMax": 50
+  },
+  "backends": {
+    "$comment": "MediaPipe Pose Landmarker reads the knee 8-20 deg straighter and the torso ~10-15 deg more forward than InstantHMR, and its 3D can't see knee cave-in from the side (Phase 0). Squat tuned on 4 team clips (side good/mixed, front good/knees-in). Push-up and lunge are not yet validated on MediaPipe and use the InstantHMR values.",
+    "mediapipe": {
+      "squat": {
+        "top": 155,
+        "bottom": 110,
+        "shallowFloor": 145,
+        "torsoLeanMax": 70,
+        "valgusSide": false
+      }
+    }
   }
 }
