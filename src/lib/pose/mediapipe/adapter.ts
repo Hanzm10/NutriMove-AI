@@ -2,6 +2,7 @@
 // (tracker, replay files, canonical joints). Only the 18 joints NutriMove needs are filled; the rest stay NaN.
 // Pure, no MediaPipe import: unit-tested.
 import { MHR70, NUM_JOINTS } from "../instanthmr/skeleton";
+import type { JointName } from "../types";
 
 /** BlazePose landmark indices (person's own left/right, like MHR70). */
 export const BLAZEPOSE = {
@@ -38,7 +39,13 @@ export type Mhr70Joints = {
   joints3d: Float32Array | null;
   /** Lowest visibility (0–1) among the mapped body joints: a cheap "is the whole body in view" signal. */
   minVisibility: number;
+  /** Per canonical joint (0–1), for the exercise engine's visibility gate. */
+  visibility: Partial<Record<JointName, number>>;
 };
+
+/** BlazePose name → canonical joint name (left_knee → l_knee, foot_index → big_toe). */
+const canonicalName = (blaze: string) =>
+  blaze.replace(/^left_/, "l_").replace(/^right_/, "r_").replace("foot_index", "big_toe") as JointName;
 
 /**
  * `landmarks` are normalised image coordinates (0–1); `world` are MediaPipe's metric world landmarks for the same pose.
@@ -52,6 +59,9 @@ export function blazePoseToMhr70(
   const joints2d = new Float32Array(NUM_JOINTS * 2).fill(NaN);
   const joints3d = world ? new Float32Array(NUM_JOINTS * 3).fill(NaN) : null;
   let minVisibility = 1;
+  const visibility: Partial<Record<JointName, number>> = {};
+  for (const [name, b] of Object.entries(BLAZEPOSE)) visibility[canonicalName(name)] = landmarks[b]?.visibility ?? 1;
+  visibility.neck = Math.min(visibility.l_shoulder ?? 1, visibility.r_shoulder ?? 1);
   for (const [m, b] of TO_MHR70) {
     const p = landmarks[b];
     if (!p) continue;
@@ -66,7 +76,7 @@ export function blazePoseToMhr70(
   joints2d[n * 2] = (joints2d[ls * 2]! + joints2d[rs * 2]!) / 2;
   joints2d[n * 2 + 1] = (joints2d[ls * 2 + 1]! + joints2d[rs * 2 + 1]!) / 2;
   if (joints3d) for (let k = 0; k < 3; k++) joints3d[n * 3 + k] = (joints3d[ls * 3 + k]! + joints3d[rs * 3 + k]!) / 2;
-  return { joints2d, joints3d, minVisibility };
+  return { joints2d, joints3d, minVisibility, visibility };
 }
 
 /** Benchmark sanity check: in an upright pose the ankles must be below the shoulders in 3D (Y down). */

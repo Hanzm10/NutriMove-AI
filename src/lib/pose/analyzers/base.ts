@@ -22,6 +22,8 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
   errorCounts: Record<string, number> = {};
   private counter: RepCounter;
   private repErrors = new Set<string>();
+  /** Gates as seen at the deepest frame of the current attempt (Phase 3). */
+  private deepest = { angle: Infinity, gate: null as FrameMetrics["gate"] | null };
   private lastCueAt: Record<string, number> = {};
   private lastAnyCueAt = -Infinity;
 
@@ -59,24 +61,35 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
     }
 
     const outcome = this.counter.update(m.angle, t);
-    if (outcome?.kind === "rep") {
+    if (this.counter.inRep && m.angle < this.deepest.angle) this.deepest = { angle: m.angle, gate: m.gate ?? null };
+    const g = this.deepest.gate;
+    const voidedBy = outcome?.kind === "rep" ? (g?.any ?? g?.rep) : outcome?.kind === "partial" ? g?.any : null;
+    if (outcome && voidedBy) {
+      events.push({ type: "ignored", gate: voidedBy, minAngle: outcome.minAngle });
+      this.endAttempt();
+    } else if (outcome?.kind === "rep") {
       this.reps++;
       const errors = [...this.repErrors];
       if (errors.length === 0) this.goodReps++;
       errors.forEach((e) => (this.errorCounts[e] = (this.errorCounts[e] ?? 0) + 1));
       events.push({ type: "rep", index: this.reps, good: errors.length === 0, errors, minAngle: outcome.minAngle, durationMs: outcome.durationMs });
-      this.repErrors.clear();
+      this.endAttempt();
     } else if (outcome?.kind === "partial") {
       const errors = [this.spec.depthCode, ...this.repErrors];
       this.errorCounts[this.spec.depthCode] = (this.errorCounts[this.spec.depthCode] ?? 0) + 1;
       events.push({ type: "partial", errors, minAngle: outcome.minAngle });
       const cue = this.pickCue([this.spec.depthCode], t);
       if (cue) events.push({ type: "cue", cue });
-      this.repErrors.clear();
+      this.endAttempt();
     } else if (!this.counter.inRep) {
-      this.repErrors.clear();
+      this.endAttempt();
     }
     return events;
+  }
+
+  private endAttempt() {
+    this.repErrors.clear();
+    this.deepest = { angle: Infinity, gate: null };
   }
 
   reset() {
@@ -84,7 +97,7 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
     this.reps = 0;
     this.goodReps = 0;
     this.errorCounts = {};
-    this.repErrors.clear();
+    this.endAttempt();
     this.lastCueAt = {};
     this.lastAnyCueAt = -Infinity;
   }

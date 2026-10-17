@@ -30,6 +30,18 @@ describe("BlazePose → MHR70 adapter", () => {
     expect(Number.isNaN(j.joints2d[1 * 2])).toBe(true); // MHR70 slot 1 has no BlazePose equivalent
   });
 
+  it("reports each canonical joint's visibility for the exercise engine's visibility gate", () => {
+    const { image, world } = standing();
+    image[BLAZEPOSE.left_ankle] = { ...image[BLAZEPOSE.left_ankle]!, visibility: 0.1 };
+    image[BLAZEPOSE.right_foot_index] = { ...image[BLAZEPOSE.right_foot_index]!, visibility: 0.3 };
+    const v = blazePoseToMhr70(image, world, 640, 480).visibility;
+    expect(v.l_ankle).toBeCloseTo(0.1);
+    expect(v.r_ankle).toBeCloseTo(0.95);
+    expect(v.r_big_toe).toBeCloseTo(0.3);
+    expect(v.neck).toBeCloseTo(0.95);
+    expect(Object.keys(v)).toHaveLength(18); // every canonical joint
+  });
+
   it("uses the foot index as the big toe and the shoulder midpoint as the neck (2D and 3D)", () => {
     const { image, world } = standing();
     image[BLAZEPOSE.left_foot_index] = { x: 0.6, y: 0.95, z: 0, visibility: 0.9 };

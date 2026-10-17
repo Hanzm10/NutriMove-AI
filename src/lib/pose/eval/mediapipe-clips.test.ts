@@ -22,7 +22,7 @@ function standingView(clip: ClipJoints) {
     if (!f.v) continue;
     const p = frameToPose(f);
     const j = p.joints3d!;
-    if ((angleAt(j.l_hip, j.l_knee, j.l_ankle) + angleAt(j.r_hip, j.r_knee, j.r_ankle)) / 2 < mp.squat.top) continue;
+    if ((angleAt(j.l_hip, j.l_knee, j.l_ankle) + angleAt(j.r_hip, j.r_knee, j.r_ankle)) / 2 < (mp.squat.params.top as number)) continue;
     const v = shoulderTorsoRatio(p);
     if (v != null) w.push(v);
   }
@@ -34,8 +34,8 @@ describe("camera angle detection", () => {
     const front = load("mediapipe-squat-front.joints.json").map(standingView);
     const side = [...load("mediapipe-squat-side.joints.json"), ...load("squat-day6.joints.json")].map(standingView);
     console.log("view ratio  front:", front.map((v) => v.toFixed(2)).join(" "), " side:", side.map((v) => v.toFixed(2)).join(" "));
-    expect(Math.min(...front)).toBeGreaterThanOrEqual(mp.squat.frontViewMin);
-    expect(Math.max(...side)).toBeLessThan(mp.squat.frontViewMin);
+    expect(Math.min(...front)).toBeGreaterThanOrEqual((mp.squat.params.frontViewMin as number));
+    expect(Math.max(...side)).toBeLessThan((mp.squat.params.frontViewMin as number));
   });
 });
 

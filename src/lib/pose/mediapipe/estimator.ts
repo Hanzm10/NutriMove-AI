@@ -91,7 +91,7 @@ export class MediaPipePoseEstimator {
     const lm = res.landmarks[0];
     if (!lm) return { pose: null, stats, raw2d: null, found: false as const, minVisibility: 0 };
     const j = blazePoseToMhr70(lm, res.worldLandmarks[0] ?? null, frameW, frameH);
-    const pose = mhr70ToCanonical(j.joints2d, j.joints3d, box, performance.now());
+    const pose = { ...mhr70ToCanonical(j.joints2d, j.joints3d, box, performance.now()), visibility: j.visibility };
     return { pose, stats, raw2d: j.joints2d, raw3d: j.joints3d, found: true as const, minVisibility: j.minVisibility };
   }
 

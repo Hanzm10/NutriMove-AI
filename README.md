@@ -80,8 +80,8 @@ New migrations: add a file under `supabase/migrations/` and apply it with `pnpm 
 ## Camera coach
 
 `/workout/live?exercise=squat|pushup|reverse-lunge` asks for camera consent once (AUTH-03), then:
-InstantHMR in a Web Worker → One-Euro smoothing → exercise analyzer (rep state machine + form checks,
-thresholds in `src/lib/pose/analyzers/exercise-rules.json`) → rep counter, cue banner, spoken cues (Web Speech),
+MediaPipe on the device (InstantHMR as the fallback) → One-Euro smoothing → exercise engine (rep state machine, form
+checks and edge-case gates; each exercise is data in `src/lib/pose/analyzers/exercise-rules.json`, read by `engine.ts`) → rep counter, cue banner, spoken cues (Web Speech),
 3D skeleton (three.js), rest timer, summary and save (`workout_sessions` + `session_sets`, aggregates only).
 
 Query flags:
