@@ -130,13 +130,45 @@ Per-rep signals explain why:
 - **Forward lean:** the one labelled lean rep reaches 81° vs 52–61° on good reps, so a ~70° limit would separate them.
   With a single example it can't be scored reliably (it also lands on a misaligned rep).
 
+### Results: front-view clips (`squat_good_10`, `squat_knees-in_10`, MediaPipe full)
+
+From the front, knee cave-in is very clear (knee spacing ÷ ankle spacing at the bottom of each rep):
+
+| | Good reps (10) | Knees-in reps (10) |
+|---|---|---|
+| 3D | 1.02 – 1.16 | 0.59 – 0.73 |
+| 2D | 1.18 – 1.32 | 0.58 – 0.81 |
+
+The app still caught only 1/10, because of **a bug in the current knee check, which affects both models.** The "standing
+spacing" baseline keeps updating between reps. If the knees stay slightly in near the top, it drifts down (0.89 → 0.70)
+and the bottom then looks normal.
+
+Fixes tried on all six labelled clips:
+
+| Knee check | InstantHMR side | MediaPipe side | MediaPipe front |
+|---|---|---|---|
+| Current (drifting baseline) | F1 0.73 | 0.22 | 0.18 |
+| A: baseline frozen at the first rep | 0.47 | 0.29 | 0.33 |
+| B: absolute floor (knees < 0.85 × ankle width) | 0.28 (20 false alarms) | 0.34 (19 false alarms) | **1.00** (10/10, 0 false alarms) |
+
+The right check depends on the camera angle. The app can tell the angle itself: **shoulder width ÷ torso height while
+standing** is 0.62–0.72 facing the camera and 0.10–0.41 (median) side-on or at 45°. A ~0.55 cutoff separates them.
+
+**Proposed knee rule (Phase 2):**
+- **Facing the camera:** absolute floor 0.85 (both models).
+- **Side/45° with InstantHMR:** current relative rule.
+- **Side/45° with MediaPipe:** no knee check, with the tip "face the camera to check your knees".
+
 ### Decision
 
 - **Speed gate: passed** (20–40× faster on iPhone).
 - **Accuracy gate: failed for squat form checks** (macro-F1 0.38 vs 0.75), because knee cave-in isn't detectable from the
   recommended camera angle.
 - **For the demo:** keep InstantHMR (laptop coach) as is.
-- **After the demo:** a hybrid, if wanted:
+- **Front-view update (above):** with a view-aware knee rule, MediaPipe catches knee cave-in perfectly from the front.
+  So the hybrid is viable. Next: Phase 1 (`?pose=mediapipe`) + Phase 2 (per-model thresholds, view-aware knee rule, fixed
+  baseline), validated on all six clips before MediaPipe becomes the default.
+- **Original plan (before the front-view clips):** a hybrid, if wanted:
   - MediaPipe full on phones for rep counting, depth and lean, with re-tuned per-model thresholds.
   - Knee cave-in checked only when the user films from the **front** (2D knee-inside-ankle test). This needs new
     front-view clips to validate.
