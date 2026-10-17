@@ -76,18 +76,47 @@ Memory is only reported in Chrome/Edge; Safari has no memory API.
 **Check the "3D ok" column:** it must be close to 100 % while standing. It confirms that MediaPipe's 3D points use the
 same up/down direction as our form checks.
 
-### Results: speed and memory (`/dev/pose-bench`)
+### Results: speed and memory (`/dev/pose-bench`, Oct 17)
 
-| Device | Model | Load | FPS | p50 / p95 ms | Person found | 3D ok | Memory |
+| Device | Model | Load | FPS | p50 / p95 ms | Person found | 3D ok | Memory (JS) |
 |---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Windows laptop | MediaPipe lite · GPU | 4.4 s | 66.6 | 10.8 / 16.1 | 100 % | 100 % | 52 MB |
+| Windows laptop | MediaPipe full · GPU | 2.9 s | 56.6 | 15.9 / 24.7 | 100 % | 100 % | 71 MB |
+| Windows laptop | MediaPipe lite · CPU | 0.3 s | 27.5 | 34.3 / 49.0 | 100 % | 100 % | 17 MB |
+| Windows laptop | InstantHMR lite · WASM | 14.7 s | 5.2 | 183 / 229 | 100 % | – | 10 MB (worker not counted) |
+| Windows laptop | InstantHMR full · WebGPU | 13.9 s | 8.6 | 80 / 97 | 100 % | – | 10 MB (worker not counted) |
+| iPhone | MediaPipe lite · GPU | 2.3 s | 32.1 | 17.6 / 21.6 | 100 % | 100 % | – |
+| iPhone | MediaPipe full · GPU | 1.8 s | 52.1 | 18.1 / 20.4 | 100 % | 100 % | – |
+| iPhone | MediaPipe lite · CPU | 0.8 s | 56.3 | 17.3 / 18.7 | 100 % | 100 % | – |
+| iPhone | InstantHMR lite · WASM | 10.2 s | 1.4 | 650 / 1055 | 100 % | – | – |
+| iPhone | InstantHMR full | – | – | – | – | – | crashed |
 
-### Results: accuracy (`/dev/replay`, team videos, current thresholds)
+FPS is capped by the camera/display refresh, so 52–66 fps means "faster than the camera". MediaPipe is **20–40× faster on
+iPhone** and loads 5–10× faster. The "3D ok" column is 100 % everywhere: MediaPipe's 3D points use our up/down convention.
+"vis" (lowest visibility over all 17 joints) was 0–0.03 in every run, because heels/toes or wrists were out of view.
+Phase 1 should check only the joints each exercise needs. Android was skipped (not needed for the decision).
 
-| Model | Squat rep acc. | Squat macro-F1 | Lunge reps | Push-up | Notes |
+### Results: accuracy (`squat_good_12`, team video, InstantHMR-tuned thresholds unchanged)
+
+| Model | Reps found | Counted as good | False form flags | Bottom knee angle (12 reps) | Knee angle vs InstantHMR |
 |---|---|---|---|---|---|
-| InstantHMR (baseline, Day 6) | 100 % | 0.91 | 15/15 | not usable (portrait clips) | thresholds were tuned on this model |
-| MediaPipe lite | | | | | |
-| MediaPipe full | | | | | |
+| InstantHMR (baseline) | 12/12 | 12 | none | 61–79° | – |
+| MediaPipe lite | 12/12 | 12 | torso lean on 7 reps | 79–92° | r = 0.70, mean diff 11°, noisy (one 15° glitch) |
+| MediaPipe full | 12/12 (7 full + 5 "shallow") | 7 | shallow ×5, torso lean ×9, knee cave-in ×1 | 78–102° | r = 0.95, mean diff 11°, reads ~8° straighter |
 
-The MediaPipe accuracy runs use thresholds tuned for InstantHMR. A lower first score is expected; Phase 2 re-tunes them.
+What this means:
+- **Rep counting transfers as-is:** both MediaPipe models found every one of the 12 squats.
+- **Form thresholds don't transfer, which was expected.** MediaPipe reads the knee about 8–15° straighter at the bottom,
+  so 5 deep squats fall short of our 95° depth line. It also puts the torso about 10–15° further forward (lean p90 57° vs
+  44°), with occasional glitch frames, so the 55° lean limit fires on good reps. These are Phase 2 re-tuning items
+  (per-model thresholds), plus Phase 3 robustness (require a fault on several frames in a row).
+- **MediaPipe full tracks InstantHMR much more closely than lite** (r = 0.95 vs 0.70) at the same iPhone speed.
+
+### Decision
+
+- **Speed gate: passed.**
+- **Accuracy gate: pending re-tuning.** One good-form clip can't measure false negatives.
+- **Next:** go ahead with Phase 1 using **MediaPipe full** (GPU, CPU fallback), keeping InstantHMR as a fallback. Then
+  re-tune depth and lean thresholds for MediaPipe in Phase 2, using `squat_good_12` + `squat_mixed_13` replayed through
+  MediaPipe full. Until Phase 2 passes the PRD targets (rep accuracy ≥ 90 %, form F1 ≥ 0.75), keep InstantHMR thresholds
+  for InstantHMR.

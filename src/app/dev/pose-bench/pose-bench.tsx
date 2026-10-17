@@ -81,7 +81,9 @@ export function PoseBench() {
           prefer: backend === "instanthmr-lite" ? "wasm" : "webgpu",
         });
       }
-      const { backend: label } = await est.load();
+      const loaded = await est.load();
+      // InstantHMR reports only its execution provider ("wasm"/"webgpu"); name the model too.
+      const label = est instanceof MediaPipePoseEstimator ? loaded.backend : `${backend} (${loaded.backend})`;
       const loadMs = performance.now() - t0;
       const samples: BenchSample[] = [];
       const tracker = new BoxTracker();
