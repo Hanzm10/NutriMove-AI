@@ -23,6 +23,9 @@ export type Stats = { fps: number; inferenceMs: number; backend: string; latency
  * Live camera + InstantHMR skeleton (POSE-01…04, 08). Frames stay on this device and are closed right after
  * inference. Exercise analyzers plug in via `onPose` (Day 3).
  */
+/** Frame loops running right now; must never exceed 1. Exposed with ?debug for scripts/coach-soak.mjs. */
+const loops = { active: 0, max: 0 };
+
 export function LiveCoach({
   onPose,
   onStats,
@@ -57,6 +60,9 @@ export function LiveCoach({
   const slotRef = useRef<EstimatorSlot<InstantHmrEstimator | RemotePoseEstimator | MediaPipePoseEstimator> | null>(null);
   const slot = () => (slotRef.current ??= new EstimatorSlot());
   const runningRef = useRef(false);
+  // Each Start gets a new run id and Stop bumps it, so a frame loop from an earlier run (e.g. one still waiting for an
+  // animation frame when Stop was tapped) exits instead of running alongside the new one.
+  const runIdRef = useRef(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +74,9 @@ export function LiveCoach({
     () => parseLoadParams(location.search).debug,
     () => false,
   );
+  useEffect(() => {
+    if (debug) (window as unknown as { __nmCoachLoops?: typeof loops }).__nmCoachLoops = loops;
+  }, [debug]);
   // The speed readout (fps, round trip) can also be switched on with a button: typing ?debug=1 on a phone is fiddly.
   const statsOn = useSyncExternalStore(
     subscribeStatsPref,
@@ -217,7 +226,7 @@ export function LiveCoach({
       setPhase("running");
       frameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       runningRef.current = true;
-      void loop();
+      void loop(++runIdRef.current);
     } catch (e) {
       const name = (e as DOMException)?.name;
       setError(
@@ -232,7 +241,7 @@ export function LiveCoach({
     }
   }
 
-  async function loop() {
+  async function loop(run: number) {
     const v = videoRef.current!;
     const canvas = canvasRef.current!;
     const estimator = slot().get();
@@ -242,6 +251,21 @@ export function LiveCoach({
       stop();
       return;
     }
+    loops.active++;
+    loops.max = Math.max(loops.max, loops.active);
+    try {
+      await runFrames(v, canvas, estimator, () => runningRef.current && runIdRef.current === run);
+    } finally {
+      loops.active--;
+    }
+  }
+
+  async function runFrames(
+    v: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    estimator: NonNullable<ReturnType<ReturnType<typeof slot>["get"]>>,
+    current: () => boolean,
+  ) {
     const tracker = new BoxTracker();
     // Over the tunnel the laptop coach is limited by the network round trip, not the model, so it keeps a few frames
     // in flight (each uses the latest known person box; the estimator picks how many) and caps capture at 15 fps.
@@ -262,7 +286,7 @@ export function LiveCoach({
 
     type Result = { pose: CanonicalPose | null; stats: EstimatorStats; raw2d: Float32Array | null };
     const handle = (n: number, w: number, h: number, r: Result) => {
-      if (n < lastDone || !runningRef.current) return; // never go back in time
+      if (n < lastDone || !current()) return; // never go back in time, never draw for a stopped run
       lastDone = n;
       const { pose, stats: s, raw2d } = r;
       // MediaPipe reports "nobody in frame" as no pose at all.
@@ -288,7 +312,7 @@ export function LiveCoach({
       }
     };
 
-    while (runningRef.current && !failure) {
+    while (current() && !failure) {
       if (v.readyState < 2) {
         await new Promise((r) => requestAnimationFrame(r));
         continue;
@@ -308,6 +332,9 @@ export function LiveCoach({
         break;
       }
       if (onMainThread) await new Promise((r) => requestAnimationFrame(r));
+      // Every wait above can outlast a Stop: re-check before handing the model a frame. A stopped camera leaves a 0×0
+      // video, and MediaPipe's graph stays broken after one empty frame.
+      if (!current() || v.readyState < 2 || !v.videoWidth || !v.videoHeight) continue;
       lastSent = performance.now();
       const w = v.videoWidth, h = v.videoHeight;
       const n = ++seq;
@@ -322,7 +349,7 @@ export function LiveCoach({
       inflight.add(p);
       if (!remote) await p;
     }
-    if (failure && runningRef.current) {
+    if (failure && current()) {
       setError(String(failure));
       setPhase("error");
       stop();
@@ -374,6 +401,7 @@ export function LiveCoach({
 
   function stop() {
     runningRef.current = false;
+    runIdRef.current++;
     stopCamera();
     setPhase((p) => (p === "running" ? "idle" : p)); // functional: also correct from the mount-time effect
   }
