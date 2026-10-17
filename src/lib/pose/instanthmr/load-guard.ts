@@ -149,6 +149,22 @@ export function parseLoadParams(search: string) {
     ep: q.get("ep") === "wasm" ? ("wasm" as const) : null,
     threads: Number.isInteger(threads) && threads >= 1 && threads <= 8 ? threads : null,
     debug: q.has("debug"),
-    pose: q.get("pose") === "device" ? ("device" as const) : null,
+    // "device": ignore a laptop pairing; "mediapipe" / "instanthmr": force that model on this device.
+    pose: (["device", "mediapipe", "instanthmr"] as const).find((p) => p === q.get("pose")) ?? null,
   };
+}
+
+export type PoseSource = "mediapipe" | "instanthmr" | "remote";
+
+/**
+ * Which pose estimators to try, in order. MediaPipe is the default (20–40× faster on phones) and InstantHMR is the
+ * fallback when it can't load (docs/pose-optimization-plan.md). A paired laptop wins unless ?pose= says otherwise;
+ * InstantHMR's own debug params (?rung, ?model, ?ep, ?threads) or ?pose=instanthmr skip MediaPipe. Pure.
+ */
+export function posePlan(params: ReturnType<typeof parseLoadParams>, paired: boolean): PoseSource[] {
+  if (params.pose === "instanthmr") return ["instanthmr"];
+  if (params.pose === "mediapipe") return ["mediapipe", "instanthmr"];
+  if (paired && params.pose !== "device") return ["remote"];
+  if (params.rung || params.model || params.ep || params.threads) return ["instanthmr"];
+  return ["mediapipe", "instanthmr"];
 }

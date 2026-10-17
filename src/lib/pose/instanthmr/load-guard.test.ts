@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RUNGS, createLoadGuard, defaultRung, nextRung, parseLoadParams } from "./load-guard";
+import { RUNGS, createLoadGuard, defaultRung, nextRung, parseLoadParams, posePlan } from "./load-guard";
 
 const memory = () => {
   const m = new Map<string, string>();
@@ -107,5 +107,30 @@ describe("parseLoadParams", () => {
     });
     expect(parseLoadParams("?rung=nope&threads=99&model=//evil.com/x.onnx")).toMatchObject({ rung: null, threads: null, model: null, debug: false });
     expect(parseLoadParams("?model=/models/a.onnx").model).toBe("/models/a.onnx");
+  });
+});
+
+describe("pose model choice", () => {
+  const plan = (search: string, paired = false) => posePlan(parseLoadParams(search), paired);
+
+  it("uses MediaPipe by default, with InstantHMR as the fallback", () => {
+    expect(plan("")).toEqual(["mediapipe", "instanthmr"]);
+    expect(plan("?pose=device", true)).toEqual(["mediapipe", "instanthmr"]);
+  });
+
+  it("uses a paired laptop unless ?pose= says otherwise", () => {
+    expect(plan("", true)).toEqual(["remote"]);
+    expect(plan("?pose=mediapipe", true)).toEqual(["mediapipe", "instanthmr"]);
+  });
+
+  it("goes straight to InstantHMR when asked, or when its debug params are set", () => {
+    expect(plan("?pose=instanthmr", true)).toEqual(["instanthmr"]);
+    expect(plan("?rung=lite-wasm")).toEqual(["instanthmr"]);
+    expect(plan("?model=lite")).toEqual(["instanthmr"]);
+    expect(plan("?ep=wasm")).toEqual(["instanthmr"]);
+  });
+
+  it("ignores unknown ?pose= values", () => {
+    expect(parseLoadParams("?pose=yolo").pose).toBeNull();
   });
 });

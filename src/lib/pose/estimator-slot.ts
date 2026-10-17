@@ -36,9 +36,10 @@ export class EstimatorSlot<T extends SlotEstimator> {
    * Reuses the current estimator when it is alive and was made for the same setup (`key`); otherwise disposes it
    * first and only then creates the new one, so two models are never in memory together.
    */
-  acquire(key: string, create: () => T): { est: T; reused: boolean } {
+  acquire<U extends T>(key: string, create: () => U): { est: U; reused: boolean } {
     const cur = this.get();
-    if (cur && this.current!.key === key) return { est: cur, reused: true };
+    // Same key ⇒ made by the same kind of factory, so it is a U.
+    if (cur && this.current!.key === key) return { est: cur as U, reused: true };
     this.release("replaced");
     const est = create();
     this.current = { key, est };

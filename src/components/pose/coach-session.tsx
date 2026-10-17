@@ -7,8 +7,9 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { saveSession } from "@/app/(app)/workout/actions";
 import { Button } from "@/components/ui/button";
-import { CUES, EXERCISE_SETUP, createAnalyzer } from "@/lib/pose/analyzers/exercises";
+import { CUES, EXERCISE_SETUP, createAnalyzer, rulesFor, type PoseModel } from "@/lib/pose/analyzers/exercises";
 import type { Cue, ExerciseKind } from "@/lib/pose/analyzers/types";
+import type { PoseSource } from "@/lib/pose/instanthmr/load-guard";
 import { PoseSmoother } from "@/lib/pose/one-euro";
 import { deviceClass, summarizeSpeed } from "@/lib/pose/speed";
 import type { CanonicalPose } from "@/lib/pose/types";
@@ -33,6 +34,7 @@ export function CoachSession({
 }) {
   const setup = EXERCISE_SETUP[kind];
   const analyzer = useRef(createAnalyzer(kind));
+  const model = useRef<PoseModel>("instanthmr");
   const smoother = useRef(new PoseSmoother());
   const poseRef = useRef<CanonicalPose | null>(null);
   const readySince = useRef<number | null>(null);
@@ -78,7 +80,7 @@ export function CoachSession({
     if (next.length >= targetSets) {
       setSummaryInfo({
         startedAt: sessionStart.current,
-        speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current },
+        speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current, model: model.current },
       });
       setMode("summary");
       speak("Great work. Session complete.");
@@ -96,6 +98,14 @@ export function CoachSession({
     setReps(0);
     setLastRep(null);
     setMode("active");
+  }
+
+  // MediaPipe joints need their own thresholds (docs/pose-optimization-plan.md). The paired laptop runs InstantHMR.
+  function onModel(source: PoseSource) {
+    const m: PoseModel = source === "mediapipe" ? "mediapipe" : "instanthmr";
+    if (m === model.current) return; // Stop → Start with the same model keeps the set's progress
+    model.current = m;
+    analyzer.current = createAnalyzer(kind, rulesFor(m));
   }
 
   // Rest countdown → next set automatically.
@@ -201,7 +211,7 @@ export function CoachSession({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
-        <LiveCoach onPose={onPose} onStats={onStats} hud={hud} />
+        <LiveCoach onPose={onPose} onStats={onStats} onModel={onModel} hud={hud} />
         <section className="hidden h-full min-h-72 overflow-hidden rounded-card border border-nm-line bg-white lg:block" aria-label="3D skeleton (drag to rotate)">
           <p className="px-4 pt-3 text-xs font-bold tracking-[0.12em] text-nm-primary-ink uppercase">3D view · drag to rotate</p>
           <div className="h-[calc(100%-2rem)]"><Skeleton3D poseRef={poseRef} /></div>
@@ -214,7 +224,7 @@ export function CoachSession({
   );
 }
 
-type SessionSpeed = ReturnType<typeof summarizeSpeed> & { remote: boolean };
+type SessionSpeed = ReturnType<typeof summarizeSpeed> & { remote: boolean; model: PoseModel };
 
 function Summary({ kind, slug, sets, planItemId, startedAt, speed }: {
   kind: ExerciseKind; slug: string; sets: SetResult[]; planItemId: string | null; startedAt: string; speed: SessionSpeed;
@@ -231,7 +241,7 @@ function Summary({ kind, slug, sets, planItemId, startedAt, speed }: {
   function save() {
     start(async () => {
       const res = await saveSession({
-        exerciseSlug: slug, planItemId, backend: speed.remote ? "remote" : "instanthmr",
+        exerciseSlug: slug, planItemId, backend: speed.remote ? "remote" : speed.model,
         avgFps: speed.avgFps, p50LatencyMs: speed.p50LatencyMs, p95LatencyMs: speed.p95LatencyMs,
         deviceClass: deviceClass(navigator.userAgent, navigator.maxTouchPoints), startedAt, rating, sets,
       });
