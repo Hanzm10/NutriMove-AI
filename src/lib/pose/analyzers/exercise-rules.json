@@ -1,5 +1,5 @@
 {
-  "$comment": "Thresholds in degrees / metres (PRD Appendix C). Squat and lunge tuned on team clips on Day 6 (docs/evaluation.md); push-up keeps the starting values until clips filmed in landscape are labelled. POSE-17. 'backends' overrides values per pose model (docs/pose-optimization-plan.md, Phase 2).",
+  "$comment": "Exercises as data (POSE-17, docs/pose-optimization-plan.md Phases 3-4), read by engine.ts. Each exercise: 'driver' = the joint angle that goes down and up once per rep (angle at the middle joint, both sides combined); 'params' = thresholds in degrees / metres / ratios (PRD Appendix C), tuned on team clips (docs/evaluation.md); 'checks' = form rules, each naming a rule from engine.ts, the cue code it raises and the params it reads ('below' = only while the driver is under that param); 'gates' = edge-case rules judged at the deepest frame of each attempt, voiding attempts that aren't the exercise ('on': 'rep' voids only full reps); 'visible' = body parts that must be in view (MediaPipe only reports visibility). Push-up keeps its starting values until landscape clips are labelled. 'backends' overrides params per pose model.",
   "common": {
     "minRepMs": 600,
     "maxRepMs": 8000,
@@ -8,27 +8,74 @@
     "cueCooldownMs": 2000
   },
   "squat": {
-    "top": 150,
-    "bottom": 95,
-    "shallowFloor": 135,
-    "torsoLeanMax": 55,
-    "valgusDrop": 0.9,
-    "frontViewMin": 0.55,
-    "valgusFrontMax": 0.85,
-    "valgusSide": true
+    "driver": { "joints": ["hip", "knee", "ankle"], "combine": "mean" },
+    "depthCode": "SQ_DEPTH",
+    "params": {
+      "top": 150,
+      "bottom": 95,
+      "shallowFloor": 135,
+      "torsoLeanMax": 55,
+      "valgusDrop": 0.9,
+      "frontViewMin": 0.55,
+      "valgusFrontMax": 0.85,
+      "valgusSide": true,
+      "hipDropMax": 0.9,
+      "minVisibility": 0.5
+    },
+    "visible": { "parts": ["hip", "knee", "ankle"], "min": "minVisibility" },
+    "gates": [
+      { "rule": "bothLegsBend", "max": "top" },
+      { "rule": "hipsDrop", "on": "rep", "maxRatio": "hipDropMax" }
+    ],
+    "checks": [
+      {
+        "rule": "kneeCave",
+        "code": "SQ_KNEE_VALGUS",
+        "below": "shallowFloor",
+        "frontViewMin": "frontViewMin",
+        "frontMax": "valgusFrontMax",
+        "sideDrop": "valgusDrop",
+        "side": "valgusSide"
+      },
+      { "rule": "torsoLean", "code": "SQ_TORSO_LEAN", "below": "shallowFloor", "max": "torsoLeanMax" }
+    ]
   },
   "pushup": {
-    "top": 155,
-    "bottom": 90,
-    "shallowFloor": 110,
-    "bodyLineMin": 160,
-    "hipOffsetM": 0.06
+    "driver": { "joints": ["shoulder", "elbow", "wrist"], "combine": "mean" },
+    "depthCode": "PU_DEPTH",
+    "params": {
+      "top": 155,
+      "bottom": 90,
+      "shallowFloor": 110,
+      "bodyLineMin": 160,
+      "hipOffsetM": 0.06,
+      "minVisibility": 0.5
+    },
+    "visible": { "parts": ["shoulder", "elbow", "wrist", "hip", "ankle"], "min": "minVisibility" },
+    "checks": [
+      { "rule": "hipLine", "code": "PU_HIP_SAG", "pikeCode": "PU_HIP_PIKE", "lineMin": "bodyLineMin", "offset": "hipOffsetM" }
+    ]
   },
   "lunge": {
-    "top": 145,
-    "bottom": 100,
-    "shallowFloor": 120,
-    "torsoLeanMax": 50
+    "$comment": "Driver 'min' = the front leg (the more bent knee). 'bothLegsBend' only voids full reps: in a shallow lunge the back leg can stay nearly straight (EC3D).",
+    "driver": { "joints": ["hip", "knee", "ankle"], "combine": "min" },
+    "depthCode": "LU_DEPTH",
+    "params": {
+      "top": 145,
+      "bottom": 100,
+      "shallowFloor": 120,
+      "torsoLeanMax": 50,
+      "hipDropMax": 0.9,
+      "minVisibility": 0.5
+    },
+    "visible": { "parts": ["hip", "knee", "ankle"], "min": "minVisibility" },
+    "gates": [
+      { "rule": "bothLegsBend", "on": "rep", "max": "top" },
+      { "rule": "hipsDrop", "on": "rep", "maxRatio": "hipDropMax" }
+    ],
+    "checks": [
+      { "rule": "torsoLean", "code": "LU_TORSO", "below": "shallowFloor", "max": "torsoLeanMax" }
+    ]
   },
   "backends": {
     "$comment": "MediaPipe Pose Landmarker reads the knee 8-20 deg straighter and the torso ~10-15 deg more forward than InstantHMR, and its 3D can't see knee cave-in from the side (Phase 0). Squat tuned on 4 team clips (side good/mixed, front good/knees-in). Push-up and lunge are not yet validated on MediaPipe and use the InstantHMR values.",

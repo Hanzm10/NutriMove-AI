@@ -208,3 +208,44 @@ InstantHMR's existing clip tests (`real-clips.test.ts`) still pass unchanged.
 
 **Still open:** the forward-lean threshold has only one labelled example; a front-view lean clip would validate it.
 Try it live on an iPhone and a laptop; if something looks off, `?pose=instanthmr` restores the previous coach.
+
+## 6. Phases 3–4: status
+
+Phase 4 was done first so the refactor could be checked against today's behaviour, then Phase 3 was built on it.
+
+**Phase 4: done. Exercises are data.** `exercise-rules.json` now describes each exercise; `analyzers/engine.ts` is the
+one interpreter that reads it:
+
+- `driver`: the angle that goes down and up once per rep (e.g. hip-knee-ankle, both sides combined: `mean`, or `min`
+  for the lunge's front leg).
+- `params`: thresholds (per-model overrides in `backends` still apply).
+- `checks`: form rules by name (`torsoLean`, `kneeCave`, `hipLine`), with the cue code each raises and the params
+  it reads.
+- `gates` and `visible`: Phase 3, below.
+
+A bad edit (unknown rule, param, joint or cue) throws when the analyzer is built, so the unit tests catch it before a
+workout does. Adding a check is one function in `engine.ts` plus a JSON entry.
+
+Gate: a golden snapshot of every decision (`eval/clips/analyzer-golden.json`, `src/lib/pose/eval/golden.test.ts`) on
+all 9 team clips and the 8 EC3D clips (kept locally, not committed). **Identical before and after**, and
+mutation-checked: moving one threshold fails it. Regenerate on purpose with `UPDATE_GOLDEN=1`.
+
+**Phase 3: done. Edge-case gates.** Judged at the deepest frame of each attempt; a failing gate voids the attempt
+(no rep, no shallow-rep cue) and reports which gate did it.
+
+| Gate | Rule | Measured on the real clips |
+| --- | --- | --- |
+| `bothLegsBend` | Both knees under `top` at the bottom | Real squats ≤ 148°, lunges ≤ 134° (straighter knee). Lunges apply it to full reps only: a shallow EC3D lunge kept its back leg at 177°. |
+| `hipsDrop` | Hip-to-planted-ankle height (2D) ≤ 0.9 × standing, full reps only | Real reps ≤ 0.83; shallow squats reach 0.96–1.00, so they still get the depth cue. |
+| `visible` | Hips, knees, ankles (push-up: shoulders, elbows, wrists, hips, ankles) in view, best side ≥ 0.5 | MediaPipe only; clip files don't store visibility, so 0.5 is a conservative default. |
+
+- One knee raised is never a rep or a shallow squat (squat and lunge, both models).
+- Knees bending while the hips stay up is not a rep.
+- Feet cut off from the frame: nothing is counted.
+- Side-on filming, with the far leg hidden, still counts.
+
+All have synthetic tests (`analyzers/gates.test.ts`) that fail without the gates.
+
+**Effect on real data: none.** The golden decisions are unchanged on every team clip and EC3D clip, so these rules
+only remove false counts that the clips didn't contain.
+

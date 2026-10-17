@@ -33,8 +33,9 @@ describe("thresholds per pose model", () => {
   it("InstantHMR uses the base values; MediaPipe overrides only what was re-tuned", () => {
     expect(rulesFor("instanthmr")).toBe(DEFAULT_RULES);
     const mp = rulesFor("mediapipe");
-    expect(mp.squat).toMatchObject({ top: 155, bottom: 110, shallowFloor: 145, torsoLeanMax: 70, valgusSide: false });
-    expect(mp.squat.valgusFrontMax).toBe(DEFAULT_RULES.squat.valgusFrontMax);
+    expect(mp.squat.params).toMatchObject({ top: 155, bottom: 110, shallowFloor: 145, torsoLeanMax: 70, valgusSide: false });
+    expect(mp.squat.params.valgusFrontMax).toBe(DEFAULT_RULES.squat.params.valgusFrontMax);
+    expect(mp.squat.checks).toBe(DEFAULT_RULES.squat.checks);
     expect(mp.lunge).toEqual(DEFAULT_RULES.lunge);
     expect(mp.common).toEqual(DEFAULT_RULES.common);
   });

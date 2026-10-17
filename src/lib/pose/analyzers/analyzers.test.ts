@@ -104,7 +104,8 @@ describe("lunge analyzer (POSE-11)", () => {
     const poses: ReturnType<typeof squatPose>[] = [];
     let t = 0;
     for (let r = 0; r < 3; r++) {
-      for (const k of repTrajectory(175, 90, 2000)) poses.push(squatPose(175, (t += FRAME), { leftKnee: k }));
+      // The back knee bends too, less than the front one (≤ 134° at the bottom in every team and EC3D lunge).
+      for (const k of repTrajectory(175, 90, 2000)) poses.push(squatPose(175 - (175 - k) * 0.6, (t += FRAME), { leftKnee: k }));
       for (let i = 0; i < 8; i++) poses.push(squatPose(175, (t += FRAME)));
     }
     const { a } = run("lunge", poses);

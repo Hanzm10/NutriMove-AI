@@ -19,6 +19,8 @@ export type CanonicalPose = {
   /** Person box used for this frame [x1, y1, x2, y2] in frame pixels. */
   box: readonly [number, number, number, number];
   timestamp: number;
+  /** How sure the model is that each joint is in view (0–1). Only MediaPipe reports it; absent means "assume visible". */
+  visibility?: Partial<Record<JointName, number>>;
 };
 
 export const CANONICAL_EDGES: ReadonlyArray<readonly [JointName, JointName]> = [
