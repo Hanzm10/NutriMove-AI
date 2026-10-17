@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
@@ -23,11 +24,19 @@ export async function createClient() {
   });
 }
 
+/**
+ * The request's Supabase client and verified user (a round trip to Supabase Auth). Cached per request, so the layout
+ * and the page share one check instead of making one each.
+ */
+export const getSession = cache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  return { supabase, user: data.user };
+});
+
 /** Current user or null. Use in Server Components / Actions (Data Access Layer). */
 export async function getUser() {
   await cookies(); // always render per request, even before Supabase is configured
   if (!supabaseEnv().configured) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  return data.user;
+  return (await getSession()).user;
 }
