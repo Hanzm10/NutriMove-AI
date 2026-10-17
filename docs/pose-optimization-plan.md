@@ -176,13 +176,22 @@ standing** is 0.62–0.72 facing the camera and 0.10–0.41 (median) side-on or 
 
 ## 5. Phases 1–2: status
 
-**Phase 1: done (opt-in).** Open the coach with `?pose=mediapipe` to run MediaPipe Pose Landmarker full (GPU, with CPU
-fallback) on the main thread, one frame per animation frame. The default is still InstantHMR. Sessions save with
-`backend: "mediapipe"`, so the latency export can compare the two.
+**Phase 1: done. MediaPipe is the default.** The coach runs MediaPipe Pose Landmarker full on the main thread (GPU,
+with CPU fallback), one frame per animation frame. **InstantHMR is the fallback** when MediaPipe can't load (it then
+runs its usual crash-safe ladder). The order is decided by `posePlan()` in `instanthmr/load-guard.ts`:
+
+| Situation | Tried in order |
+| --- | --- |
+| Default | MediaPipe → InstantHMR |
+| Laptop paired | laptop coach (unless `?pose=` is set) |
+| `?pose=instanthmr`, or InstantHMR debug params (`?rung`, `?model`, `?ep`, `?threads`) | InstantHMR only |
+
+The coach reports which model actually loaded, so the session uses that model's thresholds and saves it as the
+`backend` (`mediapipe`, `instanthmr` or `remote`); the latency export can compare them.
 
 **Phase 2: done.**
 - Per-model thresholds: `exercise-rules.json` → `backends.mediapipe` (squat top 155°, bottom 110°, shallow floor 145°,
-  lean limit 70°). The coach uses `rulesFor("mediapipe")` with `?pose=mediapipe`.
+  lean limit 70°). The coach uses `rulesFor("mediapipe")` whenever MediaPipe is the model running.
 - View-aware knee check (`analyzers/view.ts`). The camera angle is the median shoulder-width ÷ torso-height ratio over
   about 10 s of standing frames: facing the camera is ≥ 0.55 (measured 0.66–0.67), side/45° is 0.10–0.41.
   - Facing the camera: knees caved in when knee spacing < 0.85 × ankle spacing. This is an absolute rule, so there is no
@@ -198,4 +207,4 @@ fallback) on the main thread, one frame per animation frame. The default is stil
 InstantHMR's existing clip tests (`real-clips.test.ts`) still pass unchanged.
 
 **Still open:** the forward-lean threshold has only one labelled example; a front-view lean clip would validate it.
-Make MediaPipe the default on phones once it has been tried live on an iPhone.
+Try it live on an iPhone and a laptop; if something looks off, `?pose=instanthmr` restores the previous coach.

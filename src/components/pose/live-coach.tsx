@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { pushupPose, repTrajectory, squatPose } from "@/lib/pose/analyzers/synthetic";
 import { EstimatorSlot } from "@/lib/pose/estimator-slot";
 import { InstantHmrEstimator } from "@/lib/pose/instanthmr/estimator";
-import { createLoadGuard, defaultRung, parseLoadParams, type LoadGuard, type Rung } from "@/lib/pose/instanthmr/load-guard";
+import { createLoadGuard, defaultRung, parseLoadParams, posePlan, type LoadGuard, type PoseSource, type Rung } from "@/lib/pose/instanthmr/load-guard";
 import { DEFAULT_MODEL_URL, LITE_MODEL_URL, isIOS } from "@/lib/pose/instanthmr/session";
 import { MediaPipePoseEstimator } from "@/lib/pose/mediapipe/estimator";
 import { RemotePoseEstimator, isSkippedFrame } from "@/lib/pose/remote/estimator";
@@ -26,11 +26,14 @@ export type Stats = { fps: number; inferenceMs: number; backend: string; latency
 export function LiveCoach({
   onPose,
   onStats,
+  onModel,
   hud,
   startLabel = "Start camera coach",
 }: {
   onPose?: (pose: CanonicalPose) => void;
   onStats?: (s: Stats) => void;
+  /** Which pose model ended up running (MediaPipe by default, InstantHMR if it couldn't load, or the paired laptop). */
+  onModel?: (m: PoseSource) => void;
   /** Overlay drawn on top of the video while running (rep counter, cues…). */
   hud?: React.ReactNode;
   startLabel?: string;
@@ -38,9 +41,11 @@ export function LiveCoach({
   // Keep the latest callbacks without restarting the camera loop.
   const onPoseRef = useRef(onPose);
   const onStatsRef = useRef(onStats);
+  const onModelRef = useRef(onModel);
   useEffect(() => {
     onPoseRef.current = onPose;
     onStatsRef.current = onStats;
+    onModelRef.current = onModel;
   });
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -119,11 +124,12 @@ export function LiveCoach({
       setPhase("loading");
       const params = parseLoadParams(location.search);
       const guard = getGuard();
-      const pairing = params.pose ? null : loadPairing(safeStorage());
+      const pairing = loadPairing(safeStorage());
+      const plan = posePlan(params, pairing != null);
       let ready = false;
       let lastError = "";
-      if (params.pose === "mediapipe") {
-        // MediaPipe Pose Landmarker full: ~6 MB, real-time on phones (docs/pose-optimization-plan.md, Phase 1).
+      if (plan[0] === "mediapipe") {
+        // MediaPipe Pose Landmarker full: ~6 MB, real-time on phones (docs/pose-optimization-plan.md).
         setRungLabel("MediaPipe full");
         const { est, reused } = slot().acquire("mediapipe|full", () => new MediaPipePoseEstimator("full", "GPU"));
         setProgress("Loading coach model…");
@@ -131,11 +137,14 @@ export function LiveCoach({
           if (!reused) await est.load();
           setLines([`ready: ${est.backendLabel}`]);
           ready = true;
+          onModelRef.current?.("mediapipe");
         } catch (e) {
+          lastError = e instanceof Error ? e.message : String(e);
           slot().release("load failed");
-          throw e;
+          setLines([`MediaPipe failed (${lastError}); falling back to InstantHMR`]);
         }
-      } else if (pairing) {
+      }
+      if (!ready && plan.includes("remote") && pairing) {
         // Laptop coach: no model runs on this device, so there is nothing for the crash ladder to guard.
         setRungLabel("laptop coach");
         const { est, reused } = slot().acquire(`remote|${pairing.server}|${pairing.token}`, () => new RemotePoseEstimator(pairing));
@@ -144,11 +153,12 @@ export function LiveCoach({
           if (!reused) await est.load();
           setLines(["laptop coach connected"]);
           ready = true;
+          onModelRef.current?.("remote");
         } catch (e) {
           slot().release("connect failed");
           throw e;
         }
-      } else {
+      } else if (!ready) {
       const begin = guard.begin(defaultRung(isIOS()), params.rung);
       setPreviousLog(begin.previousLog);
       if (begin.crashed) {
@@ -177,6 +187,7 @@ export function LiveCoach({
             },
           );
           ready = true;
+          onModelRef.current?.("instanthmr");
         } catch (e) {
           lastError = e instanceof Error ? e.message : String(e);
           slot().release("load failed"); // frees the worker's memory before trying a lighter setup
