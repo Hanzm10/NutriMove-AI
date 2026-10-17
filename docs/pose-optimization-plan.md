@@ -112,11 +112,32 @@ What this means:
   (per-model thresholds), plus Phase 3 robustness (require a fault on several frames in a row).
 - **MediaPipe full tracks InstantHMR much more closely than lite** (r = 0.95 vs 0.70) at the same iPhone speed.
 
+### Results: accuracy on `squat_mixed_13` (13 reps with labelled mistakes, MediaPipe full)
+
+| Setup | Rep accuracy | Too shallow F1 | Knee cave-in F1 | Forward lean F1 | Macro-F1 |
+|---|---|---|---|---|---|
+| InstantHMR (Day 6, both clips) | 100 % | – | – | – | **0.91** |
+| MediaPipe full, InstantHMR thresholds (eval report) | 77 % (10/13) | 0.87 | 0.00 | 0.00 | 0.29 |
+| MediaPipe full, best re-tuned thresholds (both clips) | 96 % | 0.92 | 0.22 | 0.00 | 0.38 |
+
+Best re-tune: top 155°, bottom 100°, shallow 145°, lean 62–75°.
+
+Per-rep signals explain why:
+- **Depth is fine after re-tuning.** MediaPipe reads the knee about 15–20° straighter, so the shallow line moves from 135° to 145°.
+- **Knee cave-in cannot be seen by MediaPipe from this camera angle.** On the five knees-in reps, its 3D knee spacing stays
+  at 1.03–1.08 of standing (InstantHMR: 0.72–0.88). Its 2D spacing is noise, because the knees overlap in a side/45° view
+  (the same holds for InstantHMR's 2D). Re-tuning cannot fix a signal that isn't there.
+- **Forward lean:** the one labelled lean rep reaches 81° vs 52–61° on good reps, so a ~70° limit would separate them.
+  With a single example it can't be scored reliably (it also lands on a misaligned rep).
+
 ### Decision
 
-- **Speed gate: passed.**
-- **Accuracy gate: pending re-tuning.** One good-form clip can't measure false negatives.
-- **Next:** go ahead with Phase 1 using **MediaPipe full** (GPU, CPU fallback), keeping InstantHMR as a fallback. Then
-  re-tune depth and lean thresholds for MediaPipe in Phase 2, using `squat_good_12` + `squat_mixed_13` replayed through
-  MediaPipe full. Until Phase 2 passes the PRD targets (rep accuracy ≥ 90 %, form F1 ≥ 0.75), keep InstantHMR thresholds
-  for InstantHMR.
+- **Speed gate: passed** (20–40× faster on iPhone).
+- **Accuracy gate: failed for squat form checks** (macro-F1 0.38 vs 0.75), because knee cave-in isn't detectable from the
+  recommended camera angle.
+- **For the demo:** keep InstantHMR (laptop coach) as is.
+- **After the demo:** a hybrid, if wanted:
+  - MediaPipe full on phones for rep counting, depth and lean, with re-tuned per-model thresholds.
+  - Knee cave-in checked only when the user films from the **front** (2D knee-inside-ankle test). This needs new
+    front-view clips to validate.
+  - Otherwise, the knee check stays on InstantHMR.
