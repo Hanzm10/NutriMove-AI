@@ -16,8 +16,9 @@ describe("exercise photos", () => {
     for (const slug of ["squat", "pushup", "reverse-lunge"]) expect(exercisePhotos(slug)).not.toBeNull();
   });
 
-  it("returns nothing for exercises without a matching photo", () => {
-    expect(exercisePhotos("bird-dog")).toBeNull();
+  it("gives every exercise in the catalog a photo or an illustration", () => {
+    for (const slug of catalog) expect(exercisePhotos(slug), slug).not.toBeNull();
+    expect(exercisePhotos("not-an-exercise")).toBeNull();
   });
 });
 

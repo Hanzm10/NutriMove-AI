@@ -286,7 +286,8 @@ function HowToPhotos({ slug, name }: { slug: string; name: string }) {
       <div className={cn("grid gap-2", photos.src.length > 1 ? "grid-cols-2" : "max-w-sm")}>
         {photos.src.map((src, i) => (
           <div key={src} className="relative overflow-hidden rounded-2xl bg-nm-soft">
-            <Image src={src} alt={`${name}: ${photos.labels[i]} position`} width={640} height={427} sizes="(min-width: 1024px) 320px, 50vw" className="h-auto w-full" />
+            {/* Illustrations are SVG: served as-is (Next's optimizer never handles SVG). */}
+            <Image src={src} alt={`${name}: ${photos.labels[i]}`} width={640} height={427} sizes="(min-width: 1024px) 320px, 50vw" unoptimized={photos.ext === "svg"} className="h-auto w-full" />
             <span className="absolute top-2 left-2 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold">
               {photos.src.length > 1 ? `${i + 1}. ` : ""}{photos.labels[i]}
             </span>
@@ -294,8 +295,10 @@ function HowToPhotos({ slug, name }: { slug: string; name: string }) {
         ))}
       </div>
       <figcaption className="mt-2 text-xs text-nm-muted">
-        {photos.note ? `${photos.note} ` : ""}Photo: {photos.credit.source}
-        {photos.credit.author ? ` / ${photos.credit.author}` : ""}, {photos.credit.license}.{" "}
+        {photos.note ? `${photos.note} ` : ""}
+        {photos.ext === "svg"
+          ? `Illustration: ${photos.credit.source}. `
+          : `Photo: ${photos.credit.source}${photos.credit.author ? ` / ${photos.credit.author}` : ""}, ${photos.credit.license}. `}
         <Link href="/credits" className="font-bold text-nm-primary-ink underline">Credits</Link>
       </figcaption>
     </figure>
