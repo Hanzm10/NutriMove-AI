@@ -49,9 +49,10 @@ export default function CreditsPage() {
         </p>
 
         <section aria-labelledby="photos-h" className="mt-8">
-          <h2 id="photos-h" className="text-xl font-bold">Exercise photos</h2>
+          <h2 id="photos-h" className="text-xl font-bold">Exercise photos and illustrations</h2>
           <p className="mt-1 text-sm text-nm-muted">
-            Only images whose license allows reuse on a public site (public domain, CC0, CC BY, CC BY-SA), resized to fit.
+            Photos only where one with an open license (public domain, CC0, CC BY, CC BY-SA) shows the move as we teach it,
+            resized to fit. The other exercises use original illustrations drawn for NutriMove AI.
           </p>
           <div className="mt-4 overflow-x-auto rounded-card border border-nm-line bg-white">
             <table className="w-full text-left text-sm">

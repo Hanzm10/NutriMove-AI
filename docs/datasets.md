@@ -47,8 +47,9 @@ The start and end photos on the workout screen (18 of the 30 exercises, `public/
 [Free Exercise DB](https://github.com/yuhonas/free-exercise-db), released into the public domain (Unlicense). It
 restructures the earlier [wrkout/exercises.json](https://github.com/wrkout/exercises.json) dataset; the photos' original
 source isn't documented there. They are shown only as visual guides (resized to 640 px) and are not used to build or tune
-the coach. Exercises without a photo that matches our version of the move show steps only
-(`src/lib/workout/exercise-photos.ts`). Every photo's source, author and license is listed on the public `/credits` page; new photos must use a
+the coach. The other 12 exercises, where no openly licensed photo matched our version of the move, use
+original illustrations made for this app by `scripts/draw-exercise-illustrations.mjs` (drawn with AI assistance; see the
+AI tool disclosure) (`src/lib/workout/exercise-photos.ts`). Every photo's source, author and license is listed on the public `/credits` page; new photos must use a
 license that allows reuse on a public site (public domain, CC0, CC BY, CC BY-SA), which a unit test checks.
 
 ## 2. Food and nutrition

@@ -86,4 +86,6 @@ Implementation was assisted by an AI coding assistant (Claude Code, by Anthropic
 design (PRD), chose the methods, directed each change, and reviewed and tested every pull request (CI runs lint,
 typecheck, unit tests and a production build). The team also recorded, labelled and validated all evaluation data and
 ran the pilot study. The pose model (InstantHMR) is pretrained by its authors and cited in `docs/datasets.md`. Every
-member is responsible for understanding and explaining their area.
+member is responsible for understanding and explaining their area. The exercise illustrations for the 12 moves without an
+openly licensed photo were drawn by a script written with the same assistant (`scripts/draw-exercise-illustrations.mjs`);
+photo and data credits are on the app's `/credits` page.
