@@ -48,7 +48,8 @@ The start and end photos on the workout screen (18 of the 30 exercises, `public/
 restructures the earlier [wrkout/exercises.json](https://github.com/wrkout/exercises.json) dataset; the photos' original
 source isn't documented there. They are shown only as visual guides (resized to 640 px) and are not used to build or tune
 the coach. Exercises without a photo that matches our version of the move show steps only
-(`src/lib/workout/exercise-photos.ts`).
+(`src/lib/workout/exercise-photos.ts`). Every photo's source, author and license is listed on the public `/credits` page; new photos must use a
+license that allows reuse on a public site (public domain, CC0, CC BY, CC BY-SA), which a unit test checks.
 
 ## 2. Food and nutrition
 

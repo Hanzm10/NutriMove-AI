@@ -32,6 +32,9 @@ export default function PrivacyPage() {
         <Section title="Not medical advice">
           NutriMove AI is not a medical device and does not diagnose, treat or cure any condition.
         </Section>
+        <p className="text-sm text-nm-muted">
+          Third-party data, models and photos are listed on the <a href="/credits" className="font-bold text-nm-primary-ink underline">credits page</a>.
+        </p>
       </main>
     </div>
   );
