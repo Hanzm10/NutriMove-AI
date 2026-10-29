@@ -41,6 +41,15 @@ check the download terms on each site.
 | **Fit3D / AIFit** — Fieraru et al., CVPR 2021 (fit3d.imar.ro) | 3M+ images with 3D motion capture, 37+ repeated exercises by trainers and trainees | 3D pose quality on fitness movements; repetition segmentation |
 | **RepCount** — Hu et al., *TransRAC*, CVPR 2022 | 1,041 workout videos (squats, push-ups, …) with start / end of every repetition | Rep-counting accuracy on people other than the team |
 
+### 1d. Exercise how-to photos (display only)
+
+The start and end photos on the workout screen (18 of the 30 exercises, `public/exercises/<slug>/`) come from
+[Free Exercise DB](https://github.com/yuhonas/free-exercise-db), released into the public domain (Unlicense). It
+restructures the earlier [wrkout/exercises.json](https://github.com/wrkout/exercises.json) dataset; the photos' original
+source isn't documented there. They are shown only as visual guides (resized to 640 px) and are not used to build or tune
+the coach. Exercises without a photo that matches our version of the move show steps only
+(`src/lib/workout/exercise-photos.ts`).
+
 ## 2. Food and nutrition
 
 | Source | Used for | Where |

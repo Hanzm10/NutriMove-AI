@@ -12,6 +12,7 @@ export const CUES: Record<string, Cue> = {
   PU_DEPTH: { code: "PU_DEPTH", message: "Lower your chest more", severity: "depth" },
   PU_HIP_SAG: { code: "PU_HIP_SAG", message: "Tighten your core, hips are sagging", severity: "safety" },
   PU_HIP_PIKE: { code: "PU_HIP_PIKE", message: "Lower your hips", severity: "posture" },
+  PU_FLOOR: { code: "PU_FLOOR", message: "Get down on the floor for push-ups", severity: "posture" },
   LU_DEPTH: { code: "LU_DEPTH", message: "Drop your back knee lower", severity: "depth" },
   LU_TORSO: { code: "LU_TORSO", message: "Stay upright", severity: "posture" },
 };
