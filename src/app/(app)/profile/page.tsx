@@ -8,6 +8,7 @@ import { todayISO } from "@/lib/dates";
 import { GOAL_OPTIONS } from "@/lib/onboarding/schema";
 import { requireUser } from "@/lib/supabase/auth";
 import { DeleteAccount, ProfileForm, SettingsForm } from "./profile-forms";
+import { VoiceSettings } from "./voice-settings";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -76,6 +77,12 @@ export default async function ProfilePage() {
             larger_text: settings?.larger_text ?? false, high_contrast: settings?.high_contrast ?? false,
             reduce_motion: settings?.reduce_motion ?? false, tts_cues: settings?.tts_cues ?? true, water_goal: settings?.water_goal ?? 8,
           }} />
+        </NmCard>
+
+        <NmCard aria-labelledby="voice-h">
+          <Eyebrow>Voice & sound</Eyebrow>
+          <h2 id="voice-h" className="mt-1 mb-4 text-xl font-bold">Hear your coach</h2>
+          <VoiceSettings />
         </NmCard>
 
         <section aria-labelledby="survey-h" className="rounded-card border border-nm-line bg-white p-6 sm:p-7">

@@ -49,9 +49,13 @@
       "shallowFloor": 110,
       "bodyLineMin": 160,
       "hipOffsetM": 0.06,
-      "minVisibility": 0.5
+      "minVisibility": 0.5,
+      "lyingMinDeg": 50
     },
     "visible": { "parts": ["shoulder", "elbow", "wrist", "hip", "ankle"], "min": "minVisibility" },
+    "gates": [
+      { "rule": "bodyHorizontal", "code": "PU_FLOOR", "min": "lyingMinDeg" }
+    ],
     "checks": [
       { "rule": "hipLine", "code": "PU_HIP_SAG", "pikeCode": "PU_HIP_PIKE", "lineMin": "bodyLineMin", "offset": "hipOffsetM" }
     ]

@@ -14,6 +14,8 @@ import { PoseSmoother } from "@/lib/pose/one-euro";
 import { deviceClass, summarizeSpeed } from "@/lib/pose/speed";
 import type { CanonicalPose } from "@/lib/pose/types";
 import { cn } from "@/lib/utils";
+import { beep, speak as say, unlockAudio } from "@/lib/voice/speaker";
+import { countdownCue, formatClock, setSeconds } from "@/lib/workout/countdown";
 import { LiveCoach, type Stats } from "./live-coach";
 
 const Skeleton3D = dynamic(() => import("./skeleton-3d"), { ssr: false });
@@ -54,19 +56,26 @@ export function CoachSession({
   const [restLeft, setRestLeft] = useState(0);
   const [voice, setVoice] = useState(voiceDefault);
   const [announce, setAnnounce] = useState({ polite: "", assertive: "" });
+  // Guide clock for the set (a guide, not a limit: the set ends on reps or "Finish set", never on time).
+  const workS = setSeconds(false, targetReps);
+  const [clockNow, setClockNow] = useState(0);
+  const [setEndsAt, setSetEndsAt] = useState(0);
+  const lastLeft = useRef(workS + 1);
   const [summaryInfo, setSummaryInfo] = useState<{ startedAt: string; speed: SessionSpeed } | null>(null);
   const voiceRef = useRef(voice);
   useEffect(() => { voiceRef.current = voice; }, [voice]);
 
   const setMode = (m: Mode) => { modeRef.current = m; setModeState(m); };
 
+  // Uses this device's voice settings (Profile → Voice & sound).
   function speak(text: string) {
-    if (!voiceRef.current || typeof speechSynthesis === "undefined") return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1.05;
-    u.lang = "en-US";
-    speechSynthesis.speak(u);
+    if (voiceRef.current) say(text);
+  }
+
+  function countdown(c: ReturnType<typeof countdownCue>) {
+    if (!c || !voiceRef.current) return;
+    if (c.beep) beep(c.beep);
+    if (c.say) say(c.say);
   }
 
   function finishSet() {
@@ -108,12 +117,29 @@ export function CoachSession({
     analyzer.current = createAnalyzer(kind, rulesFor(m));
   }
 
-  // Rest countdown → next set automatically.
+  // Rest countdown (with beeps for the last seconds) → next set automatically.
   useEffect(() => {
     if (mode !== "rest") return;
-    const t = setTimeout(() => (restLeft <= 1 ? startNextSet() : setRestLeft((r) => r - 1)), 1000);
+    const t = setTimeout(() => {
+      countdown(countdownCue(restLeft, restLeft - 1, restS, { phase: "rest", quiet: true }));
+      if (restLeft <= 1) startNextSet();
+      else setRestLeft((r) => r - 1);
+    }, 1000);
     return () => clearTimeout(t);
   }, [mode, restLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Set guide clock: "10 seconds left", beeps for the last 5, "Time!"; quiet so form cues aren't talked over.
+  useEffect(() => {
+    if (mode !== "active" || !ready) return;
+    const id = setInterval(() => {
+      const t = performance.now();
+      setClockNow(t);
+      const left = Math.ceil((setStart.current + workS * 1000 - t) / 1000);
+      countdown(countdownCue(lastLeft.current, left, workS, { phase: "work", quiet: true }));
+      lastLeft.current = left;
+    }, 250);
+    return () => clearInterval(id);
+  }, [mode, ready, workS]);
 
   function onPose(raw: CanonicalPose) {
     const pose = smoother.current.smooth(raw);
@@ -125,6 +151,9 @@ export function CoachSession({
       if (pose.timestamp - readySince.current > 1000) {
         setReady(true);
         setStart.current = performance.now();
+        setClockNow(setStart.current);
+        setSetEndsAt(setStart.current + workS * 1000);
+        lastLeft.current = workS + 1;
         speak("Ready. Go!");
         setAnnounce((a) => ({ ...a, polite: "Ready. Start your reps." }));
       }
@@ -171,6 +200,17 @@ export function CoachSession({
           </p>
         )}
       </div>
+      {ready && mode === "active" && clockNow > 0 && (() => {
+        const left = Math.ceil((setEndsAt - clockNow) / 1000);
+        return (
+          <div className="absolute top-3 right-3 rounded-2xl bg-white/95 px-4 py-3 text-right shadow-card">
+            <p className="text-xs font-bold text-nm-muted">{left < 0 ? "Time's up · your pace" : "Set time"}</p>
+            <p role="timer" aria-label="Set time left" className={cn("text-3xl leading-none font-black tabular-nums", left < 0 && "text-nm-warning")}>
+              {formatClock(left)}
+            </p>
+          </div>
+        );
+      })()}
       {!ready && mode === "active" && (
         <p className="absolute inset-x-4 bottom-4 rounded-xl bg-nm-ink/90 p-3 text-center font-bold text-white">Hold still… getting ready</p>
       )}
@@ -193,7 +233,8 @@ export function CoachSession({
   );
 
   return (
-    <div className="grid gap-5">
+    // Any tap here (Start, Voice, Finish set) unlocks sound on iPhones, which only play audio a tap started.
+    <div className="grid gap-5" onPointerDownCapture={unlockAudio}>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-nm-line bg-white p-5">
         <div>
           <p className="text-xs font-bold tracking-[0.12em] text-nm-primary-ink uppercase">{setup.camera}</p>

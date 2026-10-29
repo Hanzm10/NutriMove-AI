@@ -1,12 +1,17 @@
 "use client";
 
-import { Camera, CheckCircle2, Clock, Dumbbell, Flame, RefreshCw, Sparkles } from "lucide-react";
+import { Camera, CheckCircle2, Clock, Dumbbell, Flame, RefreshCw, Sparkles, Timer } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { addDaysISO, weekdayLabel } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { SetTimer } from "@/components/workout/set-timer";
+import { unlockAudio } from "@/lib/voice/speaker";
+import { setSeconds } from "@/lib/workout/countdown";
+import { exercisePhotos } from "@/lib/workout/exercise-photos";
 import { TIMED_SLUGS, estimateSessionMinutes } from "@/lib/workout/estimate";
 import type { PlanView } from "@/lib/workout/plan";
 import { regeneratePlan, saveSession } from "./actions";
@@ -152,6 +157,8 @@ function Stat({ icon: Icon, label, value }: { icon: typeof Clock; label: string;
 function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: number; total: number; canLog: boolean }) {
   const ex = item.exercise!;
   const [logging, setLogging] = useState(false);
+  const [timing, setTiming] = useState(false);
+  const timed = TIMED_SLUGS.has(ex.slug);
   const [reps, setReps] = useState<number[]>(() => Array(item.sets).fill(item.reps));
   const [rating, setRating] = useState<"easy" | "right" | "hard">("right");
   const [pending, start] = useTransition();
@@ -182,6 +189,7 @@ function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: num
         </div>
         <p className="rounded-xl bg-nm-soft px-3 py-2 text-sm font-bold">{item.sets} {item.sets === 1 ? "set" : "sets"} · {amount(item)}</p>
       </div>
+      <HowToPhotos slug={ex.slug} name={ex.name} />
       <ol className="mt-6 grid gap-4 sm:grid-cols-3">
         {ex.steps.map((s, i) => (
           <li key={s} className="border-t border-nm-line pt-3">
@@ -195,6 +203,17 @@ function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: num
           <p className="flex items-center gap-2 font-bold"><Sparkles className="size-4 text-nm-primary-dark" aria-hidden /> Form cue</p>
           <p className="mt-1 text-sm">{ex.cues.join(" ")}</p>
         </div>
+      )}
+
+      {timing && (
+        <SetTimer
+          sets={item.sets}
+          workS={setSeconds(timed, item.reps)}
+          restS={item.rest_s}
+          goal={timed ? `hold ${item.reps} s` : `aim for ${item.reps} reps`}
+          onDone={() => canLog && setLogging(true)}
+          onClose={() => setTiming(false)}
+        />
       )}
 
       {logging ? (
@@ -238,6 +257,11 @@ function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: num
               <Camera className="size-4" aria-hidden /> Start camera coach
             </Link>
           )}
+          {!timing && (
+            <Button variant="outline" onClick={() => { unlockAudio(); setTiming(true); }} className="h-12 rounded-xl bg-white px-5 font-bold">
+              <Timer aria-hidden /> Start set timer
+            </Button>
+          )}
           {canLog && (
             <Button
               variant={ex.pose_supported ? "outline" : "default"}
@@ -250,5 +274,30 @@ function ExerciseDetail({ item, index, total, canLog }: { item: Item; index: num
         </div>
       )}
     </section>
+  );
+}
+
+/** Start and end position photos, so the move is clear at a glance. */
+function HowToPhotos({ slug, name }: { slug: string; name: string }) {
+  const photos = exercisePhotos(slug);
+  if (!photos) return null;
+  return (
+    <figure className="mt-5">
+      <div className={cn("grid gap-2", photos.src.length > 1 ? "grid-cols-2" : "max-w-sm")}>
+        {photos.src.map((src, i) => (
+          <div key={src} className="relative overflow-hidden rounded-2xl bg-nm-soft">
+            <Image src={src} alt={`${name}: ${photos.labels[i]} position`} width={640} height={427} sizes="(min-width: 1024px) 320px, 50vw" className="h-auto w-full" />
+            <span className="absolute top-2 left-2 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold">
+              {photos.src.length > 1 ? `${i + 1}. ` : ""}{photos.labels[i]}
+            </span>
+          </div>
+        ))}
+      </div>
+      <figcaption className="mt-2 text-xs text-nm-muted">
+        {photos.note ? `${photos.note} ` : ""}Photo: {photos.credit.source}
+        {photos.credit.author ? ` / ${photos.credit.author}` : ""}, {photos.credit.license}.{" "}
+        <Link href="/credits" className="font-bold text-nm-primary-ink underline">Credits</Link>
+      </figcaption>
+    </figure>
   );
 }

@@ -16,8 +16,9 @@ export type CheckDef = { rule: string; code: string; below?: string; [setting: s
 /**
  * One gate: `rule` from GATES, judged at the deepest frame of each attempt. A failing gate voids the attempt
  * (`on: "any"`, the default) or only a full rep (`on: "rep"`, so shallow attempts still get the depth cue).
+ * With a `code`, a voided attempt also raises that cue (e.g. "Get down on the floor for push-ups").
  */
-export type GateDef = { rule: string; on?: string; [setting: string]: Ref | undefined };
+export type GateDef = { rule: string; on?: string; code?: string; [setting: string]: Ref | undefined };
 
 export type ExerciseDef = {
   /** Angle at the middle joint (e.g. hip-knee-ankle), measured on both sides and combined. */
@@ -119,6 +120,22 @@ const kneeAngles = (j: Joints) => [angleAt(j.l_hip, j.l_knee, j.l_ankle), angleA
 
 /** Edge-case rules (Phase 3): movements that bend the driver joint without being the exercise. */
 export const GATES: Record<string, GateFactory> = {
+  /**
+   * Body lying down: the shoulder-to-ankle line at least `min` degrees from vertical, in 3D so it holds whichever way
+   * the camera faces (in 2D a push-up filmed head-on looks upright). Standing measures under 30° on every team clip,
+   * push-ups about 80°: bending the arms while standing is never a push-up.
+   */
+  bodyHorizontal: (s) => {
+    const min = s.num("min");
+    return {
+      pass: ({ j }) => {
+        const sh = mid(j.l_shoulder, j.r_shoulder), an = mid(j.l_ankle, j.r_ankle);
+        const d = sub(an, sh);
+        return (Math.atan2(Math.hypot(d[0], d[2]), Math.abs(d[1])) * 180) / Math.PI >= min;
+      },
+    };
+  },
+
   /** Both knees bent below `max` degrees: one knee raised (or a march) is never a squat or lunge. */
   bothLegsBend: (s) => {
     const max = s.num("max");
@@ -210,7 +227,7 @@ export function buildAnalyzer(
     if (!make) throw new Error(`${kind}: unknown gate "${gd.rule}"`);
     const on = gd.on ?? "any";
     if (on !== "any" && on !== "rep") throw new Error(`${kind} gate "${gd.rule}": "on" must be "any" or "rep"`);
-    return { ...make(settings(kind, gd, p), p), name: gd.rule, on };
+    return { ...make(settings(kind, gd, p), p), name: gd.rule, on, code: gd.code };
   });
   const visible = def.visible && {
     parts: def.visible.parts.map((part) => {
@@ -222,7 +239,8 @@ export function buildAnalyzer(
   };
   const inView = (pose: CanonicalPose) =>
     !visible || !pose.visibility || visible.parts.every((pair) => Math.max(...pair.map((n) => pose.visibility![n] ?? 1)) >= visible.min);
-  const codes = [def.depthCode, ...checks.flatMap((ch) => ch.codes)];
+  const gateCues = Object.fromEntries(gates.filter((g) => g.code).map((g) => [g.name, g.code!]));
+  const codes = [def.depthCode, ...checks.flatMap((ch) => ch.codes), ...Object.values(gateCues)];
   for (const code of codes) if (!known.has(code)) throw new Error(`${kind}: no cue for "${code}"`);
 
   const angleOf = (j: Joints, s: JointName[]) => angleAt(j[s[0]!], j[s[1]!], j[s[2]!]);
@@ -231,6 +249,7 @@ export function buildAnalyzer(
       kind,
       counter: { top: p.top as number, bottom: p.bottom as number, shallowFloor: p.shallowFloor as number },
       depthCode: def.depthCode,
+      gateCues,
       cues: Object.fromEntries(codes.map((code) => [code, cueCatalog[code]!])),
       metrics: (pose) => {
         const j = pose.joints3d;

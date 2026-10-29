@@ -64,6 +64,7 @@ describe("exercise engine", () => {
     expect(build({ driver: { joints: ["hip", "knee", "ankle"], combine: "median" } })).toThrow(/unknown driver combine/);
     expect(build({ params: { top: 150, bottom: 95 } })).toThrow(/shallowFloor must be a number/);
     expect(build({ gates: [{ rule: "noSuchGate" }] })).toThrow(/unknown gate "noSuchGate"/);
+    expect(build({ gates: [{ rule: "bodyHorizontal", code: "NO_CUE", min: 50 }] })).toThrow(/no cue for "NO_CUE"/);
     expect(build({ gates: [{ rule: "bothLegsBend", on: "partial", max: "top" }] })).toThrow(/"on" must be "any" or "rep"/);
     expect(build({ gates: [{ rule: "hipsDrop", maxRatio: "nope" }] })).toThrow(/unknown param "nope"/);
     expect(build({ visible: { parts: ["tail"], min: 0.5 } })).toThrow(/unknown body part "tail"/);

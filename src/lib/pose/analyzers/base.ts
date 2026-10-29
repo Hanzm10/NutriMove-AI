@@ -10,6 +10,8 @@ export type AnalyzerSpec = {
   counter: Omit<RepCounterConfig, "minRepMs" | "maxRepMs" | "minBottomFrames" | "hysteresis">;
   /** Code reported for shallow (partial) reps. */
   depthCode: string;
+  /** Cue raised when a gate voids an attempt, by gate name. */
+  gateCues?: Record<string, string>;
   cues: Record<string, Cue>;
   metrics: (pose: CanonicalPose) => FrameMetrics | null;
 };
@@ -66,6 +68,9 @@ export class BaseAnalyzer implements ExerciseAnalyzer {
     const voidedBy = outcome?.kind === "rep" ? (g?.any ?? g?.rep) : outcome?.kind === "partial" ? g?.any : null;
     if (outcome && voidedBy) {
       events.push({ type: "ignored", gate: voidedBy, minAngle: outcome.minAngle });
+      const code = this.spec.gateCues?.[voidedBy];
+      const cue = code ? this.pickCue([code], t) : null;
+      if (cue) events.push({ type: "cue", cue });
       this.endAttempt();
     } else if (outcome?.kind === "rep") {
       this.reps++;

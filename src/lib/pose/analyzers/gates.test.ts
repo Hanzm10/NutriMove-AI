@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { CanonicalPose, JointName } from "../types";
 import { createAnalyzer, rulesFor, type PoseModel } from "./exercises";
-import { repTrajectory, squatPose } from "./synthetic";
+import { pushupPose, repTrajectory, squatPose } from "./synthetic";
 import type { AnalyzerEvent, ExerciseKind } from "./types";
 
 const FRAME = 1000 / 30;
@@ -89,3 +89,34 @@ describe("visibility gate", () => {
     expect(run("squat", "instanthmr", movements(3, 80, (k, t) => squatPose(k, t))).reps).toHaveLength(3);
   });
 });
+
+describe("push-ups only count lying down", () => {
+  /** The same push-up arm movement, rotated so the body is upright (the push-up motion done standing). */
+  const standing = (p: CanonicalPose): CanonicalPose => ({
+    ...p,
+    joints3d: Object.fromEntries(Object.entries(p.joints3d!).map(([n, [x, y, z]]) => [n, [x, z, -y]])) as unknown as CanonicalPose["joints3d"],
+  });
+  const pushups = (pose: (k: number, t: number) => CanonicalPose) => {
+    const out: CanonicalPose[] = [];
+    let t = 0;
+    for (let r = 0; r < 3; r++) {
+      for (const k of repTrajectory(170, 70, 2000)) out.push(pose(k, (t += FRAME)));
+      for (let i = 0; i < 10; i++) out.push(pose(170, (t += FRAME)));
+    }
+    return out;
+  };
+
+  it.each(MODELS)("counts push-ups on the floor (%s)", (model) => {
+    expect(run("pushup", model, pushups((k, t) => pushupPose(k, t))).reps).toHaveLength(3);
+  });
+
+  it.each(MODELS)("never counts the push-up arm movement done standing, and says to get down (%s)", (model) => {
+    const r = run("pushup", model, pushups((k, t) => standing(pushupPose(k, t))));
+    expect(r.reps).toHaveLength(0);
+    expect(r.partials).toHaveLength(0);
+    expect(r.ignored.map((e) => e.gate)).toEqual(["bodyHorizontal", "bodyHorizontal", "bodyHorizontal"]);
+    expect(r.cues).toContain("PU_FLOOR");
+    expect(r.cues).not.toContain("PU_DEPTH");
+  });
+});
+
