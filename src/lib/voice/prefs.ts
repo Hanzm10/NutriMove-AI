@@ -9,9 +9,11 @@ export type VoicePrefs = {
   voiceURI: string | null;
   /** Short beeps for the countdown and set start/end: they carry better than speech in a noisy room. */
   beeps: boolean;
+  /** Camera coach says each rep's number as it is counted ("one", "two", ...), so the user needn't watch the screen. */
+  countReps: boolean;
 };
 
-export const DEFAULT_VOICE_PREFS: VoicePrefs = { volume: 1, rate: 0.95, voiceURI: null, beeps: true };
+export const DEFAULT_VOICE_PREFS: VoicePrefs = { volume: 1, rate: 0.95, voiceURI: null, beeps: true, countReps: true };
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) =>
   typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
@@ -30,6 +32,7 @@ export function parseVoicePrefs(raw: string | null): VoicePrefs {
     rate: clamp(o.rate, 0.7, 1.3, d.rate),
     voiceURI: typeof o.voiceURI === "string" && o.voiceURI ? o.voiceURI : null,
     beeps: typeof o.beeps === "boolean" ? o.beeps : d.beeps,
+    countReps: typeof o.countReps === "boolean" ? o.countReps : d.countReps,
   };
 }
 
@@ -48,4 +51,13 @@ export function englishVoices<V extends VoiceLike>(voices: readonly V[]): V[] {
 /** The voice to speak with: the chosen one if this device has it, else the best English voice, else the default. */
 export function pickVoice<V extends VoiceLike>(voices: readonly V[], voiceURI: string | null): V | null {
   return voices.find((v) => v.voiceURI === voiceURI) ?? englishVoices(voices)[0] ?? null;
+}
+
+/**
+ * What the camera coach says when a rep is counted: the number, or nothing when counting is off. The last rep of a set
+ * returns null too, because the "Set done" message that follows says the number itself (one utterance, not two).
+ */
+export function repCallout(rep: number, targetReps: number, prefs: Pick<VoicePrefs, "countReps">): string | null {
+  if (!prefs.countReps || rep < 1 || rep >= targetReps) return null;
+  return String(rep);
 }

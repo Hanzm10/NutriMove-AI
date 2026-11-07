@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_VOICE_PREFS, englishVoices, parseVoicePrefs, pickVoice } from "./prefs";
+import { DEFAULT_VOICE_PREFS, englishVoices, parseVoicePrefs, pickVoice, repCallout } from "./prefs";
 
 const v = (name: string, lang: string, localService = true) => ({ voiceURI: `uri:${name}`, name, lang, localService });
 
@@ -10,7 +10,8 @@ describe("voice settings", () => {
   });
 
   it("keeps stored values in range and ignores junk", () => {
-    expect(parseVoicePrefs('{"volume":3,"rate":0.1,"voiceURI":"x","beeps":false}')).toEqual({ volume: 1, rate: 0.7, voiceURI: "x", beeps: false });
+    expect(parseVoicePrefs('{"volume":3,"rate":0.1,"voiceURI":"x","beeps":false}')).toEqual({ volume: 1, rate: 0.7, voiceURI: "x", beeps: false, countReps: true });
+    expect(parseVoicePrefs('{"countReps":false}').countReps).toBe(false);
     expect(parseVoicePrefs('{"volume":"loud","rate":null,"voiceURI":7}')).toEqual(DEFAULT_VOICE_PREFS);
     expect(parseVoicePrefs("not json")).toEqual(DEFAULT_VOICE_PREFS);
   });
@@ -25,5 +26,13 @@ describe("voice settings", () => {
     expect(pickVoice(voices, "uri:Fred")!.name).toBe("Fred");
     expect(pickVoice(voices, "uri:from-another-phone")!.name).toBe("Samantha (Enhanced)");
     expect(pickVoice([v("Thomas", "fr-FR")], null)).toBeNull();
+  });
+
+  it("counts reps out loud by default, and leaves the last rep to the set-done message", () => {
+    expect(DEFAULT_VOICE_PREFS.countReps).toBe(true);
+    expect([1, 2, 11].map((n) => repCallout(n, 12, DEFAULT_VOICE_PREFS))).toEqual(["1", "2", "11"]);
+    expect(repCallout(12, 12, DEFAULT_VOICE_PREFS)).toBeNull();
+    expect(repCallout(13, 12, DEFAULT_VOICE_PREFS)).toBeNull();
+    expect(repCallout(3, 12, { countReps: false })).toBeNull();
   });
 });

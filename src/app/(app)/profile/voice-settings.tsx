@@ -22,6 +22,7 @@ function useVoices() {
 }
 
 const SAMPLE = "Ten seconds left. Push your knees out.";
+const COUNT_SAMPLE = "One. Two. Three.";
 
 /** Voice cue volume, speed, voice and beeps for this device, with a test button (saved instantly). */
 export function VoiceSettings() {
@@ -32,7 +33,7 @@ export function VoiceSettings() {
   function test() {
     unlockAudio();
     beep("go", prefs);
-    setTimeout(() => speak(SAMPLE, prefs), 500);
+    setTimeout(() => speak(prefs.countReps ? `${COUNT_SAMPLE} ${SAMPLE}` : SAMPLE, prefs), 500);
   }
 
   return (
@@ -84,6 +85,16 @@ export function VoiceSettings() {
         <input id="voice-beeps" type="checkbox" role="switch" className="peer sr-only" checked={prefs.beeps} onChange={(e) => set({ beeps: e.target.checked })} />
         <span aria-hidden className="relative h-7 w-12 shrink-0 rounded-full bg-nm-line ring-1 ring-nm-muted/50 transition-colors peer-checked:bg-nm-primary-dark peer-checked:ring-nm-primary-dark after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
         <span className="sr-only">{prefs.beeps ? "On" : "Off"}</span>
+      </label>
+
+      <label htmlFor="voice-count" className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl bg-nm-canvas p-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nm-ink">
+        <span className="min-w-0">
+          <span className="block font-bold">Count reps out loud</span>
+          <span className="block text-xs text-nm-muted">The camera coach says each rep&apos;s number as it counts it, so you don&apos;t need to watch the screen.</span>
+        </span>
+        <input id="voice-count" type="checkbox" role="switch" className="peer sr-only" checked={prefs.countReps} onChange={(e) => set({ countReps: e.target.checked })} />
+        <span aria-hidden className="relative h-7 w-12 shrink-0 rounded-full bg-nm-line ring-1 ring-nm-muted/50 transition-colors peer-checked:bg-nm-primary-dark peer-checked:ring-nm-primary-dark after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+        <span className="sr-only">{prefs.countReps ? "On" : "Off"}</span>
       </label>
 
       <div className="flex flex-wrap items-center gap-3">

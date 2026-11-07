@@ -41,11 +41,14 @@ export function subscribeVoicePrefs(onChange: () => void) {
 
 const synth = () => (typeof speechSynthesis === "undefined" ? null : speechSynthesis);
 
-/** Speaks now, cutting off anything still being said (cues must be current, not queued). */
-export function speak(text: string, prefs: VoicePrefs = getVoicePrefs()) {
+/**
+ * Speaks now, cutting off anything still being said (cues must be current, not queued). With `queue`, waits for what is
+ * being said instead: a rep count must not cut off a form cue.
+ */
+export function speak(text: string, prefs: VoicePrefs = getVoicePrefs(), opts: { queue?: boolean } = {}) {
   const s = synth();
   if (!s) return;
-  s.cancel();
+  if (!opts.queue) s.cancel();
   const u = new SpeechSynthesisUtterance(text);
   const voice = pickVoice(s.getVoices(), prefs.voiceURI);
   if (voice) {
