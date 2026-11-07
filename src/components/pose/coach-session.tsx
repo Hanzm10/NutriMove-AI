@@ -14,7 +14,8 @@ import { PoseSmoother } from "@/lib/pose/one-euro";
 import { deviceClass, summarizeSpeed } from "@/lib/pose/speed";
 import type { CanonicalPose } from "@/lib/pose/types";
 import { cn } from "@/lib/utils";
-import { beep, speak as say, unlockAudio } from "@/lib/voice/speaker";
+import { repCallout } from "@/lib/voice/prefs";
+import { beep, getVoicePrefs, speak as say, unlockAudio } from "@/lib/voice/speaker";
 import { countdownCue, formatClock, setSeconds } from "@/lib/workout/countdown";
 import { LiveCoach, type Stats } from "./live-coach";
 
@@ -68,8 +69,8 @@ export function CoachSession({
   const setMode = (m: Mode) => { modeRef.current = m; setModeState(m); };
 
   // Uses this device's voice settings (Profile → Voice & sound).
-  function speak(text: string) {
-    if (voiceRef.current) say(text);
+  function speak(text: string, queue = false) {
+    if (voiceRef.current) say(text, undefined, { queue });
   }
 
   function countdown(c: ReturnType<typeof countdownCue>) {
@@ -78,7 +79,8 @@ export function CoachSession({
     if (c.say) say(c.say);
   }
 
-  function finishSet() {
+  /** `lastRep`: the rep that ended the set, said first when rep counting is on ("Twelve. Set 1 done..."). */
+  function finishSet(lastRep?: number) {
     const a = analyzer.current;
     const result: SetResult = {
       reps: a.reps, good: a.goodReps, errorCounts: { ...a.errorCounts },
@@ -86,17 +88,18 @@ export function CoachSession({
     };
     const next = [...sets, result];
     setSets(next);
+    const count = lastRep && getVoicePrefs().countReps ? `${lastRep}. ` : "";
     if (next.length >= targetSets) {
       setSummaryInfo({
         startedAt: sessionStart.current,
         speed: { ...summarizeSpeed(fpsSamples.current, latencySamples.current), remote: remoteRef.current, model: model.current },
       });
       setMode("summary");
-      speak("Great work. Session complete.");
+      speak(`${count}Great work. Session complete.`);
     } else {
       setMode("rest");
       setRestLeft(restS);
-      speak(`Set ${next.length} done. Rest for ${restS} seconds.`);
+      speak(`${count}Set ${next.length} done. Rest for ${restS} seconds.`);
     }
   }
 
@@ -165,7 +168,10 @@ export function CoachSession({
         const text = ev.good ? "Good rep" : (CUES[ev.errors[0]!]?.message ?? "Needs work");
         setLastRep({ good: ev.good, text });
         setAnnounce((a) => ({ ...a, polite: `Rep ${ev.index}. ${ev.good ? "Good." : text}` }));
-        if (ev.index >= targetReps) finishSet();
+        // Counts out loud ("1", "2", ...), queued so it never cuts off a form cue; the last rep goes with "Set done".
+        const callout = repCallout(ev.index, targetReps, getVoicePrefs());
+        if (callout) speak(callout, true);
+        if (ev.index >= targetReps) finishSet(ev.index);
       } else if (ev.type === "partial") {
         setLastRep({ good: false, text: "Not counted — go deeper" });
       } else if (ev.type === "cue") {
@@ -246,7 +252,7 @@ export function CoachSession({
             {voice ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />} Voice cues {voice ? "on" : "off"}
           </Button>
           {mode === "active" && ready && (
-            <Button variant="outline" className="h-11 rounded-xl bg-white font-bold" onClick={finishSet}>Finish set</Button>
+            <Button variant="outline" className="h-11 rounded-xl bg-white font-bold" onClick={() => finishSet()}>Finish set</Button>
           )}
         </div>
       </div>
